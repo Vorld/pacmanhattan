@@ -1,0 +1,29 @@
+{
+  "ghostSpeed": 34,
+  "pacman": {
+    "baseSpeed": 26,
+    "speedGainPerMinute": 3,
+    "maxSpeed": 39,
+    "reactionDelayMs": 700,
+    "repathIntervalMs": 350,
+    "startGraceMs": 2500,
+    "spawnMinDistance": 700,
+    "spawnMaxDistance": 1100
+  },
+  "catchRadius": 14,
+  "warnDistance": 400,
+  "arrivalRadius": 30,
+  "discoveryRadius": 140,
+  "targetSpawnMinDistance": 1500,
+  "targetSpawnMaxDistance": 3500,
+  "zoom": { "min": 15, "max": 17.5, "initial": 16.3 },
+  "scoring": {
+    "pointsPerSecond": 2,
+    "targetBaseBonus": 1500,
+    "hintPenalty": 150,
+    "targetMinBonus": 300,
+    "difficultyMultiplier": { "1": 1, "2": 1.3, "3": 1.6 }
+  },
+  "map": { "styleUrl": "https://tiles.openfreemap.org/styles/dark" },
+  "analytics": { "endpoint": null }
+}

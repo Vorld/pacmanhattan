@@ -1,0 +1,771 @@
+{
+ "landmarks": [
+  {
+   "id": "empire-state",
+   "name": "Empire State Building",
+   "lat": 40.7484,
+   "lon": -73.9857,
+   "neighborhood": "Midtown",
+   "points": 150,
+   "fact": "Finished in 1931 in just 410 days, it was the world's tallest building for nearly 40 years.",
+   "node": 6861,
+   "snapDistance": 34
+  },
+  {
+   "id": "times-square",
+   "name": "Times Square",
+   "lat": 40.758,
+   "lon": -73.9855,
+   "neighborhood": "Theater District",
+   "points": 100,
+   "fact": "Named for The New York Times, which moved here in 1904. The New Year's Eve ball first dropped in 1907.",
+   "node": 6862,
+   "snapDistance": 1
+  },
+  {
+   "id": "rockefeller",
+   "name": "Rockefeller Center",
+   "lat": 40.7587,
+   "lon": -73.9787,
+   "neighborhood": "Midtown",
+   "points": 120,
+   "fact": "Built during the Great Depression, it employed some 40,000 people. The famous tree tradition began in 1931.",
+   "node": 6863,
+   "snapDistance": 4
+  },
+  {
+   "id": "chrysler",
+   "name": "Chrysler Building",
+   "lat": 40.7516,
+   "lon": -73.9755,
+   "neighborhood": "Midtown East",
+   "points": 120,
+   "fact": "Its stainless-steel spire was assembled secretly inside the building and hoisted into place in 90 minutes.",
+   "node": 6864,
+   "snapDistance": 32
+  },
+  {
+   "id": "un",
+   "name": "United Nations Headquarters",
+   "lat": 40.7489,
+   "lon": -73.968,
+   "neighborhood": "Turtle Bay",
+   "points": 150,
+   "fact": "The land along the East River is international territory, donated by John D. Rockefeller Jr. in 1946.",
+   "node": 6865,
+   "snapDistance": 92
+  },
+  {
+   "id": "flatiron",
+   "name": "Flatiron Building",
+   "lat": 40.7411,
+   "lon": -73.9897,
+   "neighborhood": "Flatiron District",
+   "points": 120,
+   "fact": "Its triangular shape follows the wedge where Broadway crosses Fifth Avenue. At its narrowest it's about 2 m wide.",
+   "node": 6866,
+   "snapDistance": 17
+  },
+  {
+   "id": "msg",
+   "name": "Madison Square Garden",
+   "lat": 40.7505,
+   "lon": -73.9934,
+   "neighborhood": "Midtown South",
+   "points": 100,
+   "fact": "The current arena is the fourth MSG. It sits on top of Penn Station, the busiest rail hub in North America.",
+   "node": 6867,
+   "snapDistance": 79
+  },
+  {
+   "id": "bryant-park",
+   "name": "Bryant Park",
+   "lat": 40.7536,
+   "lon": -73.9832,
+   "neighborhood": "Midtown",
+   "points": 100,
+   "fact": "Once a reservoir site and a potter's field, it now hosts a winter skating rink and outdoor movie nights.",
+   "node": 6868,
+   "snapDistance": 79
+  },
+  {
+   "id": "bethesda",
+   "name": "Bethesda Terrace",
+   "lat": 40.774,
+   "lon": -73.9708,
+   "neighborhood": "Central Park",
+   "points": 150,
+   "fact": "Its fountain angel, sculpted by Emma Stebbins in 1873, was the first major public art commission in NYC given to a woman.",
+   "node": 6869,
+   "snapDistance": 14
+  },
+  {
+   "id": "columbus-circle",
+   "name": "Columbus Circle",
+   "lat": 40.7681,
+   "lon": -73.9819,
+   "neighborhood": "Midtown West",
+   "points": 100,
+   "fact": "All official distances to and from New York City are measured from this circle.",
+   "node": 6870,
+   "snapDistance": 35
+  },
+  {
+   "id": "lincoln-center",
+   "name": "Lincoln Center",
+   "lat": 40.7725,
+   "lon": -73.9835,
+   "neighborhood": "Upper West Side",
+   "points": 120,
+   "fact": "It replaced the San Juan Hill neighborhood, the setting that inspired West Side Story.",
+   "node": 6871,
+   "snapDistance": 82
+  },
+  {
+   "id": "met",
+   "name": "The Metropolitan Museum of Art",
+   "lat": 40.7794,
+   "lon": -73.9632,
+   "neighborhood": "Upper East Side",
+   "points": 150,
+   "fact": "The Met holds over two million objects, including a complete Egyptian temple, the Temple of Dendur.",
+   "node": 6872,
+   "snapDistance": 91
+  },
+  {
+   "id": "guggenheim",
+   "name": "Guggenheim Museum",
+   "lat": 40.783,
+   "lon": -73.959,
+   "neighborhood": "Upper East Side",
+   "points": 150,
+   "fact": "Frank Lloyd Wright's spiral took 16 years from commission to opening in 1959, months after he died.",
+   "node": 6873,
+   "snapDistance": 25
+  },
+  {
+   "id": "amnh",
+   "name": "American Museum of Natural History",
+   "lat": 40.7813,
+   "lon": -73.974,
+   "neighborhood": "Upper West Side",
+   "points": 150,
+   "fact": "Its 94-foot blue whale model hangs in the Hall of Ocean Life and gets a vacuum-cleaning once a year.",
+   "node": 6874,
+   "snapDistance": 127
+  },
+  {
+   "id": "apollo",
+   "name": "Apollo Theater",
+   "lat": 40.81,
+   "lon": -73.9501,
+   "neighborhood": "Harlem",
+   "points": 200,
+   "fact": "Amateur Night launched Ella Fitzgerald, James Brown and Jimi Hendrix. Performers still rub the 'Tree of Hope' stump for luck.",
+   "node": 6875,
+   "snapDistance": 27
+  },
+  {
+   "id": "columbia",
+   "name": "Columbia University",
+   "lat": 40.8075,
+   "lon": -73.9626,
+   "neighborhood": "Morningside Heights",
+   "points": 180,
+   "fact": "Founded in 1754 as King's College, it is the oldest college in New York State.",
+   "node": 6876,
+   "snapDistance": 115
+  },
+  {
+   "id": "st-john-divine",
+   "name": "Cathedral of St. John the Divine",
+   "lat": 40.8038,
+   "lon": -73.9619,
+   "neighborhood": "Morningside Heights",
+   "points": 180,
+   "fact": "Construction began in 1892 and it is still unfinished. It is nicknamed 'St. John the Unfinished'.",
+   "node": 6877,
+   "snapDistance": 82
+  },
+  {
+   "id": "washington-sq",
+   "name": "Washington Square Park",
+   "lat": 40.7308,
+   "lon": -73.9973,
+   "neighborhood": "Greenwich Village",
+   "points": 120,
+   "fact": "The marble arch was built in 1892 to mark the centennial of George Washington's inauguration.",
+   "node": 6878,
+   "snapDistance": 72
+  },
+  {
+   "id": "union-sq",
+   "name": "Union Square",
+   "lat": 40.7359,
+   "lon": -73.9911,
+   "neighborhood": "Union Square",
+   "points": 100,
+   "fact": "The first American Labor Day parade marched here in 1882. The Greenmarket runs four days a week.",
+   "node": 6879,
+   "snapDistance": 9
+  },
+  {
+   "id": "whitney",
+   "name": "Whitney Museum & High Line",
+   "lat": 40.7396,
+   "lon": -74.0089,
+   "neighborhood": "Meatpacking District",
+   "points": 120,
+   "fact": "The High Line is a 2.3 km park built on a freight rail viaduct that closed in 1980.",
+   "node": 6880,
+   "snapDistance": 25
+  },
+  {
+   "id": "chelsea-market",
+   "name": "Chelsea Market",
+   "lat": 40.7424,
+   "lon": -74.0061,
+   "neighborhood": "Chelsea",
+   "points": 100,
+   "fact": "The building was the Nabisco factory where the Oreo cookie was invented in 1912.",
+   "node": 6881,
+   "snapDistance": 22
+  },
+  {
+   "id": "vessel",
+   "name": "The Vessel at Hudson Yards",
+   "lat": 40.7538,
+   "lon": -74.0022,
+   "neighborhood": "Hudson Yards",
+   "points": 120,
+   "fact": "Hudson Yards is built on a platform over an active rail yard that still stores Long Island Rail Road trains.",
+   "node": 6882,
+   "snapDistance": 34
+  },
+  {
+   "id": "wtc",
+   "name": "World Trade Center & 9/11 Memorial",
+   "lat": 40.7118,
+   "lon": -74.0131,
+   "neighborhood": "Financial District",
+   "points": 150,
+   "fact": "One World Trade Center is 1,776 feet tall, a nod to the year of the Declaration of Independence.",
+   "node": 6884,
+   "snapDistance": 95
+  },
+  {
+   "id": "nyse",
+   "name": "New York Stock Exchange",
+   "lat": 40.7069,
+   "lon": -74.0113,
+   "neighborhood": "Financial District",
+   "points": 120,
+   "fact": "The exchange traces its origin to the 1792 Buttonwood Agreement, signed by 24 brokers under a buttonwood tree.",
+   "node": 6885,
+   "snapDistance": 38
+  },
+  {
+   "id": "charging-bull",
+   "name": "Charging Bull",
+   "lat": 40.7056,
+   "lon": -74.0134,
+   "neighborhood": "Financial District",
+   "points": 100,
+   "fact": "Arturo Di Modica installed the 3-ton bronze bull without permission in 1989. The city kept it.",
+   "node": 6886,
+   "snapDistance": 5
+  },
+  {
+   "id": "battery-park",
+   "name": "The Battery",
+   "lat": 40.7033,
+   "lon": -74.017,
+   "neighborhood": "Battery Park",
+   "points": 120,
+   "fact": "Castle Clinton here was America's first immigration station, processing 8 million people before Ellis Island opened.",
+   "node": 6887,
+   "snapDistance": 7
+  },
+  {
+   "id": "brooklyn-bridge",
+   "name": "Brooklyn Bridge Entrance",
+   "lat": 40.7123,
+   "lon": -74.0045,
+   "neighborhood": "Civic Center",
+   "points": 150,
+   "fact": "When it opened in 1883, P.T. Barnum led 21 elephants across to prove the bridge was sturdy.",
+   "node": 6889,
+   "snapDistance": 0
+  },
+  {
+   "id": "seaport",
+   "name": "South Street Seaport",
+   "lat": 40.7063,
+   "lon": -74.0036,
+   "neighborhood": "Seaport",
+   "points": 120,
+   "fact": "This was the city's main port in the 1800s; its cobblestone streets date to that era.",
+   "node": 6890,
+   "snapDistance": 27
+  },
+  {
+   "id": "chinatown",
+   "name": "Chinatown (Mott Street)",
+   "lat": 40.7158,
+   "lon": -73.997,
+   "neighborhood": "Chinatown",
+   "points": 120,
+   "fact": "Mott Street was the heart of Manhattan's Chinatown from the 1870s, and Doyers Street was once called the Bloody Angle.",
+   "node": 6891,
+   "snapDistance": 34
+  },
+  {
+   "id": "little-italy",
+   "name": "Little Italy (Mulberry Street)",
+   "lat": 40.7193,
+   "lon": -73.9973,
+   "neighborhood": "Little Italy",
+   "points": 100,
+   "fact": "The Feast of San Gennaro has filled Mulberry Street every September since 1926.",
+   "node": 6892,
+   "snapDistance": 1
+  },
+  {
+   "id": "tenement-museum",
+   "name": "Tenement Museum",
+   "lat": 40.7188,
+   "lon": -73.9901,
+   "neighborhood": "Lower East Side",
+   "points": 150,
+   "fact": "97 Orchard Street housed an estimated 7,000 people from 20 nations between 1863 and 1935.",
+   "node": 6893,
+   "snapDistance": 16
+  },
+  {
+   "id": "stonewall",
+   "name": "Stonewall Inn",
+   "lat": 40.7338,
+   "lon": -74.0021,
+   "neighborhood": "Greenwich Village",
+   "points": 150,
+   "fact": "The 1969 uprising here sparked the modern LGBTQ+ rights movement. It became a national monument in 2016.",
+   "node": 6894,
+   "snapDistance": 9
+  },
+  {
+   "id": "st-patricks",
+   "name": "St. Patrick's Cathedral",
+   "lat": 40.7585,
+   "lon": -73.976,
+   "neighborhood": "Midtown",
+   "points": 120,
+   "fact": "Its spires were the tallest point in the city when completed in 1888.",
+   "node": 6895,
+   "snapDistance": 34
+  },
+  {
+   "id": "carnegie-hall",
+   "name": "Carnegie Hall",
+   "lat": 40.7651,
+   "lon": -73.9799,
+   "neighborhood": "Midtown West",
+   "points": 120,
+   "fact": "Tchaikovsky conducted on opening night in 1891.",
+   "node": 6896,
+   "snapDistance": 33
+  },
+  {
+   "id": "moma",
+   "name": "Museum of Modern Art",
+   "lat": 40.7614,
+   "lon": -73.9776,
+   "neighborhood": "Midtown",
+   "points": 120,
+   "fact": "MoMA is home to Van Gogh's The Starry Night and Warhol's Campbell's Soup Cans.",
+   "node": 6897,
+   "snapDistance": 24
+  },
+  {
+   "id": "intrepid",
+   "name": "Intrepid Museum",
+   "lat": 40.7645,
+   "lon": -73.9996,
+   "neighborhood": "Hell's Kitchen",
+   "points": 150,
+   "fact": "The aircraft carrier Intrepid survived five kamikaze attacks in WWII and later recovered NASA astronauts.",
+   "node": 6898,
+   "snapDistance": 57
+  },
+  {
+   "id": "tompkins-sq",
+   "name": "Tompkins Square Park",
+   "lat": 40.7265,
+   "lon": -73.9815,
+   "neighborhood": "East Village",
+   "points": 120,
+   "fact": "Its American elm, the Hare Krishna Tree, is where the movement's first US chant was held in 1966.",
+   "node": 6899,
+   "snapDistance": 98
+  },
+  {
+   "id": "cloisters",
+   "name": "The Cloisters",
+   "lat": 40.8649,
+   "lon": -73.9319,
+   "neighborhood": "Fort Tryon Park",
+   "points": 300,
+   "fact": "Parts of five medieval French monasteries were shipped over and rebuilt here; it opened in 1938.",
+   "node": 6900,
+   "snapDistance": 44
+  },
+  {
+   "id": "grants-tomb",
+   "name": "General Grant National Memorial",
+   "lat": 40.8134,
+   "lon": -73.9631,
+   "neighborhood": "Morningside Heights",
+   "points": 200,
+   "fact": "It is the largest mausoleum in North America. The answer to 'Who's buried in Grant's Tomb?' is Grant and his wife Julia.",
+   "node": 6901,
+   "snapDistance": 45
+  },
+  {
+   "id": "strawberry-fields",
+   "name": "Strawberry Fields",
+   "lat": 40.7757,
+   "lon": -73.975,
+   "neighborhood": "Central Park",
+   "points": 150,
+   "fact": "The 'Imagine' mosaic was a gift from the city of Naples, Italy.",
+   "node": 6902,
+   "snapDistance": 97
+  },
+  {
+   "id": "cp-zoo",
+   "name": "Central Park Zoo",
+   "lat": 40.7678,
+   "lon": -73.9718,
+   "neighborhood": "Central Park",
+   "points": 120,
+   "fact": "The Delacorte Clock above the zoo plays nursery rhymes as bronze animals circle every half hour.",
+   "node": 6903,
+   "snapDistance": 11
+  },
+  {
+   "id": "gracie-mansion",
+   "name": "Gracie Mansion",
+   "lat": 40.776,
+   "lon": -73.943,
+   "neighborhood": "Yorkville",
+   "points": 180,
+   "fact": "Built in 1799 as a merchant's country house, it has been the mayor's residence since 1942.",
+   "node": 6904,
+   "snapDistance": 24
+  },
+  {
+   "id": "roosevelt-tram",
+   "name": "Roosevelt Island Tramway",
+   "lat": 40.7613,
+   "lon": -73.9642,
+   "neighborhood": "Upper East Side",
+   "points": 150,
+   "fact": "Opened in 1976 as a temporary link, it was the first commuter aerial tramway in North America.",
+   "node": 6905,
+   "snapDistance": 7
+  },
+  {
+   "id": "hamilton-grange",
+   "name": "Hamilton Grange",
+   "lat": 40.821,
+   "lon": -73.947,
+   "neighborhood": "Hamilton Heights",
+   "points": 220,
+   "fact": "Alexander Hamilton's only home. The house has been moved twice, most recently in 2008, rolled on steel beams.",
+   "node": 6906,
+   "snapDistance": 28
+  },
+  {
+   "id": "chelsea-piers",
+   "name": "Chelsea Piers",
+   "lat": 40.7466,
+   "lon": -74.008,
+   "neighborhood": "Chelsea",
+   "points": 120,
+   "fact": "The Titanic was headed for Pier 59 here. The survivors were brought in on the Carpathia instead.",
+   "node": 6907,
+   "snapDistance": 7
+  }
+ ],
+ "targets": [
+  {
+   "id": "grand-central",
+   "name": "Grand Central Terminal",
+   "lat": 40.7527,
+   "lon": -73.9772,
+   "neighborhood": "Midtown East",
+   "difficulty": 1,
+   "clue": "Find the station where the ceiling shows the stars.",
+   "facts": [
+    "The zodiac on its ceiling is painted backwards, as if seen from outside the heavens.",
+    "Its four-faced clock above the information booth is said to be worth millions."
+   ],
+   "node": 6908,
+   "snapDistance": 49
+  },
+  {
+   "id": "nypl",
+   "name": "New York Public Library",
+   "lat": 40.7532,
+   "lon": -73.9822,
+   "neighborhood": "Midtown",
+   "difficulty": 1,
+   "clue": "Find the place where the city keeps its oldest books.",
+   "facts": [
+    "Two stone lions named Patience and Fortitude guard its front steps.",
+    "It sits right beside a park that was once a reservoir."
+   ],
+   "node": 6909,
+   "snapDistance": 81
+  },
+  {
+   "id": "morgan-library",
+   "name": "The Morgan Library & Museum",
+   "lat": 40.7492,
+   "lon": -73.9814,
+   "neighborhood": "Murray Hill",
+   "difficulty": 3,
+   "clue": "Find a banker's private treasure room of medieval manuscripts.",
+   "facts": [
+    "It was built for J.P. Morgan, the most powerful banker of the Gilded Age.",
+    "It owns three Gutenberg Bibles."
+   ],
+   "node": 6910,
+   "snapDistance": 38
+  },
+  {
+   "id": "federal-hall",
+   "name": "Federal Hall",
+   "lat": 40.7074,
+   "lon": -74.0103,
+   "neighborhood": "Financial District",
+   "difficulty": 2,
+   "clue": "Find where the first president swore his oath.",
+   "facts": [
+    "A bronze statue of George Washington stands on its steps.",
+    "It faces the most famous stock exchange in the world."
+   ],
+   "node": 6911,
+   "snapDistance": 13
+  },
+  {
+   "id": "fraunces-tavern",
+   "name": "Fraunces Tavern",
+   "lat": 40.7034,
+   "lon": -74.0113,
+   "neighborhood": "Financial District",
+   "difficulty": 3,
+   "clue": "Find the tavern where a general said farewell to his officers.",
+   "facts": [
+    "George Washington bid his officers goodbye here in 1783.",
+    "It's a red-brick colonial building on one of the oldest streets in the city."
+   ],
+   "node": 6912,
+   "snapDistance": 17
+  },
+  {
+   "id": "katz",
+   "name": "Katz's Delicatessen",
+   "lat": 40.7223,
+   "lon": -73.9874,
+   "neighborhood": "Lower East Side",
+   "difficulty": 2,
+   "clue": "Find the deli where the pastrami is still carved by hand.",
+   "facts": [
+    "A famous movie scene about 'what she's having' was filmed at one of its tables.",
+    "During WWII it urged: 'Send a salami to your boy in the army.'"
+   ],
+   "node": 6913,
+   "snapDistance": 14
+  },
+  {
+   "id": "chelsea-hotel",
+   "name": "Hotel Chelsea",
+   "lat": 40.7445,
+   "lon": -73.9969,
+   "neighborhood": "Chelsea",
+   "difficulty": 3,
+   "clue": "Find the hotel where artists once paid rent in paintings.",
+   "facts": [
+    "Mark Twain, Bob Dylan and Patti Smith all stayed here.",
+    "It is a red-brick building with cast-iron balconies on West 23rd Street."
+   ],
+   "node": 6914,
+   "snapDistance": 14
+  },
+  {
+   "id": "strand",
+   "name": "Strand Bookstore",
+   "lat": 40.7333,
+   "lon": -73.9908,
+   "neighborhood": "Greenwich Village",
+   "difficulty": 2,
+   "clue": "Find the shop that boasts eighteen miles of books.",
+   "facts": [
+    "It sits on the last surviving block of what was once 'Book Row'.",
+    "It is a short walk from a square famous for its farmers market."
+   ],
+   "node": 6915,
+   "snapDistance": 21
+  },
+  {
+   "id": "dakota",
+   "name": "The Dakota",
+   "lat": 40.7764,
+   "lon": -73.9762,
+   "neighborhood": "Upper West Side",
+   "difficulty": 2,
+   "clue": "Find the apartment house named because it seemed as far away as the frontier.",
+   "facts": [
+    "John Lennon lived here, across the street from the park memorial that bears his song's name.",
+    "It was the setting of the film Rosemary's Baby."
+   ],
+   "node": 6916,
+   "snapDistance": 7
+  },
+  {
+   "id": "belvedere",
+   "name": "Belvedere Castle",
+   "lat": 40.7794,
+   "lon": -73.9691,
+   "neighborhood": "Central Park",
+   "difficulty": 2,
+   "clue": "Find a castle built only to be looked at.",
+   "facts": [
+    "It is a Victorian folly on Vista Rock, the second-highest point in the park.",
+    "It hosts the weather station that reports Central Park's official temperature."
+   ],
+   "node": 6708,
+   "snapDistance": 20
+  },
+  {
+   "id": "frick",
+   "name": "The Frick Collection",
+   "lat": 40.7712,
+   "lon": -73.9674,
+   "neighborhood": "Upper East Side",
+   "difficulty": 3,
+   "clue": "Find a steel baron's mansion filled with Old Masters.",
+   "facts": [
+    "Henry Clay Frick built the mansion so his collection could become a museum after his death.",
+    "It faces Central Park across Fifth Avenue."
+   ],
+   "node": 6917,
+   "snapDistance": 29
+  },
+  {
+   "id": "st-pauls",
+   "name": "St. Paul's Chapel",
+   "lat": 40.7113,
+   "lon": -74.009,
+   "neighborhood": "Financial District",
+   "difficulty": 2,
+   "clue": "Find the oldest church still standing in Manhattan.",
+   "facts": [
+    "It was built in 1766 and George Washington prayed here after his inauguration.",
+    "It survived 9/11 untouched and became a relief station for recovery workers."
+   ],
+   "node": 6918,
+   "snapDistance": 15
+  },
+  {
+   "id": "trinity",
+   "name": "Trinity Church",
+   "lat": 40.7081,
+   "lon": -74.012,
+   "neighborhood": "Financial District",
+   "difficulty": 2,
+   "clue": "Find the churchyard where a ten-dollar founder rests.",
+   "facts": [
+    "Alexander Hamilton is buried in its churchyard.",
+    "It stands at the head of Wall Street."
+   ],
+   "node": 6919,
+   "snapDistance": 39
+  },
+  {
+   "id": "tiffany",
+   "name": "Tiffany & Co. Fifth Avenue",
+   "lat": 40.7626,
+   "lon": -73.9737,
+   "neighborhood": "Midtown",
+   "difficulty": 1,
+   "clue": "Find the window where a movie heroine ate her breakfast.",
+   "facts": [
+    "Audrey Hepburn ate a pastry outside its windows in a 1961 film.",
+    "It is known for its robin's-egg blue boxes."
+   ],
+   "node": 6920,
+   "snapDistance": 25
+  },
+  {
+   "id": "plaza",
+   "name": "The Plaza Hotel",
+   "lat": 40.7646,
+   "lon": -73.9744,
+   "neighborhood": "Midtown",
+   "difficulty": 2,
+   "clue": "Find the hotel where a mischievous six-year-old lives on the top floor.",
+   "facts": [
+    "The children's book character Eloise lives here.",
+    "It faces Grand Army Plaza at the southeast corner of the city's biggest park."
+   ],
+   "node": 6921,
+   "snapDistance": 30
+  },
+  {
+   "id": "macys",
+   "name": "Macy's Herald Square",
+   "lat": 40.7508,
+   "lon": -73.989,
+   "neighborhood": "Herald Square",
+   "difficulty": 1,
+   "clue": "Find the store behind the most famous Thanksgiving parade.",
+   "facts": [
+    "It once called itself the world's largest store, filling a full city block.",
+    "Some of its wooden escalators, from the 1900s, still run."
+   ],
+   "node": 6922,
+   "snapDistance": 37
+  },
+  {
+   "id": "sylvias",
+   "name": "Sylvia's Restaurant",
+   "lat": 40.8083,
+   "lon": -73.9447,
+   "neighborhood": "Harlem",
+   "difficulty": 3,
+   "clue": "Find the kitchen of the Queen of Soul Food.",
+   "facts": [
+    "Sylvia Woods opened it in 1962 with just a counter and a few booths.",
+    "It is on Malcolm X Boulevard (Lenox Avenue)."
+   ],
+   "node": 6923,
+   "snapDistance": 2
+  },
+  {
+   "id": "little-red-lighthouse",
+   "name": "Little Red Lighthouse",
+   "lat": 40.8502,
+   "lon": -73.9469,
+   "neighborhood": "Washington Heights",
+   "difficulty": 3,
+   "clue": "Find the little lighthouse that sits beneath a great gray bridge.",
+   "facts": [
+    "A 1942 children's book saved it from demolition.",
+    "It stands under the George Washington Bridge on the Hudson."
+   ],
+   "node": 2995,
+   "snapDistance": 1
+  }
+ ]
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#02030a" />
+    <title>Pac-Manhattan</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 28V14a12 12 0 0 1 24 0v14l-4-3-4 3-4-3-4 3-4-3z' fill='%235ef1ff'/><circle cx='12' cy='14' r='3' fill='white'/><circle cx='21' cy='14' r='3' fill='white'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="map"></div>
+      <canvas id="overlay"></canvas>
+
+      <div id="hud" hidden>
+        <section class="panel clue-panel" id="clue-panel">
+          <div class="eyebrow">Secret target</div>
+          <p id="clue" class="clue"></p>
+          <ol id="hints" class="hints"></ol>
+          <p id="no-hints" class="muted">Reach a ★ landmark to earn a hint.</p>
+        </section>
+
+        <section class="panel stats">
+          <div class="stat"><span class="eyebrow">Score</span><b id="score">0</b></div>
+          <div class="stat"><span class="eyebrow">Time</span><b id="time">0:00</b></div>
+          <div class="stat"><span class="eyebrow">Landmarks</span><b id="landmark-count">0</b></div>
+          <div class="stat-buttons">
+            <button id="mute" class="icon-btn" aria-label="Toggle sound">♪</button>
+            <button id="pause" class="icon-btn" aria-label="Pause">❚❚</button>
+          </div>
+        </section>
+
+        <div class="panel minimap-panel"><canvas id="minimap"></canvas></div>
+
+        <div class="zoom">
+          <button id="zoom-in" class="icon-btn" aria-label="Zoom in">+</button>
+          <button id="zoom-out" class="icon-btn" aria-label="Zoom out">−</button>
+        </div>
+
+        <div id="street" class="street"></div>
+
+        <article id="fact-card" class="panel fact-card" hidden>
+          <div class="fact-head">
+            <span class="eyebrow" id="fact-hood"></span>
+            <span class="points" id="fact-points"></span>
+          </div>
+          <h3 id="fact-name"></h3>
+          <p id="fact-text"></p>
+          <p class="fact-hint"><span class="eyebrow">New hint</span><span id="fact-hint"></span></p>
+        </article>
+
+        <div id="countdown" class="countdown" hidden></div>
+      </div>
+
+      <div id="start-screen" class="screen">
+        <div class="screen-card">
+          <h1 class="title">PAC-<br />MANHATTAN</h1>
+          <p class="tagline">You're the ghost. Pac-Man is hungry. Somewhere in Manhattan is a secret place. Find it before he finds you.</p>
+          <ul class="howto">
+            <li><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>WASD</kbd> to turn at the next corner (swipe on phones)</li>
+            <li>Visit <span class="star">★</span> landmarks for points and a hint about the target</li>
+            <li>Fewer hints used = bigger bonus when you find it</li>
+          </ul>
+          <button id="start" class="btn primary" disabled>Loading Manhattan…</button>
+          <div id="load-error" class="error" hidden></div>
+          <div class="scores-block">
+            <h2>High scores</h2>
+            <ol id="start-scores" class="scores"></ol>
+          </div>
+        </div>
+      </div>
+
+      <div id="pause-screen" class="screen" hidden>
+        <div class="screen-card small">
+          <h2 class="title small">PAUSED</h2>
+          <button id="resume" class="btn primary">Resume</button>
+          <button id="quit" class="btn">End run</button>
+        </div>
+      </div>
+
+      <div id="end-screen" class="screen" hidden>
+        <div class="screen-card wide">
+          <h2 id="end-title" class="title small"></h2>
+          <p id="end-sub" class="tagline"></p>
+          <div class="end-grid">
+            <div class="replay-wrap">
+              <canvas id="replay"></canvas>
+              <button id="replay-btn" class="btn tiny">↻ Replay route</button>
+            </div>
+            <div>
+              <table class="breakdown">
+                <tr><td>Landmarks</td><td id="bd-landmarks"></td></tr>
+                <tr><td id="bd-survival-label">Time survived</td><td id="bd-survival"></td></tr>
+                <tr><td>Target bonus</td><td id="bd-target"></td></tr>
+                <tr class="total"><td>Total</td><td id="bd-total"></td></tr>
+              </table>
+              <h3 class="eyebrow">Landmarks visited</h3>
+              <ul id="end-landmarks" class="chips"></ul>
+              <h3 class="eyebrow">High scores</h3>
+              <ol id="end-scores" class="scores"></ol>
+            </div>
+          </div>
+          <div class="end-actions">
+            <button id="again" class="btn primary">Run again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
