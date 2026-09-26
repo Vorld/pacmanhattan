@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-maze: #2121ff;
+  --color-pac: #ffd400;
+  --color-blinky: #ff0000;
+  --color-pinky: #ffb8ff;
+  --color-inky: #00ffff;
+  --color-clyde: #ffb852;
+  --font-arcade: 'Press Start 2P', ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #000;
+  color: #fff;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.glow-maze {
+  text-shadow:
+    0 0 6px var(--color-maze),
+    0 0 18px var(--color-maze);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s steps(1) infinite;
+}

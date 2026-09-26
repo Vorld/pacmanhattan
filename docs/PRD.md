@@ -164,7 +164,7 @@ Holding **✕ done** ends the run and shows the same screen — no penalty.
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Next.js + TypeScript + Tailwind |
+| Framework | Vite + React + TypeScript + Tailwind — a single client-side page, no server needed |
 | Map | MapLibre GL with a custom maze style on OpenFreeMap vector tiles (free, no key); `bearing: 29`, `maxBounds` = Manhattan |
 | Font | Press Start 2P (Google Fonts) |
 | GPS | `navigator.geolocation.watchPosition` (high accuracy) |
