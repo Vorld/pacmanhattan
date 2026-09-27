@@ -215,3 +215,20 @@ button.mode:hover { border-color: var(--ghost); }
 .vso-p.win { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 10%, #fff); }
 .vso-p .big { font-size: 40px; font-weight: 800; line-height: 1.1; }
 @media (max-width: 760px) { .vs-side .vs-hints { display: none; } #vs-task { top: auto; bottom: 16px; } }
+
+/* place card on each half after a target is found */
+.vs-card { position: fixed; top: 24px; width: min(440px, calc(50vw - 40px)); max-height: calc(100vh - 48px); overflow: auto; transform: translateX(-50%);
+  background: #fff; border-radius: 22px; box-shadow: var(--shadow); border-top: 6px solid var(--pc); display: flex; flex-direction: column; animation: slidein .3s ease; z-index: 3; }
+#vs-card-0 { left: 25%; }
+#vs-card-1 { left: 75%; }
+.vs-card figure { margin: 0; background: var(--ink); }
+.vs-card figure img { width: 100%; height: 200px; object-fit: cover; display: block; }
+.vs-card figcaption { font-size: 11px; color: #d6d1ea; padding: 5px 10px; }
+.vs-card figcaption a { color: inherit; }
+.vs-card .noimg { min-height: 120px; font-size: 22px; }
+.vs-card .card-text { padding: 16px 20px 6px; gap: 8px; }
+.vs-card .card-text h2 { font-size: 24px; }
+.vs-card .vs-finder { color: var(--pc); }
+.vs-ready { margin: 8px 20px 18px; padding: 10px 12px; border-radius: 12px; border: 2px dashed var(--rc); font-weight: 800; text-align: center; animation: pulse 1.4s infinite; }
+.vs-ready.done { border-style: solid; background: color-mix(in srgb, var(--rc) 14%, #fff); animation: none; }
+#vs-hud.carding #vs-task, #vs-hud.carding .vs-side, #vs-hud.carding .vs-toasts { display: none; }

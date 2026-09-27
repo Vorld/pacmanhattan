@@ -181,6 +181,7 @@
         $('vs-toasts-' + p.i).innerHTML = '';
         this.setVersusPlayer(p);
       }
+      this.hideVersusCards();
       this._vsStreet = [];
       this._vsCount = null;
     },
@@ -214,7 +215,48 @@
       $('vs-count').textContent = label;
       this.show('vs-count', !!label);
     },
+    // the place just found, shown on both halves; each player readies up with their own keys
+    showVersusCards({ place: p, cat, icon, finder, players, ready }) {
+      for (const q of players) {
+        const mine = q === finder;
+        const img = p.img
+          ? `<figure><img src="${p.img}" alt="${esc(p.name)}" decoding="async"><figcaption>Photo: ${esc(p.credit || 'Wikimedia Commons')}${p.file ? ` · <a href="${esc(p.file)}" target="_blank" rel="noopener">source</a>` : ''}</figcaption></figure>`
+          : `<div class="noimg">${esc(p.name)}</div>`;
+        const el = $('vs-card-' + q.i);
+        el.style.setProperty('--pc', finder.color);
+        el.innerHTML = `${img}
+          <div class="card-text">
+            <div class="eyebrow vs-finder">${mine ? 'You found it first!' : esc(finder.name) + ' found it first'}</div>
+            <h2>${esc(p.name)}</h2>
+            <div class="muted small">${icon} ${esc(cat)}</div>
+            <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
+            ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
+            ${p.wiki ? `<div class="links"><a href="${esc(p.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a></div>` : ''}
+          </div>
+          <div class="vs-ready" style="--rc:${q.color}"></div>`;
+        el.classList.remove('hidden');
+      }
+      $('vs-hud').classList.add('carding');
+      this._vsPlayers = players;
+      this.setVersusReady(ready);
+    },
+    setVersusReady(ready) {
+      for (const q of this._vsPlayers) {
+        const r = $('vs-card-' + q.i).querySelector('.vs-ready');
+        const other = this._vsPlayers[1 - q.i];
+        r.classList.toggle('done', ready[q.i]);
+        r.textContent = !q.alive ? "You're out, but you can still read along."
+          : !ready[q.i] ? `${q.name}: press ${q.i ? 'an arrow key' : 'W, A, S or D'} when you're ready`
+          : ready[other.i] ? 'Both ready!' : `Ready! Waiting for ${other.name}…`;
+      }
+    },
+    hideVersusCards() {
+      for (const i of [0, 1]) this.show('vs-card-' + i, false);
+      $('vs-hud').classList.remove('carding');
+    },
+
     showVersusOver({ boroughName, players, winner, reason, time }) {
+      this.hideVersusCards();
       this.show('vs-hud', false);
       this.hideAllScreens();
       $('vso-borough').textContent = boroughName;

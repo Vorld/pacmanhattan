@@ -140,6 +140,11 @@
       return;
     }
     const hit = keyTarget(ev.code);
+    if (hit && state.mode === 'vscard') {
+      ev.preventDefault();
+      if (!ev.repeat) versusReady(state.players.findIndex((p) => p.g === hit[0]));
+      return;
+    }
     if (hit) {
       if (state.mode !== 'play') return;
       ev.preventDefault();
@@ -659,13 +664,29 @@
       ui.setVersusPlayer(p);
       if (versusCheckEnd()) return;
       audio.fanfare();
-      const other = state.players[1 - p.i];
-      newVersusTask(false);
-      respawnAll(alivePos());
-      ui.toast({ title: `You got ${t.name}!`, body: `Next: ${state.task.name}. The chomper lost your trail, for now.`, kind: 'found', secs: 5, side: p.i });
-      if (other.alive) ui.toast({ title: `${p.name} got ${t.name} first`, body: `Next: ${state.task.name}. Race you there!`, kind: 'warn', secs: 5, side: other.i });
+      // freeze the race and show the place on both halves until both players are ready
+      state.mode = 'vscard';
+      state.cardAt = performance.now();
+      state.ready = state.players.map((q) => !q.alive);
+      for (const q of state.players) clearInput(q.g);
+      ui.showVersusCards({ place: t, cat: CAT[t.cat], icon: CAT_ICON[t.cat], finder: p, players: state.players, ready: state.ready });
       return;
     }
+  }
+
+  // a player pressed one of their keys while the place cards are up
+  function versusReady(i) {
+    if (i < 0 || state.ready[i] || performance.now() - state.cardAt < 600) return;
+    state.ready[i] = true;
+    ui.setVersusReady(state.ready);
+    if (!state.ready.every(Boolean)) return;
+    ui.hideVersusCards();
+    newVersusTask(false);
+    respawnAll(alivePos());
+    for (const q of alive()) ui.toast({ title: 'Next: ' + state.task.name, body: 'The chomper lost your trail, for now. It\'s faster this time.', kind: 'info', secs: 5, side: q.i });
+    state.countdown = VS_COUNTDOWN;
+    state.mode = 'play';
+    last = performance.now();
   }
 
   // project a ground point through a player's camera, in CSS px within that player's half
@@ -868,7 +889,7 @@
   const perf = { t: 0, n: 0 };
   function draw(dt) {
     renderer.setViewport(0, 0, innerWidth, innerHeight);
-    if (state.versus && B && state.players && ['play', 'pause', 'over'].includes(state.mode)) return drawVersus(dt);
+    if (state.versus && B && state.players && ['play', 'pause', 'over', 'vscard'].includes(state.mode)) return drawVersus(dt);
     fctx.clearRect(0, 0, W, H);
     if (!B || state.mode === 'lobby' || state.mode === 'loading') {
       renderer.setClearColor('#cfe8f7'); renderer.clear();
