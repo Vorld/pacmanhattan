@@ -31,20 +31,27 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 
 ## How we built it
 
-- **Game:** Three.js with plain HTML and JavaScript, no build step. Movement snaps to a real street graph, and chompers use A* pathfinding. Buildings are built in chunks near the camera with per-vertex colors, and a see-through shader keeps the ghost visible behind skyscrapers.
-- **Map data pipeline (Python, Shapely):** OpenStreetMap streets, parks, water, buildings and coastline via the Overpass API, turned into a routable graph per borough. Brooklyn and Queens sit on Long Island, so we used NYC's shoreline-clipped neighborhood boundaries (NTA 2020) for their land.
-- **All five boroughs on one map:** every borough is reprojected into Manhattan's frame (rotated 29° so avenues run up the screen), and the street graphs are joined at the real landing points of each bridge. The ferry is its own kind of edge, which pathfinding lets you use and never lets chompers use.
-- **Real building colors:** about 3,000 NYC aerial photo tiles, sampled at up to 10 points inside each footprint for the roof color. NYC PLUTO lots are matched to footprints with a spatial index for wall materials.
-- **Gemini API** (Gemini 3.1 Flash-Lite) does three jobs, each checked against a source:
-  - It writes a riddle for every place from that place's own Wikipedia summary. A checker rejects any riddle that uses a word of the name or a number that isn't in the source, with up to three retries.
-  - It picks the places for themed runs, limited by a response schema to the map's exact place names and checked again on the server.
-  - It writes the end-of-run postcard, which is rejected and rewritten if it names a place or number that didn't happen in your run.
-- **ElevenLabs** voices the game in one voice, "Laura": 16 English narrator lines recorded at build time (Multilingual v2 model), plus each end-of-run postcard, read aloud live through a server function (Flash v2.5 model), so no API key ever reaches the browser.
-- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We loaded 767,563 NYC residential buildings (PLUTO lots joined with HPD data) and query the ones around each place by location. Every riddle outcome is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
-- **MongoDB Atlas** stores global high scores, Passport stamps and every finished run (with its theme) through Vercel functions, with a browser fallback if the database can't be reached.
-- **Grok, built in Cursor,** wrote the "What you just learned" lessons and generated their pictures.
-- **Photos:** 189 Wikimedia Commons photos with the author and license on every card.
-- **Hosting:** a Vercel static site plus serverless functions, at **pac-manhattan.tech**.
+**The game**
+
+| Piece | How |
+|---|---|
+| 3D game | Three.js with plain HTML and JavaScript, no build step. Movement snaps to a real street graph, and chompers use A* pathfinding. Buildings are built in chunks near the camera, and a see-through shader keeps the ghost visible behind skyscrapers. |
+| Map data | OpenStreetMap streets, parks, water, buildings and coastline via the Overpass API, turned into a routable graph per borough with Python and Shapely. Brooklyn and Queens sit on Long Island, so their land comes from NYC's shoreline-clipped neighborhood boundaries (NTA 2020). |
+| Five boroughs on one map | Every borough is reprojected into Manhattan's frame (rotated 29° so avenues run up the screen), and the street graphs are joined at the real landing points of each bridge. The ferry is its own kind of edge: you can ride it, chompers can't. |
+| Real building colors | About 3,000 NYC aerial photo tiles, sampled at up to 10 points inside each footprint for the roof color. NYC PLUTO lots are matched to footprints for wall materials. |
+| Photos | 189 Wikimedia Commons photos, with the author and license on every card. |
+| Hosting | A Vercel static site plus serverless functions, at **pac-manhattan.tech**. |
+
+**Sponsor tools**
+
+| Sponsor | What it does in the game | How we kept it honest |
+|---|---|---|
+| **Gemini API** (3.1 Flash-Lite) | Writes a riddle for every place, picks the places for themed runs, and writes your end-of-run postcard | Riddles are rejected if they use a word of the name or a number that isn't in the Wikipedia source. Theme picks are limited to the map's exact place names. Postcards are rejected if they name a place or number that didn't happen in your run. |
+| **ElevenLabs** | The narrator, voice "Laura": 16 English lines recorded at build time (Multilingual v2 model), plus each postcard read aloud live (Flash v2.5 model) | Everything runs on the server, so no API key ever reaches the browser. |
+| **Tiger Data** (TimescaleDB) | "Know the block" on every place card, from 767,563 NYC residential buildings (PLUTO + HPD). Riddle stats across every player | Every riddle outcome goes into a **hypertable**. A **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time. |
+| **MongoDB Atlas** | Global high scores, Passport stamps, and every finished run with its theme | Saved through Vercel functions, with a browser fallback if the database can't be reached. |
+| **Grok** (built in Cursor) | The "What you just learned" lessons and their pictures on eight place cards | Written from each place's own facts. The Wikimedia photo stays next to it. |
+| **.Tech domain** | **pac-manhattan.tech** | |
 
 ## Challenges we ran into
 
