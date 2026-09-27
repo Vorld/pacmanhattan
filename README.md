@@ -8,7 +8,7 @@
 A 3D arcade chase through real NYC streets that teaches you the city one riddle at a time.</p>
 
 <p align="center">
-  <a href="https://pac-manhattan.tech"><b>▶ Play it at pac-manhattan.tech</b></a>
+  <a href="https://pac-manhattan.tech"><b>Play it at pac-manhattan.tech</b></a>
   &nbsp;·&nbsp; Built at <b>DivHacks 2026</b> (Columbia University) &nbsp;·&nbsp; Track: <b>Know Your City</b>
 </p>
 
@@ -30,18 +30,18 @@ Meanwhile New York drew **65 million visitors in 2025** ([NYC Tourism + Conventi
 
 Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you through real New York streets.
 
-**Solve a riddle → find the place → visit ★ landmarks for hints → don't get chomped**
+**Solve a riddle → find the place → visit landmarks for hints → don't get chomped**
 
-- 🧩 **Riddles about real places.** "Visit the former factory where the famous dark sandwich cookie was invented." Find it before the name is revealed for a 50% bonus.
-- ★ **Landmarks** give you a photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
-- 🏙 **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
-- 📊 **Riddle stats.** After you solve one, see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
-- 👾 **Three chompers with personalities.** Chomps chases you, Sneaky cuts you off, Snooze pounces when you get close. A new one joins after every task.
-- 🗽 **Seven maps.** All of Manhattan; Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges and the **Staten Island Ferry**. Chompers can't swim, so they wait at the terminal.
-- 🎨 **A real city in real colors.** 171,710 buildings at their real heights. Roofs are colored from NYC's 2018 aerial photos and walls from each lot's year built and building class, so Brooklyn is brownstone and brick and Midtown is glass and limestone.
-- 📚 **What you just learned.** Eight places add a short lesson to their card, written with Grok, three of them with a picture generated in Cursor.
-- 🎙 **A narrator** who warns you when a chomper is behind you and calls out every bridge you cross.
-- 👥 **2-player split screen**, racing to the same places on one keyboard.
+- **Riddles about real places.** "Visit the former factory where the famous dark sandwich cookie was invented." Find it before the name is revealed for a 50% bonus.
+- **Landmarks** give you a photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
+- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
+- **Riddle stats.** After you solve one, see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
+- **Three chompers with personalities.** Chomps chases you, Sneaky cuts you off, Snooze pounces when you get close. A new one joins after every task.
+- **Seven maps.** All of Manhattan; Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges and the **Staten Island Ferry**. Chompers can't swim, so they wait at the terminal.
+- **A real city in real colors.** 171,710 buildings at their real heights. Roofs are colored from NYC's 2018 aerial photos and walls from each lot's year built and building class, so Brooklyn is brownstone and brick and Midtown is glass and limestone.
+- **What you just learned.** Eight places add a short lesson to their card, written with Grok, three of them with a picture generated in Cursor.
+- **A narrator** who warns you when a chomper is behind you and calls out every bridge you cross.
+- **2-player split screen**, racing to the same places on one keyboard.
 
 <p align="center">
   <img src="docs/media/pacmanhattan-cover-3x2.jpg" alt="The Pac-Manhattan title screen: the scared ghost in Midtown with a chomper coming around the corner" width="80%">
