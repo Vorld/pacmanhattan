@@ -181,6 +181,61 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
   #toasts { top: auto; bottom: 90px; width: calc(100vw - 32px); min-width: 0; }
   #minimap { width: 140px; height: 170px; }
 }
+
+/* ---------- player count picker ---------- */
+button.mode { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border-width: 2px; }
+button.mode b { font-size: 18px; }
+button.mode span { font-weight: 400; font-size: 14px; color: var(--muted); line-height: 1.35; }
+button.mode:hover { border-color: var(--ghost); }
+
+/* ---------- two-player split screen ---------- */
+#vs-divider { position: fixed; top: 0; bottom: 0; left: 50%; width: 4px; transform: translateX(-50%); background: var(--ink); pointer-events: none; }
+#vs-task { top: 16px; left: 50%; transform: translateX(-50%); width: min(360px, calc(100vw - 32px)); padding: 12px 16px; text-align: center; z-index: 2; }
+#vs-task.pop { animation: vspop .5s ease; }
+@keyframes vspop { 0% { transform: translateX(-50%) scale(.9); } 60% { transform: translateX(-50%) scale(1.04); } 100% { transform: translateX(-50%) scale(1); } }
+#vs-task-name { font-size: 22px; font-weight: 800; line-height: 1.15; text-wrap: balance; margin-top: 2px; }
+.vs-side { top: 16px; width: min(250px, calc(50vw - 212px)); min-width: 180px; padding: 12px 14px; border-top: 5px solid var(--pc); display: grid; gap: 4px; }
+#vs-side-0 { left: 16px; }
+#vs-side-1 { right: 16px; }
+.vs-side.pop { animation: pop .45s ease; }
+.vs-side.out { opacity: .7; }
+.vs-side.out .vs-score::after { content: " · out"; color: #c7361c; font-weight: 800; }
+.vs-who { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.vs-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); flex: none; }
+.vs-keys { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border: 1px solid #ddd8ec; border-radius: 6px; padding: 2px 6px; }
+.vs-score { font-size: 15px; color: var(--muted); }
+.vs-score b { font-size: 30px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.vs-street:empty { display: none; }
+.vs-hints { border-top: 1px solid #eee9f6; padding-top: 6px; margin-top: 2px; }
+.vs-toasts { position: fixed; bottom: 32px; width: min(360px, calc(50vw - 32px)); display: grid; gap: 8px; pointer-events: none; }
+#vs-toasts-0 { left: 25%; transform: translateX(-50%); }
+#vs-toasts-1 { left: 75%; transform: translateX(-50%); }
+#vs-count { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: Bungee, "DM Sans", sans-serif; font-size: 120px; color: #fff;
+  -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; pointer-events: none; animation: pulse 1s infinite; }
+.vs-over h2 { margin: 0; font-family: Bungee, "DM Sans", sans-serif; font-weight: 400; font-size: 30px; }
+.vs-over p { margin: 0; }
+.vso-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 4px; }
+.vso-p { border: 2px solid #eee9f6; border-radius: 14px; padding: 12px 10px; display: grid; gap: 2px; justify-items: center; }
+.vso-p.win { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 10%, #fff); }
+.vso-p .big { font-size: 40px; font-weight: 800; line-height: 1.1; }
+@media (max-width: 760px) { .vs-side .vs-hints { display: none; } #vs-task { top: auto; bottom: 16px; } }
+
+/* place card on each half after a target is found */
+.vs-card { position: fixed; top: 24px; width: min(440px, calc(50vw - 40px)); max-height: calc(100vh - 48px); overflow: auto; transform: translateX(-50%);
+  background: #fff; border-radius: 22px; box-shadow: var(--shadow); border-top: 6px solid var(--pc); display: flex; flex-direction: column; animation: slidein .3s ease; z-index: 3; }
+#vs-card-0 { left: 25%; }
+#vs-card-1 { left: 75%; }
+.vs-card figure { margin: 0; background: var(--ink); }
+.vs-card figure img { width: 100%; height: 200px; object-fit: cover; display: block; }
+.vs-card figcaption { font-size: 11px; color: #d6d1ea; padding: 5px 10px; }
+.vs-card figcaption a { color: inherit; }
+.vs-card .noimg { min-height: 120px; font-size: 22px; }
+.vs-card .card-text { padding: 16px 20px 6px; gap: 8px; }
+.vs-card .card-text h2 { font-size: 24px; }
+.vs-card .vs-finder { color: var(--pc); }
+.vs-ready { margin: 8px 20px 18px; padding: 10px 12px; border-radius: 12px; border: 2px dashed var(--rc); font-weight: 800; text-align: center; animation: pulse 1.4s infinite; }
+.vs-ready.done { border-style: solid; background: color-mix(in srgb, var(--rc) 14%, #fff); animation: none; }
+#vs-hud.carding #vs-task, #vs-hud.carding .vs-side, #vs-hud.carding .vs-toasts { display: none; }
 </style>
 
 <canvas id="game"></canvas>
@@ -218,6 +273,32 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
   <div id="start-hint" class="hidden">Point your cursor where you want to go and click, or press an arrow key</div>
 </div>
 
+<div id="vs-hud" class="hidden">
+  <div id="vs-divider"></div>
+  <div id="vs-task" class="panel">
+    <div class="eyebrow">Race to <span id="vs-num">target 1</span> · <span id="vs-borough"></span></div>
+    <div id="vs-task-name">…</div>
+    <div id="vs-task-cat" class="muted small"></div>
+  </div>
+  <div class="vs-side panel" id="vs-side-0">
+    <div class="vs-who"><span class="vs-dot"></span><span class="vs-name"></span><span class="vs-keys"></span></div>
+    <div class="vs-score"><b class="vs-found">0</b> found</div>
+    <div class="vs-street small muted"></div>
+    <div class="vs-hints"></div>
+  </div>
+  <div class="vs-side panel" id="vs-side-1">
+    <div class="vs-who"><span class="vs-dot"></span><span class="vs-name"></span><span class="vs-keys"></span></div>
+    <div class="vs-score"><b class="vs-found">0</b> found</div>
+    <div class="vs-street small muted"></div>
+    <div class="vs-hints"></div>
+  </div>
+  <div id="vs-toasts-0" class="vs-toasts"></div>
+  <div id="vs-toasts-1" class="vs-toasts"></div>
+  <div id="vs-count" class="hidden"></div>
+  <div id="vs-card-0" class="vs-card hidden"></div>
+  <div id="vs-card-1" class="vs-card hidden"></div>
+</div>
+
 <div id="lobby" class="screen">
   <div class="lobby">
     <header class="lobby-head">
@@ -233,10 +314,32 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
           <li><b>Find the place</b> named in your task. It glows gold under a beam of light once it's in view.</li>
           <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint. Each one goes in your Passport so you can look at it again.</li>
           <li><b>Don't get chomped.</b> A new chomper joins after every task, up to three, and each has its own way of hunting.</li>
+          <li><b>2 players:</b> split screen on one keyboard. Player 1 uses WASD, Player 2 the arrow keys. You race to the same places while one chomper hunts whoever is closer. Get caught and you're out. Most targets wins.</li>
         </ol>
         <p class="muted small">P to pause, M to mute. In Manhattan, up is uptown.</p>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="modepick" class="screen hidden">
+  <div class="card narrow">
+    <div id="mode-borough" class="eyebrow"></div>
+    <h2>How many players?</h2>
+    <button id="btn-solo" class="mode"><b>1 player</b><span>Arrow keys or WASD, or steer with your cursor.</span></button>
+    <button id="btn-duo" class="mode"><b>2 players</b><span>Split screen, one keyboard. Race each other to the same places: WASD vs. arrow keys.</span></button>
+    <button id="btn-mode-back" class="linkish">Back to the maps</button>
+  </div>
+</div>
+
+<div id="vsover" class="screen hidden">
+  <div class="card narrow vs-over">
+    <div id="vso-borough" class="eyebrow"></div>
+    <h2 id="vso-title"></h2>
+    <p id="vso-reason" class="muted small"></p>
+    <div id="vso-grid" class="vso-grid"></div>
+    <button id="btn-rematch" class="primary">Rematch</button>
+    <button id="btn-vs-lobby">Pick another map</button>
   </div>
 </div>
 
@@ -800,17 +903,18 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 
   // Always-visible "you are here" bubble around the ghost
   class Bubble3D {
-    constructor(scene) {
-      const mk = (r0, r1, op) => new T.Mesh(new T.RingGeometry(r0, r1, 56), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: op, depthTest: false, depthWrite: false, side: T.DoubleSide }));
+    constructor(scene, color = '#8f74ff') {
+      this.base = color;
+      const mk = (r0, r1, op) => new T.Mesh(new T.RingGeometry(r0, r1, 56), new T.MeshBasicMaterial({ color, transparent: true, opacity: op, depthTest: false, depthWrite: false, side: T.DoubleSide }));
       this.ring = mk(22, 27, 0.95);
       this.pulse = mk(27, 30, 0.6);
-      this.disc = new T.Mesh(new T.CircleGeometry(22, 48), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: 0.18, depthTest: false, depthWrite: false }));
+      this.disc = new T.Mesh(new T.CircleGeometry(22, 48), new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.18, depthTest: false, depthWrite: false }));
       for (const m of [this.ring, this.pulse, this.disc]) { m.rotation.x = -Math.PI / 2; m.renderOrder = 30; scene.add(m); }
       this.col = new T.Color();
     }
     update(x, z, t, danger) {
       const k = Math.max(0, Math.min(1, 1 - (danger - 120) / 380));
-      this.col.set('#8f74ff').lerp(new T.Color('#ff4d6d'), k);
+      this.col.set(this.base).lerp(new T.Color('#ff4d6d'), k);
       for (const m of [this.ring, this.pulse, this.disc]) { m.position.set(x, 1.2, z); m.material.color.copy(this.col); }
       const p = (t * (1 + k * 1.5)) % 1;
       this.pulse.scale.setScalar(1 + p * 1.4);
@@ -1008,7 +1112,8 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       return m;
     }
 
-    updateGround(fx, fz, budget = 2) {
+    // keep: other focus points whose nearby tiles must stay loaded (split-screen)
+    updateGround(fx, fz, budget = 2, keep = null) {
       // coarse tiles, nearest first
       if (this.baseQueue.length) {
         this.baseQueue.sort((a, b) => Math.hypot((b[0] + 0.5) * this.baseM - fx, (b[1] + 0.5) * this.baseM - fz) - Math.hypot((a[0] + 0.5) * this.baseM - fx, (a[1] + 0.5) * this.baseM - fz));
@@ -1034,7 +1139,8 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       for (const [k, m] of this.fine) {
         if (!want.has(k)) {
           const [tx, ty] = k.split(',').map(Number);
-          if (Math.hypot((tx + 0.5) * M - fx, (ty + 0.5) * M - fz) > R + 600) {
+          const far = (px, pz) => Math.hypot((tx + 0.5) * M - px, (ty + 0.5) * M - pz) > R + 600;
+          if (far(fx, fz) && (!keep || keep.every(([px, pz]) => far(px, pz)))) {
             this.scene.remove(m); m.geometry.dispose(); m.material.map.dispose(); m.material.dispose();
             this.fine.delete(k);
           }
@@ -1109,7 +1215,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
         let tris = [];
         try { tris = T.ShapeUtils.triangulateShape(pts, []); } catch (e) { tris = []; }
         nv += n * 4 + n; ni += n * 6 + tris.length * 3;
-        return { pts, tris, h: D.bh[i], c: D.bc[i], id: i };
+        return { pts, tris, h: D.bh[i], c: D.bc[i], wc: D.wc ? D.wc[i] : null, rc: D.rc ? D.rc[i] : null, id: i };
       });
       const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), col = new Uint8Array(nv * 3);
       const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
@@ -1123,7 +1229,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
         return v++;
       };
       for (const b of polys) {
-        const c = PALETTE[b.c] || PALETTE[0];
+        // real colors (tools/color_buildings.py) when present, pastel palette otherwise
+        const c = b.wc != null ? new T.Color(b.wc) : PALETTE[b.c] || PALETTE[0];
+        const cr = b.rc != null ? new T.Color(b.rc) : c;
         const n = b.pts.length, h = b.h;
         for (let j = 0; j < n; j++) {
           const a = b.pts[j], bb = b.pts[(j + 1) % n];
@@ -1138,7 +1246,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
           idx[q++] = a0; idx[q++] = a1; idx[q++] = b1;
         }
         const base = v;
-        for (let j = 0; j < n; j++) put(b.pts[j].x, h, b.pts[j].y, 0, 1, 0, c, 1.06);
+        for (let j = 0; j < n; j++) put(b.pts[j].x, h, b.pts[j].y, 0, 1, 0, cr, 1.06);
         for (const [i0, i1, i2] of b.tris) {
           const p0 = b.pts[i0], p1 = b.pts[i1], p2 = b.pts[i2];
           const cy = (p1.y - p0.y) * (p2.x - p0.x) - (p1.x - p0.x) * (p2.y - p0.y);
@@ -1184,8 +1292,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       this.lowQ = true;
       this.renderer.shadowMap.enabled = false;
       this.sun.castShadow = false;
+      const size = this.renderer.getSize(new T.Vector2());
       this.renderer.setPixelRatio(1);
-      this.renderer.setSize(this.w / this.dpr, this.h / this.dpr, false);
+      this.renderer.setSize(size.x, size.y, false);
       this.scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
     }
 
@@ -1325,8 +1434,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     }
 
     // ---------------- frame ----------------
-    render(focus, t, player) {
-      const cam = this.camera;
+    // view (optional, split-screen): { camera, x, y, w, h } with the rectangle in CSS px
+    render(focus, t, player, view) {
+      const cam = view ? view.camera : this.camera;
       const [fx, fz] = focus;
       // look slightly ahead (uptown) of the player; camera sits south and above
       cam.position.set(fx, 430, fz + 330);
@@ -1337,9 +1447,14 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       // x-ray hole around the player
       if (player) {
         const v = new T.Vector3(player[0], 10, player[1]).project(cam);
-        const px = (v.x * 0.5 + 0.5) * this.w, py = (v.y * 0.5 + 0.5) * this.h;
+        let px, py, hr;
+        if (view) {
+          const pr = this.renderer.getPixelRatio();
+          px = (view.x + (v.x * 0.5 + 0.5) * view.w) * pr; py = (view.y + (v.y * 0.5 + 0.5) * view.h) * pr;
+          hr = Math.min(view.w, view.h) * pr * 0.2;
+        } else { px = (v.x * 0.5 + 0.5) * this.w; py = (v.y * 0.5 + 0.5) * this.h; hr = Math.min(this.w, this.h) * 0.2; }
         const depth = cam.position.distanceTo(new T.Vector3(player[0], 10, player[1]));
-        this.uniforms.uHole.value.set(px, py, Math.min(this.w, this.h) * 0.2);
+        this.uniforms.uHole.value.set(px, py, hr);
         this.uniforms.uHoleDepth.value = depth;
       } else this.uniforms.uHole.value.set(-9999, -9999, 0);
       if (this.targetRing) {
@@ -1349,7 +1464,13 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
         if (this.targetMat.emissiveIntensity !== undefined) this.targetMat.emissiveIntensity = 0.35 + p * 0.5;
       }
       for (const m of this.markers.values()) m.star.rotation.y = t * 1.6;
+      if (view) {
+        this.renderer.setViewport(view.x, view.y, view.w, view.h);
+        this.renderer.setScissor(view.x, view.y, view.w, view.h);
+        this.renderer.setScissorTest(true);
+      }
       this.renderer.render(this.scene, cam);
+      if (view) this.renderer.setScissorTest(false);
     }
 
     // screen position (CSS px) of a ground point
@@ -1660,6 +1781,11 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       $('btn-save').onclick = () => this.saveInitials();
       $('btn-card').onclick = () => h.onCloseCard();
       $('btn-howto').onclick = () => $('howto').classList.toggle('hidden');
+      $('btn-solo').onclick = () => h.onMode(false);
+      $('btn-duo').onclick = () => h.onMode(true);
+      $('btn-mode-back').onclick = () => this.showLobby();
+      $('btn-rematch').onclick = () => h.onAgain();
+      $('btn-vs-lobby').onclick = () => h.onLobby();
       $('passport-toggle').onclick = () => { $('passport').classList.toggle('collapsed'); };
       $('initials').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') this.saveInitials(); });
       this.mini = $('minimap');
@@ -1668,7 +1794,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     },
 
     show(id, on) { $(id).classList.toggle('hidden', !on); },
-    hideAllScreens() { for (const id of ['lobby', 'loadscreen', 'over', 'pause', 'card']) this.show(id, false); },
+    hideAllScreens() { for (const id of ['lobby', 'modepick', 'loadscreen', 'over', 'vsover', 'pause', 'card']) this.show(id, false); },
 
     // ---------- lobby ----------
     renderLobby(list) {
@@ -1692,19 +1818,25 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       for (const el of document.querySelectorAll('.borough')) el.onclick = () => this.h.onPick(el.dataset.id);
     },
     showLobby() {
-      this.hideAllScreens(); this.show('hud', false);
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false);
       if (this.lobbyList) this.renderLobby(this.lobbyList);
       this.show('lobby', true);
     },
+    showModePick(name) {
+      this.hideAllScreens();
+      $('mode-borough').textContent = name;
+      this.show('modepick', true);
+      setTimeout(() => $('btn-solo').focus(), 30);
+    },
     showLoading(name, p, msg) {
-      this.hideAllScreens(); this.show('hud', false); this.show('loadscreen', true);
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false); this.show('loadscreen', true);
       $('load-title').textContent = 'Loading ' + name;
       $('load-bar').style.width = Math.round((p || 0) * 100) + '%';
       $('load-msg').textContent = msg || '';
     },
 
     showHUD(meta) {
-      this.hideAllScreens(); this.show('hud', true); this.toastEl.innerHTML = '';
+      this.hideAllScreens(); this.show('vs-hud', false); this.show('hud', true); this.toastEl.innerHTML = '';
       $('borough-label').textContent = meta.name;
     },
     hideHUD() { this.show('hud', false); },
@@ -1750,12 +1882,14 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       $('passport').classList.add('bump'); setTimeout(() => $('passport').classList.remove('bump'), 500);
     },
 
-    toast({ title, body, hint, kind, secs }) {
+    // side: 0 or 1 puts the toast on that player's half of the split screen
+    toast({ title, body, hint, kind, secs, side }) {
+      const box = side === undefined ? this.toastEl : $('vs-toasts-' + side);
       const el = document.createElement('div');
       el.className = 'toast ' + (kind || '');
       el.innerHTML = `<div class="t-title">${esc(title)}</div>${body ? `<div class="t-body">${esc(body)}</div>` : ''}${hint ? `<div class="t-hint">Hint: ${esc(hint)}</div>` : ''}`;
-      this.toastEl.prepend(el);
-      while (this.toastEl.children.length > 3) this.toastEl.lastChild.remove();
+      box.prepend(el);
+      while (box.children.length > (side === undefined ? 3 : 2)) box.lastChild.remove();
       setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, (secs || 5) * 1000);
     },
 
@@ -1787,6 +1921,109 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       setTimeout(() => $('btn-card').focus(), 30);
     },
     hideCard() { this.show('card', false); },
+
+    // ---------- two-player split screen ----------
+    showVersusHUD(meta, players) {
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', true);
+      $('vs-borough').textContent = meta.name;
+      for (const p of players) {
+        const el = $('vs-side-' + p.i);
+        el.style.setProperty('--pc', p.color);
+        el.querySelector('.vs-name').textContent = p.name;
+        el.querySelector('.vs-keys').textContent = p.keys;
+        $('vs-toasts-' + p.i).innerHTML = '';
+        this.setVersusPlayer(p);
+      }
+      this.hideVersusCards();
+      this._vsStreet = [];
+      this._vsCount = null;
+    },
+    setVersusPlayer(p) {
+      const el = $('vs-side-' + p.i);
+      el.querySelector('.vs-found').textContent = p.found;
+      el.classList.toggle('out', !p.alive);
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    },
+    setVersusTask(t, cat, icon, n) {
+      $('vs-num').textContent = 'target ' + n;
+      $('vs-task-name').textContent = t.name;
+      $('vs-task-cat').textContent = icon + ' ' + cat;
+      const card = $('vs-task');
+      card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+    },
+    setVersusHints(i, list) {
+      const el = $('vs-side-' + i).querySelector('.vs-hints');
+      el.innerHTML = list.length ? `<div class="hint"><b>${esc(list[0].from)}:</b> ${esc(list[0].text)}</div>`
+        : '<div class="hint muted">Reach a ★ landmark for a hint.</div>';
+    },
+    setVersusStreet(i, text) {
+      if (this._vsStreet[i] === text) return;
+      this._vsStreet[i] = text;
+      $('vs-side-' + i).querySelector('.vs-street').textContent = text ? '📍 ' + text : '';
+    },
+    setVersusCountdown(secs) {
+      const label = secs > 0 ? String(Math.ceil(secs)) : '';
+      if (this._vsCount === label) return;
+      this._vsCount = label;
+      $('vs-count').textContent = label;
+      this.show('vs-count', !!label);
+    },
+    // the place just found, shown on both halves; each player readies up with their own keys
+    showVersusCards({ place: p, cat, icon, finder, players, ready }) {
+      for (const q of players) {
+        const mine = q === finder;
+        const img = p.img
+          ? `<figure><img src="${p.img}" alt="${esc(p.name)}" decoding="async"><figcaption>Photo: ${esc(p.credit || 'Wikimedia Commons')}${p.file ? ` · <a href="${esc(p.file)}" target="_blank" rel="noopener">source</a>` : ''}</figcaption></figure>`
+          : `<div class="noimg">${esc(p.name)}</div>`;
+        const el = $('vs-card-' + q.i);
+        el.style.setProperty('--pc', finder.color);
+        el.innerHTML = `${img}
+          <div class="card-text">
+            <div class="eyebrow vs-finder">${mine ? 'You found it first!' : esc(finder.name) + ' found it first'}</div>
+            <h2>${esc(p.name)}</h2>
+            <div class="muted small">${icon} ${esc(cat)}</div>
+            <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
+            ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
+            ${p.wiki ? `<div class="links"><a href="${esc(p.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a></div>` : ''}
+          </div>
+          <div class="vs-ready" style="--rc:${q.color}"></div>`;
+        el.classList.remove('hidden');
+      }
+      $('vs-hud').classList.add('carding');
+      this._vsPlayers = players;
+      this.setVersusReady(ready);
+    },
+    setVersusReady(ready) {
+      for (const q of this._vsPlayers) {
+        const r = $('vs-card-' + q.i).querySelector('.vs-ready');
+        const other = this._vsPlayers[1 - q.i];
+        r.classList.toggle('done', ready[q.i]);
+        r.textContent = !q.alive ? "You're out, but you can still read along."
+          : !ready[q.i] ? `${q.name}: press ${q.i ? 'an arrow key' : 'W, A, S or D'} when you're ready`
+          : ready[other.i] ? 'Both ready!' : `Ready! Waiting for ${other.name}…`;
+      }
+    },
+    hideVersusCards() {
+      for (const i of [0, 1]) this.show('vs-card-' + i, false);
+      $('vs-hud').classList.remove('carding');
+    },
+
+    showVersusOver({ boroughName, players, winner, reason, time }) {
+      this.hideVersusCards();
+      this.show('vs-hud', false);
+      this.hideAllScreens();
+      $('vso-borough').textContent = boroughName;
+      $('vso-title').textContent = winner ? winner.name + ' wins!' : "It's a tie!";
+      $('vso-title').style.color = winner ? winner.color : '';
+      $('vso-reason').textContent = reason;
+      $('vso-grid').innerHTML = players.map((p) => `<div class="vso-p ${p === winner ? 'win' : ''}" style="--pc:${p.color}">
+        <div class="vs-who"><span class="vs-dot"></span><span>${esc(p.name)}</span></div>
+        <div class="big">${p.found}</div>
+        <div class="small muted">target${p.found === 1 ? '' : 's'} · ${p.alive ? 'still running' : 'out at ' + fmtTime(p.diedAt)}</div>
+      </div>`).join('');
+      this.show('vsover', true);
+      setTimeout(() => $('btn-rematch').focus(), 30);
+    },
 
     // ---------- minimap ----------
     resetMini() { this.miniData = null; },
@@ -1978,7 +2215,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
   function resize() {
     W = Math.floor(innerWidth * DPR); H = Math.floor(innerHeight * DPR);
     renderer.setSize(innerWidth, innerHeight, false);
-    if (B) { B.world.camera.aspect = innerWidth / innerHeight; B.world.camera.updateProjectionMatrix(); B.world.w = W; B.world.h = H; }
+    if (B) { B.world.camera.aspect = innerWidth / innerHeight; B.world.camera.updateProjectionMatrix(); B.world.w = W; B.world.h = H; sizeVersusCams(); }
     fx.width = W; fx.height = H;
     fx.style.width = innerWidth + 'px'; fx.style.height = innerHeight + 'px';
   }
@@ -2039,45 +2276,76 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     state.mode = 'building';
   }
 
+  // a ghost parked on the street node nearest a place
+  function newGhost(place) {
+    const g = { e: place.pos.e, s: place.pos.s, dir: 1, moving: false, started: false, anim: 0, inp: newInput() };
+    if (g.s < g.e.len / 2) { g.node = g.e.a; g.s = 0; } else { g.node = g.e.b; g.s = g.e.len; }
+    return g;
+  }
+
   function startPlace() {
     return B.LANDMARKS.find((l) => l.name === B.meta.start) || B.LANDMARKS[0];
   }
 
   // ---------- input ----------
-  const held = new Set();
-  let queued = null, queuedAt = 0;
+  // each ghost has its own input: keys held, and the last key pressed (a turn queued for the next corner)
+  const newInput = () => ({ held: new Set(), queued: null, queuedAt: 0 });
+  const clearInput = (g) => { if (g) { g.inp.held.clear(); g.inp.queued = null; } };
   let mouse = null, mouseActive = false;
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+  const P1KEYS = { KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right' };
+  const P2KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  // which ghost a key steers, and which way: [ghost, dir], or null
+  function keyTarget(code) {
+    if (state.versus) {
+      if (!state.players) return null;
+      if (P1KEYS[code]) return [state.players[0].g, P1KEYS[code]];
+      if (P2KEYS[code]) return [state.players[1].g, P2KEYS[code]];
+      return null;
+    }
+    return KEYMAP[code] && state.ghost ? [state.ghost, KEYMAP[code]] : null;
+  }
   addEventListener('keydown', (ev) => {
     if (state.mode === 'card') {
       if (ev.code === 'Enter' || ev.code === 'Space' || ev.code === 'Escape') { ev.preventDefault(); closeCard(); }
       return;
     }
-    const d = KEYMAP[ev.code];
-    if (d) {
+    const hit = keyTarget(ev.code);
+    if (hit && state.mode === 'vscard') {
+      ev.preventDefault();
+      if (!ev.repeat) versusReady(state.players.findIndex((p) => p.g === hit[0]));
+      return;
+    }
+    if (hit) {
       if (state.mode !== 'play') return;
       ev.preventDefault();
-      held.add(d); queued = d; queuedAt = now; mouseActive = false;
+      const [g, d] = hit;
+      g.inp.held.add(d); g.inp.queued = d; g.inp.queuedAt = now; mouseActive = false;
       audio.unlock();
-      if (!state.ghost.started) state.ghost.started = true;
+      if (!state.versus && !g.started) g.started = true;
       return;
     }
     if ((ev.code === 'KeyP' || ev.code === 'Escape') && (state.mode === 'play' || state.mode === 'pause')) togglePause();
     if (ev.code === 'KeyM') ui.setMuted(audio.toggleMute());
   });
-  addEventListener('keyup', (ev) => { const d = KEYMAP[ev.code]; if (d) held.delete(d); });
-  addEventListener('blur', () => { held.clear(); if (state.mode === 'play') togglePause(); });
+  addEventListener('keyup', (ev) => { const hit = keyTarget(ev.code); if (hit) hit[0].inp.held.delete(hit[1]); });
+  addEventListener('blur', () => {
+    clearInput(state.ghost);
+    if (state.players) state.players.forEach((p) => clearInput(p.g));
+    if (state.mode === 'play') togglePause();
+  });
   const onPointer = (ev) => {
     mouse = [ev.clientX, ev.clientY];
-    if (state.mode === 'play') mouseActive = true;
+    if (state.mode === 'play' && !state.versus) mouseActive = true;
   };
   canvas.addEventListener('pointermove', onPointer);
-  canvas.addEventListener('pointerdown', (ev) => { onPointer(ev); if (state.mode === 'play' && !state.ghost.started) { state.ghost.started = true; audio.unlock(); } });
+  canvas.addEventListener('pointerdown', (ev) => { onPointer(ev); if (state.mode === 'play' && !state.versus && !state.ghost.started) { state.ghost.started = true; audio.unlock(); } });
 
-  function wanted() {
+  function wanted(g) {
+    const { held, queued, queuedAt } = g.inp;
     for (const d of ['up', 'down', 'left', 'right']) if (held.has(d)) return { v: DIRS[d], key: d };
     if (queued && now - queuedAt < 1.6) return { v: DIRS[queued], key: queued };
-    if (mouseActive && mouse && state.ghost) {
+    if (mouseActive && mouse && g === state.ghost && !state.versus) {
       const p = B.world.groundAt(mouse[0], mouse[1]);
       if (p) {
         const g = posXY(state.ghost);
@@ -2095,12 +2363,13 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 
   function moveGhost(g, dist) {
     const graph = B.graph;
-    const want = wanted();
+    const inp = g.inp;
+    const want = wanted(g);
     const wv = want && want.v;
     const turnDot = want && want.cursor ? 0.25 : 0.62;
     if (wv && g.moving) {
       const h = graph.headingAt(g.e, g.s, g.dir);
-      if (dot(h, wv) < (want.cursor ? -0.35 : -0.6)) { g.dir = -g.dir; if (!want.cursor) queued = null; }
+      if (dot(h, wv) < (want.cursor ? -0.35 : -0.6)) { g.dir = -g.dir; if (!want.cursor) inp.queued = null; }
     }
     let guard = 0;
     while (dist > 1e-6 && guard++ < 20) {
@@ -2109,7 +2378,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
         const pick = chooseEdge(g.node, null, wv, turnDot);
         if (!pick) return;
         enterEdge(g, pick, g.node);
-        g.moving = true; if (!want.cursor) queued = null;
+        g.moving = true; if (!want.cursor) inp.queued = null;
         continue;
       }
       const remain = g.dir > 0 ? g.e.len - g.s : g.s;
@@ -2119,7 +2388,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       g.s = g.dir > 0 ? g.e.len : 0;
       const heading = graph.headingAt(g.e, g.s, g.dir);
       let pick = wv ? chooseEdge(node, g.e, wv, turnDot) : null;
-      if (pick && want.key && want.key === queued && !held.has(want.key)) queued = null;
+      if (pick && want.key && want.key === inp.queued && !inp.held.has(want.key)) inp.queued = null;
       if (!pick) pick = chooseEdge(node, g.e, heading, 0.5);
       if (!pick) { g.moving = false; g.node = node; return; }
       enterEdge(g, pick, node);
@@ -2212,7 +2481,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
   function startRun() {
     const start = startPlace();
     Object.assign(state, {
-      mode: 'play', time: 0, score: 0, tasksDone: 0, taskTime: 0,
+      mode: 'play', versus: false, players: null, time: 0, score: 0, tasksDone: 0, taskTime: 0,
       visited: new Set([start.name]), used: new Set(), recentCats: [], route: null, route_pts: [], routeTimer: 0,
       hint: null, fog: new Set(), cursorWorld: null, chompers: [], passport: [], routeAt: -9, afterCard: null,
     });
@@ -2220,9 +2489,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     B.world.resetMarkers();
     B.world.setVisited(start.name);
     B.trail.reset();
-    const g = (state.ghost = { e: start.pos.e, s: start.pos.s, dir: 1, moving: false, started: false, anim: 0 });
-    if (g.s < g.e.len / 2) { g.node = g.e.a; g.s = 0; } else { g.node = g.e.b; g.s = g.e.len; }
-    queued = null; mouseActive = false; camPos = null;
+    const g = (state.ghost = newGhost(start));
+    mouseActive = false; camPos = null;
+    showSoloModels(true);
     newTask(true);
     addChomper();
     ui.showHUD(B.meta);
@@ -2252,10 +2521,14 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     ui.setHints([]);
   }
 
-  // pick far-away spawn points: not near the ghost, the target, or each other
-  function spawnPoints(count) {
+  // pick far-away spawn points: not near the ghost(s), the target, or each other
+  function spawnPoints(count, from = [state.ghost]) {
     const graph = B.graph;
-    const dist = graph.distancesFrom(state.ghost, CFG.spawnMax * 1.6);
+    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6);
+    for (const f of from.slice(1)) {
+      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6);
+      dist = dist.map((v, i) => Math.min(v, d2[i]));
+    }
     const t = state.task;
     const picks = [];
     for (let relax = 0; relax < 4 && picks.length < count; relax++) {
@@ -2283,16 +2556,16 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     Object.assign(c, { e, s: e.a === n ? 0 : e.len, dir: 1, path: [], repath: 0, spawnFx: CFG.spawnGrace, mode: 'roam', roam: null, roamT: 0 });
   }
 
-  function addChomper() {
+  function addChomper(from) {
     const k = KINDS[state.chompers.length];
     const c = { ...k, mouth: 0 };
-    placeChomper(c, spawnPoints(1)[0]);
+    placeChomper(c, spawnPoints(1, from)[0]);
     state.chompers.push(c);
     return c;
   }
 
-  function respawnAll() {
-    const pts = spawnPoints(state.chompers.length);
+  function respawnAll(from) {
+    const pts = spawnPoints(state.chompers.length, from);
     state.chompers.forEach((c, i) => placeChomper(c, pts[i]));
   }
 
@@ -2311,7 +2584,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 
   function openCard(info) {
     state.mode = 'card';
-    held.clear(); queued = null;
+    clearInput(state.ghost);
     audio.pause(true);
     ui.showCard(info);
   }
@@ -2365,6 +2638,323 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       time: state.time, target: state.task, route: state.route_pts || [],
       map: B.map, graph: B.graph, landmarks: B.LANDMARKS, visited: state.visited,
     });
+  }
+
+  // ---------- two-player race (split screen) ----------
+  // Both ghosts start at the same place and race to the same target. One chomper chases whoever is closer.
+  // Caught means out. Most targets wins; a tie goes to whoever survived longer.
+  const VS = [
+    { name: 'Player 1', keys: 'W A S D', color: '#8f74ff' },
+    { name: 'Player 2', keys: 'Arrow keys', color: '#12b3c4' },
+  ];
+  const VS_COUNTDOWN = 3;
+
+  // the single-player models and the two-player models share one scene; show one set at a time
+  function showSoloModels(on) {
+    B.ghost3d.group.visible = on;
+    B.bubble.setVisible(on);
+    B.trail.mesh.visible = on;
+    if (!on) B.arrow.update(0, 0, 0, 0, now);
+    if (B.vs) for (const o of B.vs) { o.ghost3d.group.visible = !on; o.bubble.setVisible(!on); o.trail.mesh.visible = !on; if (on) o.arrow.update(0, 0, 0, 0, now); }
+  }
+
+  function startVersus() {
+    const start = startPlace();
+    Object.assign(state, {
+      mode: 'play', versus: true, ghost: null, time: 0, score: 0, tasksDone: 0, taskTime: 0,
+      used: new Set(), recentCats: [], chompers: [], countdown: VS_COUNTDOWN, result: null, danger: Infinity,
+    });
+    B.world.resetMarkers();
+    B.world.setVisited(start.name);
+    if (!B.vs) {
+      const sc = B.world.scene;
+      B.vs = VS.map((v) => ({
+        ghost3d: new PM.Ghost3D(sc, v.color), bubble: new PM.Bubble3D(sc, v.color),
+        trail: new PM.Trail3D(sc, v.color, CFG.trailSecs), arrow: new PM.HintArrow3D(sc), cam: B.world.camera.clone(),
+      }));
+      sizeVersusCams();
+    }
+    showSoloModels(false);
+    state.players = VS.map((v, i) => {
+      const o = B.vs[i];
+      o.trail.reset();
+      o.ghost3d.group.visible = true; o.bubble.setVisible(true);
+      return { ...v, i, o, g: newGhost(start), found: 0, alive: true, diedAt: 0, visited: new Set([start.name]),
+        hint: null, hintLog: [], camPos: null, danger: Infinity };
+    });
+    newVersusTask(true);
+    addChomper(alivePos());
+    ui.showVersusHUD(B.meta, state.players);
+    ui.setHere('');
+    ui.showStartHint(false);
+    audio.start();
+  }
+
+  function sizeVersusCams() {
+    if (!B || !B.vs) return;
+    for (const o of B.vs) { o.cam.aspect = innerWidth / 2 / innerHeight; o.cam.updateProjectionMatrix(); }
+  }
+
+  const alive = () => state.players.filter((p) => p.alive);
+  const alivePos = () => alive().map((p) => p.g);
+
+  // the next target: in range for every player still running, and about as far from each of them
+  function newVersusTask(first) {
+    const ps = alive().map((p) => posXY(p.g));
+    const m = B.meta;
+    const dists = (t) => ps.map((p) => Math.hypot(t.sx - p[0], t.sy - p[1]));
+    const within = (t, lo, hi) => dists(t).every((d) => d >= lo && d <= hi);
+    const pool = B.TARGETS.filter((t) => !state.used.has(t.name) && !state.recentCats.includes(t.cat));
+    let cands = pool.filter((t) => within(t, m.task_min, first ? m.first_max : m.task_max));
+    if (!cands.length) cands = pool.filter((t) => within(t, m.task_min * 0.6, Infinity));
+    if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && within(t, 300, Infinity));
+    if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => within(t, 300, Infinity)); }
+    if (!cands.length) cands = B.TARGETS.slice();
+    const spread = (t) => { const d = dists(t); return Math.max(...d) - Math.min(...d); };
+    cands.sort((a, b) => spread(a) - spread(b));
+    const t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
+    state.task = t;
+    state.used.add(t.name);
+    state.recentCats.push(t.cat);
+    if (state.recentCats.length > 2) state.recentCats.shift();
+    state.taskTime = 0;
+    for (const p of state.players) { p.hint = null; p.hintLog = []; ui.setVersusHints(p.i, []); }
+    B.world.setTarget(t);
+    ui.setVersusTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1);
+  }
+
+  function versusHint(p, landmark) {
+    const t = state.task;
+    const path = B.graph.path(p.g, t.pos);
+    const miles = (path ? path.dist : Math.hypot(t.sx - landmark.sx, t.sy - landmark.sy)) / 1609.34;
+    const txt = `${t.name} is ${miles < 0.1 ? 'under 0.1' : miles.toFixed(1)} mi away, ${describeDir(t.sx - landmark.sx, t.sy - landmark.sy)}.`;
+    p.hint = { until: state.time + CFG.hintArrowSecs };
+    p.hintLog.unshift({ from: landmark.name, text: txt });
+    ui.setVersusHints(p.i, p.hintLog);
+  }
+
+  // end the match as soon as the winner is certain
+  function versusCheckEnd() {
+    const [a, b] = state.players;
+    const run = alive();
+    if (run.length === 2) return false;
+    let winner = null, reason;
+    if (run.length === 1) {
+      const s = run[0], d = s === a ? b : a;
+      if (s.found < d.found) return false; // the survivor can still catch up
+      winner = s;
+      reason = s.found > d.found ? `${d.name} got chomped while behind.` : `${d.name} got chomped. Same number of targets, but ${s.name} survived longer.`;
+    } else {
+      if (a.found !== b.found) { winner = a.found > b.found ? a : b; reason = 'Both got chomped. Most targets wins.'; }
+      else if (a.diedAt !== b.diedAt) { winner = a.diedAt > b.diedAt ? a : b; reason = `Same number of targets, but ${winner.name} survived longer.`; }
+      else reason = 'Both got chomped at the same moment with the same number of targets.';
+    }
+    state.mode = 'over';
+    state.result = { winner, reason };
+    audio.stop();
+    if (winner) audio.fanfare();
+    ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
+    return true;
+  }
+
+  function updateVersus(dt) {
+    state.time += dt;
+    if (state.countdown > 0) {
+      state.countdown -= dt;
+      if (state.countdown <= 0) {
+        for (const p of state.players) p.g.started = true;
+        audio.ding();
+      }
+      return;
+    }
+    state.taskTime += dt;
+    const c = state.chompers[0];
+    const pos = [];
+    for (const p of state.players) {
+      const g = p.g;
+      if (!p.alive) { pos.push(posXY(g)); continue; }
+      g.anim += dt;
+      moveGhost(g, CFG.ghostSpeed * dt);
+      const gp = posXY(g);
+      pos.push(gp);
+      p.o.trail.add(gp[0], gp[1], state.time);
+    }
+
+    // the chomper goes after whichever running player is closer
+    c.spawnFx = Math.max(0, c.spawnFx - dt);
+    let cp = posXY(c);
+    let prey = null, pd = Infinity;
+    for (const p of alive()) { const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]); if (d < pd) { pd = d; prey = p; } }
+    c.repath -= dt;
+    if (c.repath <= 0 || c.prey !== prey) {
+      const path = B.graph.path(c, prey.g);
+      c.path = path ? path.nodes : [];
+      c.goal = prey.g; c.prey = prey; c.mode = 'chase'; c.repath = 0.3;
+    }
+    if (c.spawnFx <= 0) moveChomper(c, CFG.ghostSpeed * chomperFactor(c) * dt, c.goal);
+    c.mouth += dt * 10;
+    cp = posXY(c);
+    c.dist = Infinity;
+    let caught = false;
+    for (const p of alive()) {
+      const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]);
+      p.danger = d;
+      c.dist = Math.min(c.dist, d);
+      if (d < CFG.catchDist && c.spawnFx <= 0) {
+        p.alive = false; p.diedAt = state.time; p.danger = Infinity; caught = true;
+        clearInput(p.g);
+        audio.chomp();
+        ui.setVersusPlayer(p);
+      }
+    }
+    if (caught) {
+      if (versusCheckEnd()) return;
+      const s = alive()[0], n = state.players[1 - s.i].found - s.found;
+      ui.toast({ title: `${state.players[1 - s.i].name} got chomped!`, body: `Find ${n} more target${n === 1 ? '' : 's'} to win. Don't get caught first.`, kind: 'warn', secs: 6, side: s.i });
+      respawnAll(alivePos());
+    }
+    audio.proximity(Math.min(...alive().map((p) => p.danger)));
+
+    for (const p of alive()) {
+      const gp = pos[p.i];
+      for (const l of B.LANDMARKS) {
+        if (p.visited.has(l.name) || Math.hypot(l.sx - gp[0], l.sy - gp[1]) >= CFG.arriveDist) continue;
+        p.visited.add(l.name);
+        versusHint(p, l);
+        audio.ding();
+        ui.toast({ title: '★ ' + l.name, body: 'Hint: ' + p.hintLog[0].text, kind: 'info', secs: 6, side: p.i });
+      }
+    }
+
+    const t = state.task;
+    for (const p of alive()) {
+      const gp = pos[p.i];
+      if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) >= CFG.arriveDist) continue;
+      p.found++;
+      state.tasksDone++;
+      ui.setVersusPlayer(p);
+      if (versusCheckEnd()) return;
+      audio.fanfare();
+      // freeze the race and show the place on both halves until both players are ready
+      state.mode = 'vscard';
+      state.cardAt = performance.now();
+      state.ready = state.players.map((q) => !q.alive);
+      for (const q of state.players) clearInput(q.g);
+      ui.showVersusCards({ place: t, cat: CAT[t.cat], icon: CAT_ICON[t.cat], finder: p, players: state.players, ready: state.ready });
+      return;
+    }
+  }
+
+  // a player pressed one of their keys while the place cards are up
+  function versusReady(i) {
+    if (i < 0 || state.ready[i] || performance.now() - state.cardAt < 600) return;
+    state.ready[i] = true;
+    ui.setVersusReady(state.ready);
+    if (!state.ready.every(Boolean)) return;
+    ui.hideVersusCards();
+    newVersusTask(false);
+    respawnAll(alivePos());
+    for (const q of alive()) ui.toast({ title: 'Next: ' + state.task.name, body: 'The chomper lost your trail, for now. It\'s faster this time.', kind: 'info', secs: 5, side: q.i });
+    state.countdown = VS_COUNTDOWN;
+    state.mode = 'play';
+    last = performance.now();
+  }
+
+  // project a ground point through a player's camera, in CSS px within that player's half
+  function toView(cam, x, y, h, vw, vh) {
+    const v = new THREE.Vector3(x, h, y).project(cam);
+    return [(v.x * 0.5 + 0.5) * vw, (-v.y * 0.5 + 0.5) * vh, v.z];
+  }
+
+  function drawVersus(dt) {
+    const world = B.world;
+    const halfW = innerWidth / 2, vh = innerHeight;
+    const ps = state.players;
+    const pos = ps.map((p) => posXY(p.g));
+    const k = 1 - Math.pow(0.0005, dt);
+    for (const p of ps) {
+      const gp = pos[p.i];
+      if (!p.camPos || Math.hypot(gp[0] - p.camPos[0], gp[1] - p.camPos[1]) > 600) p.camPos = gp.slice();
+      p.camPos[0] += (gp[0] - p.camPos[0]) * k; p.camPos[1] += (gp[1] - p.camPos[1]) * k;
+    }
+    // stream the city around both players; each call keeps the other player's tiles
+    for (const p of ps) {
+      const o = ps[1 - p.i].camPos;
+      world.updateGround(p.camPos[0], p.camPos[1], 1, [o]);
+      world.updateBuildings(p.camPos[0], p.camPos[1], 3);
+    }
+
+    const playing = state.mode === 'play' && state.countdown <= 0;
+    for (const p of ps) {
+      const g = p.g, gp = pos[p.i], o = p.o;
+      o.ghost3d.group.visible = p.alive;
+      o.bubble.setVisible(p.alive);
+      if (p.alive) {
+        const gh = g.moving ? B.graph.headingAt(g.e, g.s, g.dir) : null;
+        o.ghost3d.update(gp[0], gp[1], gh, g.anim + now, p.danger < 220 && playing, g.moving && g.started);
+        o.bubble.update(gp[0], gp[1], now, p.danger);
+      }
+      o.trail.update(state.time, p.alive ? gp[0] : undefined, gp[1]);
+    }
+    B.chompers3d.forEach((m, i) => {
+      const c = state.chompers[i];
+      m.setVisible(!!c);
+      if (!c) return;
+      const cp = posXY(c);
+      m.update(cp[0], cp[1], B.graph.headingAt(c.e, c.s, c.dir), Math.abs(Math.sin(c.mouth)), now + i, c.spawnFx, c.dist < 400);
+    });
+
+    const t = state.task;
+    fctx.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      const gp = pos[p.i];
+      // each half shows only its own hint arrow and its own unvisited landmarks
+      for (const q of ps) {
+        if (q === p && q.alive && q.hint && state.time < q.hint.until) {
+          q.o.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (q.hint.until - state.time) / 2), now);
+        } else q.o.arrow.update(0, 0, 0, 0, now);
+      }
+      for (const [name, m] of world.markers) {
+        const seen = p.visited.has(name);
+        m.g.visible = !seen;
+        m.sprite.visible = !seen && Math.hypot(m.g.position.x - gp[0], m.g.position.z - gp[1]) < 1100;
+      }
+      world.render(p.camPos, now, p.alive ? gp : null, { camera: p.o.cam, x: p.i * halfW, y: 0, w: halfW, h: vh });
+
+      // 2D overlay for this half: chomper pointer, danger glow, "chomped" veil
+      fctx.save();
+      fctx.translate(p.i * halfW * DPR, 0);
+      fctx.beginPath(); fctx.rect(0, 0, halfW * DPR, H); fctx.clip();
+      const hw = halfW * DPR;
+      for (const c of state.chompers) {
+        const cp = posXY(c);
+        const [csx, csy, cz] = toView(p.o.cam, cp[0], cp[1], 14, halfW, vh);
+        const off = cz > 1 || csx < 0 || csy < 0 || csx > halfW || csy > vh;
+        const d = Math.hypot(cp[0] - gp[0], cp[1] - gp[1]);
+        if (off && p.alive) PM.Sprites.edgeArrow(fctx, hw, H, cz > 1 ? hw - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, d, c.color);
+      }
+      if (p.alive && p.danger < 320 && playing) {
+        const a = (1 - p.danger / 320) * 0.45;
+        const grd = fctx.createRadialGradient(hw / 2, H / 2, Math.min(hw, H) * 0.3, hw / 2, H / 2, Math.max(hw, H) * 0.7);
+        grd.addColorStop(0, 'rgba(255,60,90,0)'); grd.addColorStop(1, `rgba(255,60,90,${a})`);
+        fctx.fillStyle = grd; fctx.fillRect(0, 0, hw, H);
+      }
+      if (!p.alive) {
+        fctx.fillStyle = 'rgba(36,31,61,0.55)'; fctx.fillRect(0, 0, hw, H);
+        fctx.fillStyle = '#fff'; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+        fctx.font = `${40 * DPR}px Bungee, "DM Sans", sans-serif`;
+        fctx.fillText('CHOMPED', hw / 2, H / 2);
+        fctx.font = `700 ${16 * DPR}px "DM Sans", sans-serif`;
+        fctx.fillText(`${p.found} target${p.found === 1 ? '' : 's'} · out at ${Math.floor(p.diedAt / 60)}:${String(Math.floor(p.diedAt % 60)).padStart(2, '0')}`, hw / 2, H / 2 + 40 * DPR);
+      }
+      fctx.restore();
+      ui.setVersusStreet(p.i, p.alive ? streetText(p.g) : '');
+    }
+    ui.setVersusCountdown(state.mode === 'play' || state.mode === 'pause' ? state.countdown : 0);
+    if (state.mode === 'play' && !world.lowQ) {
+      perf.t += dt; perf.n++;
+      if (perf.t > 4) { if (perf.n / perf.t < 28) world.lowerQuality(); perf.t = 0; perf.n = 0; }
+    }
   }
 
   // ---------- update ----------
@@ -2469,6 +3059,8 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
   let camPos = null;
   const perf = { t: 0, n: 0 };
   function draw(dt) {
+    renderer.setViewport(0, 0, innerWidth, innerHeight);
+    if (state.versus && B && state.players && ['play', 'pause', 'over', 'vscard'].includes(state.mode)) return drawVersus(dt);
     fctx.clearRect(0, 0, W, H);
     if (!B || state.mode === 'lobby' || state.mode === 'loading') {
       renderer.setClearColor('#cfe8f7'); renderer.clear();
@@ -2483,7 +3075,7 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
       ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))), 'Building the city in 3D…');
       if (B.nearTotal === undefined) B.nearTotal = near;
       world.render(B.loadFocus, now, null);
-      if (near === 0) { B.nearTotal = undefined; startRun(); }
+      if (near === 0) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
       return;
     }
     const g = state.ghost;
@@ -2562,15 +3154,22 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     const dt = Math.min(0.05, (t - last) / 1000);
     last = t;
     now += dt;
-    if (state.mode === 'play') update(dt);
+    if (state.mode === 'play') (state.versus ? updateVersus : update)(dt);
     try { draw(dt); } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
 
   let lobby = [];
+  let picked = null;
+  // a map card was clicked: ask for one or two players next
   function pick(id) {
+    picked = id;
+    ui.showModePick(lobby.find((b) => b.id === id).name);
+  }
+  function chooseMode(versus) {
     audio.unlock();
-    loadBorough(id).catch((e) => {
+    state.versus = versus;
+    loadBorough(picked).catch((e) => {
       console.error(e);
       ui.showLoading('failed', 0, 'The map could not load: ' + e.message + '. Serve the folder over http (see README).');
     });
@@ -2578,7 +3177,8 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 
   ui.init({
     onPick: pick,
-    onAgain: () => { camPos = null; startRun(); },
+    onMode: chooseMode,
+    onAgain: () => { camPos = null; state.versus ? startVersus() : startRun(); },
     onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); },
     onResume: togglePause,
     onToggleMute: () => ui.setMuted(audio.toggleMute()),
@@ -2594,9 +3194,12 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 
-  window.PM.debug = { state, CFG, get B() { return B; }, pick, startRun, closeCard,
-    press: (d) => { queued = d; queuedAt = now; if (state.ghost) state.ghost.started = true; },
-    hold: (d, on) => (on ? held.add(d) : held.delete(d)) };
+  window.PM.debug = { state, CFG, get B() { return B; }, pick, chooseMode, startRun, startVersus, closeCard,
+    press: (d) => { const g = state.ghost; g.inp.queued = d; g.inp.queuedAt = now; g.started = true; },
+    hold: (d, on) => (on ? state.ghost.inp.held.add(d) : state.ghost.inp.held.delete(d)),
+    // two-player: i is 0 (WASD) or 1 (arrows)
+    vsPress: (i, d) => { const g = state.players[i].g; g.inp.queued = d; g.inp.queuedAt = now; },
+    vsHold: (i, d, on) => { const h = state.players[i].g.inp.held; on ? h.add(d) : h.delete(d); } };
 })();
 
 </script>

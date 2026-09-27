@@ -50,8 +50,9 @@ The data files are generated from OpenStreetMap through the Overpass API. Boroug
 1. Download the extracts. For Manhattan, run the queries in `tools/queries/` into `raw/` (`cd raw && ../tools/queries/fetch.sh ../tools/queries/q_streets.txt streets.json`, and so on), then `python3 tools/build_graph.py --land`. For the other boroughs, run `python3 tools/fetch_borough.py brooklyn queens bronx staten`.
 2. Optionally, fetch photos and summaries from Wikipedia: `python3 tools/fetch_wiki.py` for Manhattan and `python3 tools/fetch_wiki.py brooklyn` (and so on) for the others, then `python3 tools/fetch_hd.py manhattan brooklyn queens bronx staten` for HD versions (up to 1280 px). Page titles are in `tools/wiki_titles.py`. Photos are written to `data/<borough>/img/` and load only when a card opens.
 3. Build each borough: `python3 tools/build_borough.py manhattan brooklyn queens bronx staten`. This computes land from the coastline, builds the street graph, adds building heights and colors, and embeds the photos.
-4. Build the lobby cards: `python3 tools/build_lobby.py`.
-5. Optionally, build the single-file page for claude.ai with `python3 tools/make_artifact.py`. It writes `dist/pac-manhattan.html`, which loads `data/` from next to it.
+4. Add real building colors: `python3 tools/color_buildings.py all <lots.csv.gz>`. Roofs get the median color of NYC's 2018 aerial photos inside each footprint (tiles cached in `raw/ortho17/`). Walls come from NYC PLUTO year built and building class, mapped to period materials (brownstone, red brick, limestone, white brick, glass). The lot file needs `bbl, lat, lon, year_built, bldgclass` columns. Buildings without a lot match keep the pastel palette on their walls. Rerun this after step 3, since that step rewrites `map.json`.
+5. Build the lobby cards: `python3 tools/build_lobby.py`.
+6. Optionally, build the single-file page for claude.ai with `python3 tools/make_artifact.py`. It writes `dist/pac-manhattan.html`, which loads `data/` from next to it.
 
 Places are hand-curated in `tools/places.py` (Manhattan) and `tools/places_boroughs.py` (the others). The build step moves each one to the matching OpenStreetMap feature when one exists by name. The build needs Python with `shapely`, `Pillow`, and `matplotlib`.
 

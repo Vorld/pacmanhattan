@@ -1,3 +1,5 @@
+> **The current game is in [`upload-1-code/pacman-3d/`](upload-1-code/pacman-3d/)**: 3D, five boroughs, real building colors, 1 or 2 players. Run it with `cd upload-1-code/pacman-3d && python3 -m http.server 8765`, then open http://localhost:8765. The rest of this README describes the first 2D prototype at the repo root.
+
 # Pac-Manhattan (working title in-game: Manhattan Haunt)
 
 A browser arcade game on a real map of Manhattan. You are a ghost running through real streets, chased by a hungry monster. Each run gives you one vague objective ("find the station where the ceiling shows the stars"). Visit famous landmarks for points and hints; reach the secret place before you get caught.

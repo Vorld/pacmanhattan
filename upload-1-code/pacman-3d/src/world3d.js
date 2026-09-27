@@ -209,7 +209,7 @@
         let tris = [];
         try { tris = T.ShapeUtils.triangulateShape(pts, []); } catch (e) { tris = []; }
         nv += n * 4 + n; ni += n * 6 + tris.length * 3;
-        return { pts, tris, h: D.bh[i], c: D.bc[i], id: i };
+        return { pts, tris, h: D.bh[i], c: D.bc[i], wc: D.wc ? D.wc[i] : null, rc: D.rc ? D.rc[i] : null, id: i };
       });
       const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), col = new Uint8Array(nv * 3);
       const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
@@ -223,7 +223,9 @@
         return v++;
       };
       for (const b of polys) {
-        const c = PALETTE[b.c] || PALETTE[0];
+        // real colors (tools/color_buildings.py) when present, pastel palette otherwise
+        const c = b.wc != null ? new T.Color(b.wc) : PALETTE[b.c] || PALETTE[0];
+        const cr = b.rc != null ? new T.Color(b.rc) : c;
         const n = b.pts.length, h = b.h;
         for (let j = 0; j < n; j++) {
           const a = b.pts[j], bb = b.pts[(j + 1) % n];
@@ -238,7 +240,7 @@
           idx[q++] = a0; idx[q++] = a1; idx[q++] = b1;
         }
         const base = v;
-        for (let j = 0; j < n; j++) put(b.pts[j].x, h, b.pts[j].y, 0, 1, 0, c, 1.06);
+        for (let j = 0; j < n; j++) put(b.pts[j].x, h, b.pts[j].y, 0, 1, 0, cr, 1.06);
         for (const [i0, i1, i2] of b.tris) {
           const p0 = b.pts[i0], p1 = b.pts[i1], p2 = b.pts[i2];
           const cy = (p1.y - p0.y) * (p2.x - p0.x) - (p1.x - p0.x) * (p2.y - p0.y);
