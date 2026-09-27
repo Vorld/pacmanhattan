@@ -4,7 +4,6 @@ import { haversine, inManhattan } from './game/geo'
 import { useGeolocation } from './game/useGeolocation'
 import { useNow } from './game/useNow'
 import { usePacman } from './game/usePacman'
-import { useTrail } from './game/useTrail'
 import MazeMap from './map/MazeMap'
 
 // Blinky until ghost picking lands on the landing screen.
@@ -14,7 +13,6 @@ const sim = new URLSearchParams(window.location.search).has('sim')
 
 export default function App() {
   const { position, status, moveTo } = useGeolocation(sim)
-  const trail = useTrail(position)
   const offIsland = position !== null && !inManhattan(position)
   const { pacmanAt, startedAt } = usePacman(position, status === 'ok' && !offIsland)
   const now = useNow(250)
@@ -23,7 +21,7 @@ export default function App() {
 
   return (
     <main className="relative h-full overflow-hidden">
-      <MazeMap player={position} trail={trail} ghostColor={GHOST_COLOR} pacmanAt={pacmanAt} onTap={moveTo} />
+      <MazeMap player={position} ghostColor={GHOST_COLOR} pacmanAt={pacmanAt} onTap={moveTo} />
 
       <Hud distance={distance} elapsedMs={startedAt ? now - startedAt : 0} />
       {sim && (

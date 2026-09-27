@@ -2,7 +2,7 @@ import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { useEffect, useRef, useState } from 'react'
-import { GRID_BEARING, type LngLat } from '../game/geo'
+import { GRID_BEARING, haversine, type LngLat } from '../game/geo'
 import { dotsAhead, type Route } from '../game/pacman'
 import type { PacmanFrame } from '../game/usePacman'
 import { mazeStyle } from './mazeStyle'
@@ -21,10 +21,11 @@ const PLAY_ZOOM = 16.5
 // How long the ghost takes to slide to a new GPS fix (~ the GPS update interval).
 const GLIDE_MS = 1000
 const DOT_SPACING_METERS = 15
+// Trail corners closer than this are merged, so standing still doesn't pile up points.
+const TRAIL_STEP_METERS = 2
 
 type Props = {
   player: LngLat | null
-  trail: LngLat[]
   ghostColor: string
   pacmanAt: (now: number) => PacmanFrame | null
   onTap?: (point: LngLat) => void
@@ -34,11 +35,13 @@ type Glide = { from: LngLat; to: LngLat; t0: number; done?: boolean }
 
 const lerp = (a: LngLat, b: LngLat, t: number): LngLat => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
 
-export default function MazeMap({ player, trail, ghostColor, pacmanAt, onTap }: Props) {
+export default function MazeMap({ player, ghostColor, pacmanAt, onTap }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const ghostRef = useRef<maplibregl.Marker | null>(null)
   const glide = useRef<Glide | null>(null)
+  // The trail is drawn from where the ghost has actually been drawn, so it never runs ahead of it.
+  const drawnTrail = useRef<LngLat[]>([])
   const onTapRef = useRef(onTap)
   const pacmanAtRef = useRef(pacmanAt)
   const [loaded, setLoaded] = useState(false)
@@ -95,6 +98,10 @@ export default function MazeMap({ player, trail, ghostColor, pacmanAt, onTap }: 
         const pos = lerp(g.from, g.to, t)
         ghost.setLngLat(pos)
         map.jumpTo({ center: pos })
+        map.getSource<maplibregl.GeoJSONSource>('trail')?.setData({
+          type: 'LineString',
+          coordinates: [...drawnTrail.current, pos],
+        })
         g.done = t === 1
       }
 
@@ -124,6 +131,7 @@ export default function MazeMap({ player, trail, ghostColor, pacmanAt, onTap }: 
       mapRef.current = null
       ghostRef.current = null
       glide.current = null
+      drawnTrail.current = []
     }
   }, [])
 
@@ -139,8 +147,11 @@ export default function MazeMap({ player, trail, ghostColor, pacmanAt, onTap }: 
       glide.current = { from: player, to: player, t0: Date.now() }
       return
     }
-    const drawn = ghost.getLngLat()
-    glide.current = { from: [drawn.lng, drawn.lat], to: player, t0: Date.now() }
+    const { lng, lat } = ghost.getLngLat()
+    const drawn: LngLat = [lng, lat]
+    const trail = drawnTrail.current
+    if (!trail.length || haversine(trail[trail.length - 1], drawn) >= TRAIL_STEP_METERS) trail.push(drawn)
+    glide.current = { from: drawn, to: player, t0: Date.now() }
   }, [player])
 
   useEffect(() => {
@@ -154,14 +165,6 @@ export default function MazeMap({ player, trail, ghostColor, pacmanAt, onTap }: 
     map.setPaintProperty('trail', 'line-color', ghostColor)
     map.setPaintProperty('trail-glow', 'line-color', ghostColor)
   }, [ghostColor, loaded])
-
-  // Trail always runs right up to the latest fix, even between saved points.
-  useEffect(() => {
-    const source = mapRef.current?.getSource<maplibregl.GeoJSONSource>('trail')
-    if (!loaded || !source) return
-    const coords = player ? [...trail, player] : trail
-    source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } })
-  }, [trail, player, loaded])
 
   // MapLibre's CSS forces the map element to position: relative, so size it via a wrapper.
   return (
