@@ -2,7 +2,7 @@
 (function () {
   const PM = (window.PM = window.PM || {});
   const $ = (id) => document.getElementById(id);
-  const STORE_KEY = 'pacmanhattan.scores.v1';
+  const STORE_KEY = 'pacmanhattan.scores.v1' + ((window.PM_BOROUGH && window.PM_BOROUGH !== 'manhattan') ? ':' + window.PM_BOROUGH : '');
 
   function loadScores() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch (e) { return []; }
@@ -69,7 +69,8 @@
       const done = p >= 0.999;
       if (this._ld === done && !(!done && Math.abs((this._lp || 0) - p) > 0.02)) return;
       this._ld = done; this._lp = p;
-      el.textContent = done ? 'Manhattan is ready.' : `Building Manhattan in 3D… ${Math.round(p * 100)}%`;
+      const city = (window.PM_DATA.map && window.PM_DATA.map.city) || 'Manhattan';
+      el.textContent = done ? `${city} is ready.` : `Building ${city} in 3D… ${Math.round(p * 100)}%`;
       el.classList.toggle('ready', done);
     },
 

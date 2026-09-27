@@ -36,14 +36,21 @@
     <h1>Pac-<span>Manhattan</span></h1>
     <p class="tag">You're the ghost now. Something yellow and hungry is hunting you through the streets of New York.</p>
     <ol class="how">
-      <li><b>Move</b> by pointing your cursor where you want to go, or use the arrow keys / WASD. You stay on real Manhattan streets.</li>
+      <li><b>Move</b> by pointing your cursor where you want to go, or use the arrow keys / WASD. You stay on real New York streets.</li>
       <li><b>Find the place</b> named in your task. It glows gold with a beam of light once it's in view.</li>
       <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint: how far the target is, and which way.</li>
       <li><b>Don't get chomped.</b> The chomper gets faster with every task you finish.</li>
     </ol>
-    <p class="muted small">Up is uptown, right is east. P to pause, M to mute.</p>
+    <div class="boroughs" role="radiogroup" aria-label="Choose a borough">
+      <button data-b="manhattan" role="radio">Manhattan</button>
+      <button data-b="brooklyn" role="radio">Brooklyn</button>
+      <button disabled title="Coming soon">Queens</button>
+      <button disabled title="Coming soon">The Bronx</button>
+      <button disabled title="Coming soon">Staten Island</button>
+    </div>
+    <p class="muted small" id="orient">Up is uptown, right is east. P to pause, M to mute.</p>
     <button id="btn-start" class="primary">Start running</button>
-    <div id="loading" class="small muted">Building Manhattan in 3D…</div>
+    <div id="loading" class="small muted">Building the city in 3D…</div>
     <div class="scores-title">High scores</div>
     <div id="title-scores" class="scores"></div>
   </div>
@@ -89,9 +96,16 @@
 <div id="credits">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-<script src="data/map.js"></script>
-<script src="data/graph.js"></script>
-<script src="data/places.js"></script>
+<script>
+  // Borough picker: ?borough=brooklyn loads data/brooklyn/*.js; Manhattan (default) loads data/*.js.
+  (function () {
+    var b = (new URLSearchParams(location.search).get('borough') || 'manhattan').toLowerCase();
+    var dirs = { manhattan: 'data/', brooklyn: 'data/brooklyn/' };
+    if (!dirs[b]) b = 'manhattan';
+    window.PM_BOROUGH = b;
+    ['map', 'graph', 'places'].forEach(function (n) { document.write('<script src="' + dirs[b] + n + '.js"><\/script>'); });
+  })();
+</script>
 <script src="src/graph.js"></script>
 <script src="src/render.js"></script>
 <script src="src/world3d.js"></script>
@@ -100,5 +114,19 @@
 <script src="src/audio.js"></script>
 <script src="src/ui.js"></script>
 <script src="src/game.js"></script>
+<script>
+  (function () {
+    var b = window.PM_BOROUGH || 'manhattan';
+    document.querySelectorAll('.boroughs [data-b]').forEach(function (el) {
+      el.setAttribute('aria-checked', el.dataset.b === b ? 'true' : 'false');
+      el.onclick = function () { if (el.dataset.b !== b) location.search = '?borough=' + el.dataset.b; };
+    });
+    if (b !== 'manhattan') document.getElementById('orient').textContent = 'North is up. P to pause, M to mute.';
+    var names = { manhattan: 'Manhattan', brooklyn: 'Brooklyn' };
+    var span = document.querySelector('.card h1 span');
+    if (span) span.textContent = names[b];
+    document.title = 'Pac-' + names[b];
+  })();
+</script>
 </body>
 </html>

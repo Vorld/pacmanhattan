@@ -7,7 +7,7 @@ Walls: NYC PLUTO lot data (year built + building class) mapped to period-appropr
 Adds "wc" (wall RGB ints) and "rc" (roof RGB ints) to data/map.js; the renderer falls back to the
 old palette for any building without them.
 
-Usage: python3 tools/color_buildings.py <map.js> <plutо buildings.csv.gz> [--borough-prefix 1]
+Usage: [PM_CITY=brooklyn] python3 tools/color_buildings.py <map.js> <pluto buildings.csv.gz> [--borough-prefix 3]
 Aerial tiles are cached in raw/ortho17/ (fetched politely, once).
 """
 
@@ -26,8 +26,10 @@ from PIL import Image
 from shapely import STRtree, points
 from shapely.geometry import Polygon
 
-LAT0, LON0 = 40.758, -73.9855
-ROT = math.radians(29.0)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from city import C  # noqa: E402  (PM_CITY picks the borough; same projection as build_graph.py)
+LAT0, LON0 = C['origin']
+ROT = math.radians(C['rot_deg'])
 KX = 111320 * math.cos(math.radians(LAT0))
 KY = 110540
 Z = 17

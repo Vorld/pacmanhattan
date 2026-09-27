@@ -268,7 +268,8 @@
   }
 
   function describeDir(dx, dy) {
-    const ns = dy < 0 ? 'uptown' : 'downtown';
+    const manhattan = (window.PM_BOROUGH || 'manhattan') === 'manhattan';
+    const ns = dy < 0 ? (manhattan ? 'uptown' : 'north') : (manhattan ? 'downtown' : 'south');
     const ew = dx > 0 ? 'east' : 'west';
     const ax = Math.abs(dx), ay = Math.abs(dy);
     if (ax < ay * 0.35) return ns;

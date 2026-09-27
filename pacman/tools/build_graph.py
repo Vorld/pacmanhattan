@@ -6,8 +6,11 @@ rotated so Manhattan's avenues run straight up the screen ("Manhattan north").
 import json, math, sys
 from collections import defaultdict
 
-LAT0, LON0 = 40.758, -73.9855          # Times Square
-ROT = math.radians(29.0)               # Manhattan grid offset from true north
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+from city import C, KEY
+LAT0, LON0 = C['origin']               # Manhattan: Times Square
+ROT = math.radians(C['rot_deg'])       # Manhattan: grid offset from true north (29 deg)
 KX = 111320 * math.cos(math.radians(LAT0))
 KY = 110540
 
@@ -52,10 +55,10 @@ def assemble_rings(ways):
     return rings
 
 def main():
-    raw = 'raw/'
+    raw = C['raw']
     streets = json.load(open(raw + 'streets.json'))['elements']
     paths = json.load(open(raw + 'parkpaths.json'))['elements']
-    land = json.load(open('build/land.json'))  # list of rings in game meters
+    land = json.load(open(C['build'] + 'land.json'))  # list of rings in game meters
 
     def on_land(x, y):
         return any(point_in_poly(x, y, r) for r in land)
@@ -170,7 +173,7 @@ def main():
                               'n': nm, 'c': cls})
     # handle pure cycles with no junction (rare): ignored
     print('nodes', len(nodes_out), 'edges', len(edges_out), file=sys.stderr)
-    json.dump({'nodes': nodes_out, 'edges': edges_out}, open('build/graph.json', 'w'), separators=(',', ':'))
+    json.dump({'nodes': nodes_out, 'edges': edges_out}, open(C['build'] + 'graph.json', 'w'), separators=(',', ':'))
 
 def simplify(pts, tol):
     if len(pts) < 3:
@@ -188,16 +191,48 @@ def simplify(pts, tol):
         return simplify(pts[:imax + 1], tol)[:-1] + simplify(pts[imax:], tol)
     return [pts[0], pts[-1]]
 
+def make_land_from_ntas():
+    """Land = NYC NTA 2020 boundaries (clipped to the shoreline), merged per borough, cropped to the play bbox.
+    The playable borough's land clips the street graph; every borough in view is drawn as land."""
+    from shapely.geometry import shape, box
+    from shapely.ops import unary_union
+    # NYC Open Data "2020 Neighborhood Tabulation Areas" GeoJSON (dataset 9nt8-h7nd)
+    nta = json.load(open(os.environ.get('PM_NTA_GEOJSON', 'raw/nta2020.geojson')))
+    s, w, n, e = C['bbox']
+    view = box(w - 0.03, s - 0.03, e + 0.03, n + 0.03)
+    play = box(w, s, e, n)
+    by_boro = {}
+    for f in nta['features']:
+        by_boro.setdefault(f['properties']['boroname'], []).append(shape(f['geometry']))
+    def rings(geom):
+        out = []
+        for g in getattr(geom, 'geoms', [geom]):
+            if g.is_empty or g.area < 1e-7:
+                continue
+            out.append([proj(lat, lon) for lon, lat in g.exterior.coords])
+        return out
+    land, islands = [], []
+    for boro, geoms in by_boro.items():
+        u = unary_union(geoms).buffer(0.00005)
+        if boro == C['name']:
+            land += rings(u.intersection(play))
+        islands += rings(u.intersection(view))
+    json.dump(land, open(C['build'] + 'land.json', 'w'))
+    json.dump([[[round(x, 1), round(y, 1)] for x, y in r] for r in islands], open(C['build'] + 'islands.json', 'w'))
+    json.dump([], open(C['build'] + 'opencoast.json', 'w'))
+    print('land rings', len(land), 'view rings', len(islands), file=sys.stderr)
+
 def make_land():
-    import os
-    os.makedirs('build', exist_ok=True)
-    c = json.load(open('raw/coast.json'))['elements']
+    os.makedirs(C['build'], exist_ok=True)
+    if C['land_from_ntas']:
+        return make_land_from_ntas()
+    c = json.load(open(C['raw'] + 'coast.json'))['elements']
     rings = assemble_rings([[(g['lat'], g['lon']) for g in w['geometry']] for w in c])
     closed = [[proj(*p) for p in r] for r in rings if r[0] == r[-1]]
     open_ = [[proj(*p) for p in r] for r in rings if r[0] != r[-1]]
-    json.dump([r for r in closed if point_in_poly(0, 0, r)], open('build/land.json', 'w'))
-    json.dump([[[round(x, 1), round(y, 1)] for x, y in r] for r in closed], open('build/islands.json', 'w'))
-    json.dump([[[round(x, 1), round(y, 1)] for x, y in r] for r in open_], open('build/opencoast.json', 'w'))
+    json.dump([r for r in closed if point_in_poly(0, 0, r)], open(C['build'] + 'land.json', 'w'))
+    json.dump([[[round(x, 1), round(y, 1)] for x, y in r] for r in closed], open(C['build'] + 'islands.json', 'w'))
+    json.dump([[[round(x, 1), round(y, 1)] for x, y in r] for r in open_], open(C['build'] + 'opencoast.json', 'w'))
 
 if __name__ == '__main__':
     if '--land' in sys.argv:

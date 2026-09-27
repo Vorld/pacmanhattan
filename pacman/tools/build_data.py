@@ -7,10 +7,14 @@ Run after tools/build_graph.py:  python3 tools/build_data.py
 import json, math, os, re, sys, glob
 sys.path.insert(0, os.path.dirname(__file__))
 from build_graph import proj, point_in_poly, assemble_rings, simplify
-from places import LANDMARKS, TARGETS
+from city import C
+import importlib
+_places = importlib.import_module(C['places'])
+LANDMARKS, TARGETS = _places.LANDMARKS, _places.TARGETS
 
-RAW = 'raw/'
-OUT = 'data/'
+RAW = C['raw']
+OUT = C['out']
+BUILD = C['build']
 os.makedirs(OUT, exist_ok=True)
 
 def ring_area(r):
@@ -129,10 +133,10 @@ def norm(s):
 
 def main():
     # --- land ---
-    islands = json.load(open('build/islands.json'))
+    islands = json.load(open(BUILD + 'islands.json'))
     islands = [simplify_ring([tuple(p) for p in r[:-1]], 1.0) for r in islands]
-    opencoast = json.load(open('build/opencoast.json'))
-    mainland = mainland_polys([[tuple(p) for p in c] for c in opencoast])
+    opencoast = json.load(open(BUILD + 'opencoast.json'))
+    mainland = mainland_polys([[tuple(p) for p in c] for c in opencoast]) if opencoast else []
 
     # --- parks / water / buildings ---
     green = polys_from(json.load(open(RAW + 'green.json'))['elements'], 60)
@@ -152,6 +156,7 @@ def main():
     r1 = lambda r: [[round(x, 1), round(y, 1)] for x, y in r]
     mapdata = {
         'q': 2,
+        'city': C['name'],
         'islands': [r1(r) for r in islands],
         'mainland': [r1(r) for r in mainland],
         'green': [flat(r) for r in green],
@@ -166,7 +171,7 @@ def main():
         json.dump(mapdata, f, separators=(',', ':'))
         f.write(';\n')
 
-    graph = json.load(open('build/graph.json'))
+    graph = json.load(open(BUILD + 'graph.json'))
     with open(OUT + 'graph.js', 'w') as f:
         f.write('// Generated from OpenStreetMap data (c) OpenStreetMap contributors, ODbL.\n')
         f.write('window.PM_DATA=window.PM_DATA||{};PM_DATA.graph=')
@@ -175,7 +180,7 @@ def main():
 
     # --- places: refine coordinates using OSM features with matching names ---
     named = {}
-    for el in json.load(open(RAW + 'names.json'))['elements']:
+    for el in (json.load(open(RAW + 'names.json'))['elements'] if os.path.exists(RAW + 'names.json') else []):
         c = el.get('center') or ({'lat': el['lat'], 'lon': el['lon']} if 'lat' in el else None)
         if c and 'name' in el.get('tags', {}):
             named.setdefault(norm(el['tags']['name']), []).append((c['lat'], c['lon']))
@@ -187,7 +192,7 @@ def main():
         if best: lat, lon = best
         x, y = proj(lat, lon)
         return round(x, 1), round(y, 1), best is not None, (round(lat, 6), round(lon, 6))
-    wiki = json.load(open('build/wiki.json')) if os.path.exists('build/wiki.json') else {}
+    wiki = json.load(open(BUILD + 'wiki.json')) if os.path.exists(BUILD + 'wiki.json') else {}
     import base64
     def wikirec(name):
         w = wiki.get(name) or {}

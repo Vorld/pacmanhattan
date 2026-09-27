@@ -105,3 +105,9 @@ button:hover { filter: brightness(1.05); }
 .links a { color: var(--ghost); }
 .place-card > button.primary { width: calc(100% - 48px); margin: 8px 24px 22px; }
 @media (max-width: 760px) { #card-body { grid-template-columns: 1fr; } #card-body figure img { max-height: 220px; } }
+
+/* borough picker */
+.boroughs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 14px 0 6px; }
+.boroughs button { border: 1px solid rgba(0,0,0,.15); background: #fff; color: inherit; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.boroughs button[aria-checked="true"] { background: #1c1b2e; color: #fff; border-color: #1c1b2e; }
+.boroughs button:disabled { opacity: .4; cursor: not-allowed; font-weight: 500; }
