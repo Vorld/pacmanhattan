@@ -149,6 +149,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 .eyebrow.found { color: var(--good); }
 .eyebrow.revisit { color: var(--ghost-deep); }
 .fact { font-size: 15px; line-height: 1.45; }
+.lesson { background: #f4f0ff; border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; }
+.lesson p { margin: 0; font-size: 15px; line-height: 1.45; }
+.lesson img { width: 100%; border-radius: 8px; display: block; max-height: 160px; object-fit: cover; }
 .about { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
 .card-hint { background: #e6f7ee; border-radius: 12px; padding: 10px 12px; color: #0d5e33; font-size: 14px; line-height: 1.4; }
 .links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; font-weight: 700; }

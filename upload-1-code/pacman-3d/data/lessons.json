@@ -1,0 +1,53 @@
+{
+  "written": "2026-09-27",
+  "model": "Grok in Cursor",
+  "prompt": "prompts/grok-lessons.md",
+  "places": {
+    "The High Line": {
+      "id": "high-line",
+      "image": "data/lessons/high-line.png",
+      "text": "This park used to be a freight rail line. You just walked a piece of the West Side the trains left behind, instead of letting a map skip over it."
+    },
+    "Inwood Hill Park": {
+      "id": "inwood",
+      "image": "data/lessons/forest.png",
+      "text": "This is the last natural forest on Manhattan. People who only follow a pin never learn it is up here."
+    },
+    "Staten Island Ferry Terminal": {
+      "id": "ferry-terminal",
+      "image": "data/lessons/ferry.png",
+      "text": "The ferry is free, and it is how Manhattan actually reaches Staten Island. The chompers have to wait on the dock. You do not."
+    },
+    "Brooklyn Bridge": {
+      "id": "brooklyn-bridge",
+      "text": "You can cross the East River on foot. That walk is the original link between these boroughs, and a transit app usually hides it."
+    },
+    "Little Island": {
+      "id": "little-island",
+      "text": "A public park now stands in the river where the old piers were. The city keeps adding places you can only understand by going there."
+    },
+    "The Battery": {
+      "id": "battery",
+      "text": "This lawn is the bottom of the island. Once you have stood here, the shape of Manhattan is yours, not just a subway diagram."
+    },
+    "Katz's Delicatessen": {
+      "id": "katzs",
+      "text": "Houston Street has been slicing pastrami since 1888. Knowing a city means knowing a counter on a side street, not only the skyline."
+    },
+    "Sheep Meadow": {
+      "id": "sheep-meadow",
+      "text": "A flock grazed this field until 1934. You found it by the streets, which is how a mental map gets built."
+    }
+  },
+  "edges": {
+    "ferry": {
+      "id": "ferry",
+      "image": "data/lessons/ferry.png",
+      "text": "This boat is the fast way to Staten Island. It is public transit, and the hunters cannot board."
+    },
+    "Brooklyn Bridge": {
+      "id": "brooklyn-bridge",
+      "text": "You are walking the crossing yourself. A map turns this into a line you never feel under your feet."
+    }
+  }
+}

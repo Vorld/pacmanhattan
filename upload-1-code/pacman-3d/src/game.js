@@ -40,6 +40,9 @@
   const audio = new PM.Audio();
   const ui = PM.UI;
   const voice = PM.voice;
+  let LESSONS = { places: {}, edges: {} };
+  fetch('data/lessons.json').then((r) => r.ok ? r.json() : null).then((j) => { if (j) LESSONS = j; }).catch(() => {});
+  const lessonFor = (name) => (LESSONS.places || {})[name] || null;
   const muteAll = () => { const m = audio.toggleMute(); voice.setMuted(m); ui.setMuted(m); };
 
   let B = null; // the loaded borough: data, graph, world, 3D objects, places
@@ -841,10 +844,17 @@
     g.anim += dt;
     moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
     const onFerry = g.e.cls === 4;
-    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) {
+      const bridgeLesson = (LESSONS.edges || {})[g.e.name];
+      voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+      if (bridgeLesson) ui.toast({ title: g.e.name, body: bridgeLesson.text, kind: 'info', secs: 6 });
+    }
     state.lastEdge = g.e;
-    if (onFerry && !state.onFerry) voice.play('ferry');
-    if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
+    if (onFerry && !state.onFerry) {
+      const ferryLesson = (LESSONS.edges || {}).ferry;
+      voice.play('ferry');
+      ui.toast({ title: 'All aboard the ' + g.e.name, body: ferryLesson ? ferryLesson.text : 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 6 });
+    }
     state.onFerry = onFerry;
     const gp = posXY(g);
     B.trail.add(gp[0], gp[1], state.time);
@@ -903,7 +913,7 @@
         audio.ding();
         voice.play('landmark');
         PM.Tiger.event(B.id, l.name, 'landmark', null);
-        openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
+        openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint, lesson: lessonFor(l.name) });
         return;
       }
     }
@@ -928,7 +938,7 @@
       };
       voice.play(solved ? 'solved' : 'found');
       if (t.riddle) PM.Tiger.event(B.id, t.name, solved ? 'solved' : 'found', state.taskTime);
-      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
+      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved, lesson: lessonFor(t.name) });
       ui.setScore(state.score);
       return;
     }
@@ -1188,7 +1198,7 @@
       if (state.mode !== 'play' && state.mode !== 'pause') return;
       if (state.mode === 'pause') ui.showPause(false);
       const it = state.passport[i];
-      if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '' });
+      if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '', lesson: lessonFor(it.place.name) });
     },
   });
   ui.showTitle();

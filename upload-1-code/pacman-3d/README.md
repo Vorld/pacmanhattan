@@ -2,6 +2,8 @@
 
 You're the ghost. Hungry chompers hunt you through real New York streets while you race to find famous places.
 
+Architecture diagrams and which sponsor tools are actually in the build are in the [repo README](../../README.md).
+
 - Pick a borough in the lobby: all of Manhattan, a neighborhood-sized map of Brooklyn, Queens, the Bronx, or Staten Island, **Manhattan + Brooklyn** on one map, where the Brooklyn, Manhattan and Williamsburg Bridges take you across the East River, or **all five boroughs** on one map. In the five-borough map the Queensboro Bridge goes to Queens, the Macombs Dam and Third Avenue Bridges go to the Bronx, and the Staten Island Ferry leaves from Whitehall. The ferry carries you five times faster than running, and chompers can't board it, so they wait at the terminal. Each map loads only when you pick it.
 - Buildings have their real colors: roofs from NYC's 2018 aerial photos, walls from each lot's year built and building class.
 - Point your cursor where you want to go (or use the arrow keys / WASD). You stay snapped to real streets and park paths. A glowing ring and a street-name label show exactly where you are, and a fading trail shows where you've been.
@@ -26,7 +28,7 @@ That plays fine but saves only in the browser. To also save to MongoDB, run the 
 
 ```sh
 npm install
-# put MONGODB_URI=mongodb+srv://... in .env.local (ignored by git)
+# put MONGODB_URI and TIGER_DATABASE_URL in .env.local (ignored by git). Neither is set yet.
 npm run dev   # then open http://localhost:5173
 ```
 
