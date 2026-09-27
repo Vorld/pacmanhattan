@@ -479,7 +479,7 @@
       const list = this.globalTop || store.get(scoresKey(borough), []);
       $('scores-title').textContent = this.globalTop ? 'High scores · everyone' : 'High scores';
       if (!list.length) { el.innerHTML = '<div class="muted">No high scores yet.</div>'; return; }
-      el.innerHTML = '<table>' + list.map((s, i) => `<tr class="${s.ini === hiIni && s.score === hiScore ? 'me' : ''}"><td>${i + 1}</td><td>${esc(s.ini)}</td><td class="num">${s.score.toLocaleString()}</td><td class="num">${s.tasks} tasks</td></tr>`).join('') + '</table>';
+      el.innerHTML = '<table>' + list.map((s, i) => `<tr class="${s.ini === hiIni && s.score === hiScore ? 'me' : ''}"><td>${i + 1}</td><td>${esc(s.ini)}</td><td class="num">${s.score.toLocaleString()}</td><td class="num">${s.tasks} ${s.tasks === 1 ? 'task' : 'tasks'}</td></tr>`).join('') + '</table>';
     },
     drawRoute(r) {
       const c = $('route'), g = c.getContext('2d');
