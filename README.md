@@ -92,7 +92,7 @@ The game plays without the databases. Scores fall back to the browser, and the T
 
 **Know Your City (main track).** The board is the real city. Each task is a place you can walk to. The Passport is a stamp book of landmarks you reached. The five-borough map is the "know more than your own borough" pitch: bridges, the ferry, and places outside Midtown.
 
-**Best Use of Gemini API.** `tools/make_riddles.py` calls `gemini-3.1-flash-lite` with `GEMINI_API_KEY`. For every target it sends that place's own fact and Wikipedia summary and asks for one sentence. A checker rejects the line if it contains a word from the place name, or a number that is not in the source, and retries up to three times. The kept line is stored as `riddle` on the place. The browser never sees the key. Places that fail the check show their name, same as before.
+** Use of Gemini API.** `tools/make_riddles.py` calls `gemini-3.1-flash-lite` with `GEMINI_API_KEY`. For every target it sends that place's own fact and Wikipedia summary and asks for one sentence. A checker rejects the line if it contains a word from the place name, or a number that is not in the source, and retries up to three times. The kept line is stored as `riddle` on the place. The browser never sees the key. Places that fail the check show their name, same as before.
 
 ```sh
 cd upload-1-code/pacman-3d
@@ -100,7 +100,7 @@ GEMINI_API_KEY=... python3 tools/make_riddles.py
 python3 tools/build_bridges.py   # copy riddles onto the multi-borough maps
 ```
 
-**Best Use of ElevenLabs.** This is the voice of the game. `tools/make_voice.py` calls Multilingual v2, voice Laura, with `ELEVENLABS_API_KEY`, and writes 16 mp3s into `data/voice/`: welcome, the riddle prompt, landmark, solved, found, a new chomper, "behind you", each bridge, the ferry, and game over. `src/voice.js` plays those files. There is no second narrator. The key is not in the site.
+**Use of ElevenLabs.** This is the voice of the game. `tools/make_voice.py` calls Multilingual v2, voice Laura, with `ELEVENLABS_API_KEY`, and writes 16 mp3s into `data/voice/`: welcome, the riddle prompt, landmark, solved, found, a new chomper, "behind you", each bridge, the ferry, and game over. `src/voice.js` plays those files. There is no second narrator. The key is not in the site.
 
 ```sh
 ELEVENLABS_API_KEY=... python3 tools/make_voice.py
