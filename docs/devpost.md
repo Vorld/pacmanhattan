@@ -1,19 +1,3 @@
-# Pac-Manhattan: Devpost write-up
-
-**Title:** Pac-Manhattan
-
-**Tagline (under 200 characters):** You're the ghost. New York is the maze. A 3D arcade chase through real NYC streets that teaches you the city one riddle at a time.
-
-**Track:** Know Your City
-**Also submit to:** Best Use of Tiger Data, Best Use of MongoDB Atlas, Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack. Tiger and Mongo are in the code. The game still needs `TIGER_DATABASE_URL` and `MONGODB_URI` set in Vercel (they are not in the repo). Until then scores stay in the browser and the Tiger panel stays hidden.
-
-**Images:** `docs/media/pacmanhattan-cover-3x2.jpg` (3000x2000, Devpost thumbnail and first gallery image) and `docs/media/pacmanhattan-banner-3x1.jpg` (3840x1280, wide banner). Both are real screenshots of the game's title screen.
-
-**Try it:** https://pac-manhattan.tech (backup: https://pacmanhattan-kappa.vercel.app)
-**Code:** https://github.com/Vorld/pacmanhattan
-
----
-
 ## Inspiration
 
 **New Yorkers live in borough bubbles.** 86% of New Yorkers who moved stayed in the same borough ([StreetEasy, via amNY](https://www.amny.com/news/most-new-yorkers-who-move-stay-in-their-boroughs-report-finds-1.12449875/)). We ride the same train to the same few blocks, and the rest of the city stays a name on a subway map.
@@ -95,13 +79,3 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - Ghost skins unlocked with Passport stamps.
 
 **Built with:** three.js, javascript, html5, css3, node.js, python, shapely, pillow, openstreetmap, overpass-api, nyc-open-data, tiger-data, timescaledb, postgresql, mongodb, gemini, elevenlabs, grok, cursor, wikipedia, vercel, tech-domains
-
----
-
-## 3-minute judging script (not for Devpost)
-
-1. **Hook (20 s):** "86% of New Yorkers who move stay in their own borough. We built a game that drags you out of your bubble." Show the live title screen.
-2. **Play (70 s):** pick Manhattan, solo. Read the riddle out loud and let a judge guess. Run to a ★ landmark to show the photo card and hint, then find the target.
-3. **Wow (50 s):** switch to All five boroughs. Show the ferry: "Chompers can't swim." Point out the real building colors (brownstones vs. Midtown glass).
-4. **How (30 s):** OpenStreetMap + NYC aerial photos + PLUTO; Gemini riddles with a fact checker; Tiger Data for "know the block" and live riddle stats; ElevenLabs narrator.
-5. **Close (10 s):** "Next: walk mode, so the stamps come from real places."
