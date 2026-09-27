@@ -38,6 +38,7 @@
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
       $('passport-toggle').onclick = () => { $('passport').classList.toggle('collapsed'); };
+      $('initials').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); });
       $('initials').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') this.saveInitials(); });
       this.mini = $('minimap');
       this.miniCtx = this.mini.getContext('2d');
@@ -457,7 +458,7 @@
     },
     saveInitials() {
       const r = this.last; if (!r) return;
-      const ini = ($('initials').value || '???').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3) || '???';
+      const ini = $('initials').value.replace(/\D/g, '').slice(0, 20) || '???';
       const list = store.get(scoresKey(r.borough), []);
       list.push({ ini, score: r.score, tasks: r.tasks, date: new Date().toISOString().slice(0, 10) });
       list.sort((a, b) => b.score - a.score);
