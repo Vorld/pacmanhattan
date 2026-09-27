@@ -57,6 +57,8 @@ The title screen has a borough picker. `?borough=brooklyn` loads `data/brooklyn/
 
 Brooklyn covers the north and west of the borough (DUMBO, Downtown, Williamsburg, Greenpoint, Bushwick, Bed-Stuy, Park Slope, Prospect Park, Red Hook, Sunset Park): about 132,000 buildings, 11,379 street segments and 53 places. North stays up in Brooklyn, so hints say north/south instead of uptown/downtown.
 
+**Both, via the bridges** (`?borough=both`) puts Manhattan and Brooklyn on one map. The browser loads both boroughs' data and `src/merge_boroughs.js` moves Brooklyn into Manhattan's coordinates, then joins the two street graphs with the Brooklyn, Manhattan and Williamsburg Bridges, so you (and the chomper) can run across the East River. Runs start at Times Square.
+
 Every build step reads its settings from `tools/city.py` (boundary, origin, rotation, play area, output folder). Pick a borough with `PM_CITY` (default `manhattan`, which keeps the original `raw/`, `build/`, `data/` paths):
 
 ```sh

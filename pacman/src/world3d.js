@@ -79,6 +79,7 @@
       const isl = this.data.islands.reduce((a, r) => (r.length > a.length ? r : a), []);
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const [x, y] of isl) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      if (this.data.box) [x0, y0, x1, y1] = this.data.box; // several boroughs: play area covers all of them
       this.islandBox = [x0 - 1500, y0 - 1500, x1 + 1500, y1 + 1500];
       this.baseQueue = [];
       for (let tx = Math.floor(this.islandBox[0] / this.baseM); tx <= Math.floor(this.islandBox[2] / this.baseM); tx++)

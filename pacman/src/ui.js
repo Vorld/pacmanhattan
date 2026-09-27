@@ -108,6 +108,7 @@
       const r = map.islands.find((x) => x.length > 1000) || map.islands[0];
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const [x, y] of r) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      if (map.box) [x0, y0, x1, y1] = map.box;
       x0 -= 400; y0 -= 400; x1 += 400; y1 += 400;
       const k = S * dpr;
       const cv = document.createElement('canvas');

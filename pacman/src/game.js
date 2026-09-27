@@ -268,7 +268,7 @@
   }
 
   function describeDir(dx, dy) {
-    const manhattan = (window.PM_BOROUGH || 'manhattan') === 'manhattan';
+    const manhattan = (window.PM_BOROUGH || 'manhattan') !== 'brooklyn'; // Manhattan's grid is up in both other modes
     const ns = dy < 0 ? (manhattan ? 'uptown' : 'north') : (manhattan ? 'downtown' : 'south');
     const ew = dx > 0 ? 'east' : 'west';
     const ax = Math.abs(dx), ay = Math.abs(dy);

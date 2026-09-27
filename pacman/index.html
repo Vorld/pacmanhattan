@@ -44,6 +44,7 @@
     <div class="boroughs" role="radiogroup" aria-label="Choose a borough">
       <button data-b="manhattan" role="radio">Manhattan</button>
       <button data-b="brooklyn" role="radio">Brooklyn</button>
+      <button data-b="both" role="radio">Both, via the bridges</button>
       <button disabled title="Coming soon">Queens</button>
       <button disabled title="Coming soon">The Bronx</button>
       <button disabled title="Coming soon">Staten Island</button>
@@ -101,9 +102,15 @@
   (function () {
     var b = (new URLSearchParams(location.search).get('borough') || 'manhattan').toLowerCase();
     var dirs = { manhattan: 'data/', brooklyn: 'data/brooklyn/' };
-    if (!dirs[b]) b = 'manhattan';
+    if (b !== 'both' && !dirs[b]) b = 'manhattan';
     window.PM_BOROUGH = b;
-    ['map', 'graph', 'places'].forEach(function (n) { document.write('<script src="' + dirs[b] + n + '.js"><\/script>'); });
+    var load = function (d) { ['map', 'graph', 'places'].forEach(function (n) { document.write('<script src="' + d + n + '.js"><\/script>'); }); };
+    if (b === 'both') { // ?borough=both: Manhattan + Brooklyn joined by the bridges
+      load(dirs.manhattan);
+      document.write('<script>window.PM_PARTS = { manhattan: window.PM_DATA }; window.PM_DATA = {};<\/script>');
+      load(dirs.brooklyn);
+      document.write('<script src="src/merge_boroughs.js"><\/script>');
+    } else load(dirs[b]);
   })();
 </script>
 <script src="src/graph.js"></script>
@@ -121,8 +128,8 @@
       el.setAttribute('aria-checked', el.dataset.b === b ? 'true' : 'false');
       el.onclick = function () { if (el.dataset.b !== b) location.search = '?borough=' + el.dataset.b; };
     });
-    if (b !== 'manhattan') document.getElementById('orient').textContent = 'North is up. P to pause, M to mute.';
-    var names = { manhattan: 'Manhattan', brooklyn: 'Brooklyn' };
+    if (b === 'brooklyn') document.getElementById('orient').textContent = 'North is up. P to pause, M to mute.';
+    var names = { manhattan: 'Manhattan', brooklyn: 'Brooklyn', both: 'Manhattan' };
     var span = document.querySelector('.card h1 span');
     if (span) span.textContent = names[b];
     document.title = 'Pac-' + names[b];
