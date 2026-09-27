@@ -17,10 +17,27 @@ export interface FoundTarget {
   time: number;
 }
 
+/** One Pac-Man. The first spawns at the start; more join as targets are found. */
+export interface Pacman {
+  mover: Mover;
+  /** Nodes still to visit on the current route, and where that route ends. */
+  path: number[];
+  goal: GraphPoint;
+  repathIn: number;
+  /** Walking distance to the ghost, meters (Infinity before the first route). */
+  distance: number;
+  /** Run time at which this Pac-Man starts moving. */
+  activeAt: number;
+  /** Positions sampled alongside the ghost's route; `routeStart` is the ghost-route index of the first. */
+  route: Vec[];
+  routeStart: number;
+}
+
 export type RunEvent =
   | { type: 'landmark'; landmark: Landmark; hint: Hint }
   | { type: 'caught' }
-  | { type: 'found'; found: FoundTarget; next: Target };
+  | { type: 'found'; found: FoundTarget; next: Target }
+  | { type: 'pacman'; pacman: Pacman; count: number };
 
 export interface RunOptions {
   rng?: () => number;
@@ -32,6 +49,7 @@ export interface RunOptions {
 }
 
 const ROUTE_SAMPLE_S = 0.25;
+const EXTRA_PACMAN_WAKE_S = 1.5; // a new Pac-Man pauses briefly so the player sees it arrive
 const DISCOVERY_STEP_M = 25;
 
 /** One play-through. Pure game logic: no DOM, driven by `update(dt)`. */
@@ -42,24 +60,18 @@ export class Run {
   target: Target;
   readonly found: FoundTarget[] = [];
   readonly ghost: Mover;
-  readonly pacman: Mover;
+  readonly pacmen: Pacman[] = [];
   readonly visited: Landmark[] = [];
   /** Hints earned for the current target (reset when it changes). */
   hints: Hint[] = [];
   landmarkPoints = 0;
-  /** Path distance from Pac-Man to the ghost, meters (Infinity before the first route). */
-  pacmanDistance = Infinity;
   readonly route: Vec[] = [];
-  readonly pacmanRoute: Vec[] = [];
   readonly discovered = new Set<number>();
   /** Edges discovered since the renderer last drained this list. */
   newlyDiscovered: number[] = [];
 
   private intent: Vec | null = null;
   private history: { t: number; p: GraphPoint }[] = [];
-  private pacPath: number[] = [];
-  private pacGoal: GraphPoint;
-  private repathIn = 0;
   private sampleIn = 0;
   private lastDiscoveryPos: Vec | null = null;
   private finder: PathFinder;
@@ -79,9 +91,8 @@ export class Run {
 
     const ghostNode = opts.ghostNode ?? this.pickGhostSpawn();
     this.ghost = this.standingAt(ghostNode);
-    const pacNode = opts.pacmanNode ?? this.pickPacmanSpawn();
-    this.pacman = this.standingAt(pacNode);
-    this.pacGoal = this.ghostPoint();
+    const { spawnMinDistance, spawnMaxDistance, startGraceMs } = config.pacman;
+    this.addPacman(opts.pacmanNode ?? this.pickPacmanSpawn(spawnMinDistance, spawnMaxDistance), startGraceMs / 1000);
     this.recordRoute();
     this.discover(true);
   }
@@ -98,16 +109,20 @@ export class Run {
   get ghostPos() {
     return positionOf(this.graph, this.ghost);
   }
-  get pacmanPos() {
-    return positionOf(this.graph, this.pacman);
+  pacmanPos(p: Pacman) {
+    return positionOf(this.graph, p.mover);
+  }
+  isActive(p: Pacman) {
+    return this.time >= p.activeAt;
+  }
+  /** Walking distance to the nearest active Pac-Man (drives the warnings). */
+  get pacmanDistance() {
+    return Math.min(...this.pacmen.filter((p) => this.isActive(p)).map((p) => p.distance));
   }
   get pacmanSpeed() {
     const p = this.config.pacman;
     const minutes = Math.max(0, this.time - p.startGraceMs / 1000) / 60;
     return Math.min(p.maxSpeed, p.baseSpeed + p.speedGainPerMinute * minutes);
-  }
-  get pacmanActive() {
-    return this.time * 1000 >= this.config.pacman.startGraceMs;
   }
   get score(): ScoreBreakdown {
     const targetPoints = this.found.reduce((sum, f) => sum + f.bonus, 0);
@@ -133,10 +148,13 @@ export class Run {
     this.checkArrivals(step.nodes);
     if (this.status !== 'playing') return;
 
-    if (this.pacmanActive) this.updatePacman(dt);
-    if (dist(this.pacmanPos, this.ghostPos) <= this.config.catchRadius) {
-      this.status = 'caught';
-      this.emit({ type: 'caught' });
+    const ghost = this.ghostPos;
+    for (const p of this.pacmen) {
+      if (this.isActive(p)) this.updatePacman(p, dt);
+      if (this.status === 'playing' && dist(this.pacmanPos(p), ghost) <= this.config.catchRadius) {
+        this.status = 'caught';
+        this.emit({ type: 'caught' });
+      }
     }
 
     this.sampleIn -= dt;
@@ -146,19 +164,37 @@ export class Run {
     }
   }
 
-  private updatePacman(dt: number) {
-    this.repathIn -= dt;
-    if (this.repathIn <= 0) {
-      this.repathIn = this.config.pacman.repathIntervalMs / 1000;
+  private updatePacman(p: Pacman, dt: number) {
+    p.repathIn -= dt;
+    if (p.repathIn <= 0) {
+      p.repathIn = this.config.pacman.repathIntervalMs / 1000;
+      const at = { edge: p.mover.edge, s: p.mover.s };
       const delayed = this.delayedGhostPoint();
-      const path = this.finder.find(this.pacmanPoint(), delayed);
+      const path = this.finder.find(at, delayed);
       if (path) {
-        this.pacPath = path.nodes;
-        this.pacGoal = delayed;
+        p.path = path.nodes;
+        p.goal = delayed;
       }
-      this.pacmanDistance = this.finder.find(this.pacmanPoint(), this.ghostPoint())?.cost ?? Infinity;
+      p.distance = this.finder.find(at, this.ghostPoint())?.cost ?? Infinity;
     }
-    stepAlongPath(this.graph, this.pacman, this.pacPath, this.pacGoal, this.pacmanSpeed * dt);
+    stepAlongPath(this.graph, p.mover, p.path, p.goal, this.pacmanSpeed * dt);
+  }
+
+  private addPacman(node: number, activeAt: number) {
+    const mover = this.standingAt(node);
+    const at = { edge: mover.edge, s: mover.s };
+    const pacman: Pacman = {
+      mover,
+      path: [],
+      goal: this.ghostPoint(),
+      repathIn: 0,
+      distance: this.finder.find(at, this.ghostPoint())?.cost ?? Infinity,
+      activeAt,
+      route: [],
+      routeStart: this.route.length,
+    };
+    this.pacmen.push(pacman);
+    return pacman;
   }
 
   private checkArrivals(passedNodes: number[]) {
@@ -187,6 +223,14 @@ export class Run {
       this.target = this.pickNextTarget();
       this.hints = [];
       this.emit({ type: 'found', found, next: this.target });
+
+      const every = this.config.pacman.extraEveryTargets;
+      if (every > 0 && this.found.length % every === 0) {
+        const { extraSpawnMinDistance: lo, extraSpawnMaxDistance: hi } = this.config.pacman;
+        const pacman = this.addPacman(this.pickPacmanSpawn(lo, hi), this.time + EXTRA_PACMAN_WAKE_S);
+        pacman.route.push(this.pacmanPos(pacman));
+        this.emit({ type: 'pacman', pacman, count: this.pacmen.length });
+      }
     }
   }
 
@@ -222,14 +266,11 @@ export class Run {
 
   private recordRoute() {
     this.route.push(this.ghostPos);
-    this.pacmanRoute.push(this.pacmanPos);
+    for (const p of this.pacmen) p.route.push(this.pacmanPos(p));
   }
 
   private ghostPoint(): GraphPoint {
     return { edge: this.ghost.edge, s: this.ghost.s };
-  }
-  private pacmanPoint(): GraphPoint {
-    return { edge: this.pacman.edge, s: this.pacman.s };
   }
   private delayedGhostPoint(): GraphPoint {
     const cutoff = this.time - this.config.pacman.reactionDelayMs / 1000;
@@ -276,10 +317,13 @@ export class Run {
     return this.pick(candidates) ?? g.nearestNode(t.x + lo, t.y);
   }
 
-  private pickPacmanSpawn(): number {
+  /**
+   * A node whose walking distance to the ghost is between `lo` and `hi`
+   * (straight-line at least `lo` too), so no Pac-Man appears on top of you.
+   */
+  private pickPacmanSpawn(lo: number, hi: number): number {
     const g = this.graph;
     const ghost = this.ghostPos;
-    const { spawnMinDistance: lo, spawnMaxDistance: hi } = this.config.pacman;
     const ring = g.nodesWithin(ghost.x, ghost.y, hi).filter((n) => dist(g.nodePos(n), ghost) >= lo);
     // Straight-line distance underestimates walking distance; confirm with a real route.
     let fallback = -1;

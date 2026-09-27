@@ -126,7 +126,7 @@ export class Minimap {
       ctx.fillStyle = color;
       ctx.fill();
     };
-    dot(run.pacmanPos, COLORS.pacman, 3);
+    for (const p of run.pacmen) dot(run.pacmanPos(p), COLORS.pacman, 3);
     dot(run.ghostPos, COLORS.ghost, 3.5);
   }
 }

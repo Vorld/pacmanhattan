@@ -8,7 +8,10 @@
     "repathIntervalMs": 350,
     "startGraceMs": 2500,
     "spawnMinDistance": 700,
-    "spawnMaxDistance": 1100
+    "spawnMaxDistance": 1100,
+    "extraEveryTargets": 3,
+    "extraSpawnMinDistance": 400,
+    "extraSpawnMaxDistance": 900
   },
   "catchRadius": 14,
   "warnDistance": 400,

@@ -22,13 +22,13 @@ describe.skipIf(!process.env.SIM)('balance simulation', () => {
         const node = nodeAhead(graph, run.ghost);
         if (node !== lastNode || !run.ghost.moving) {
           lastNode = node;
-          // Pick the exit whose far end is farthest from Pac-Man, with a little noise.
-          const pac = run.pacmanPos;
+          // Pick the exit whose far end is farthest from the nearest Pac-Man, with a little noise.
+          const pacs = run.pacmen.map((p) => run.pacmanPos(p));
           let best = graph.exits[node][0];
           let bestScore = -Infinity;
           for (const x of graph.exits[node]) {
             const p = graph.nodePos(graph.otherEnd(x.edge, node));
-            const score = Math.hypot(p.x - pac.x, p.y - pac.y) + rng() * 40;
+            const score = Math.min(...pacs.map((q) => Math.hypot(p.x - q.x, p.y - q.y))) + rng() * 40;
             if (score > bestScore) [best, bestScore] = [x, score];
           }
           run.queueTurn(graph.exitDirection(best));

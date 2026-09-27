@@ -45,6 +45,11 @@ export class Sfx {
     [392, 523, 659].forEach((f, i) => this.tone(f, i * 0.1, 0.14, 'square', 0.06));
   }
 
+  /** Siren for a new Pac-Man joining the chase. */
+  alarm() {
+    for (let i = 0; i < 3; i++) this.tone(440, i * 0.22, 0.2, 'sawtooth', 0.07, 880);
+  }
+
   caught() {
     this.tone(880, 0, 1.1, 'sawtooth', 0.08, 80);
   }

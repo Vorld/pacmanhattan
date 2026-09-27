@@ -9,6 +9,7 @@ export const COLORS = {
   landmark: '#ffb347',
   visited: '#3fd6a0',
   danger: '#ff3b5c',
+  target: '#ff4fd8',
 };
 
 const SPRITE_R = 13;
@@ -42,22 +43,63 @@ export class Overlay {
     return this.base.project(toLonLat(p.x, p.y));
   }
 
-  draw(run: Run, now: number) {
+  draw(run: Run, now: number, showTarget: boolean) {
     const { ctx } = this;
     ctx.clearRect(0, 0, this.w, this.h);
     this.drawLandmarks(run, now);
+    if (showTarget) this.drawTarget(run, now);
     this.drawTrail(run);
 
     const ghost = this.screen(run.ghostPos);
-    const pac = this.screen(run.pacmanPos);
     const facing = (m: typeof run.ghost, at: { x: number; y: number }, pos: Vec) => {
       const h = headingOf(run.graph, m);
       const ahead = this.screen({ x: pos.x + h.x * 10, y: pos.y + h.y * 10 });
       return Math.atan2(ahead.y - at.y, ahead.x - at.x);
     };
-    drawPacman(ctx, pac.x, pac.y, facing(run.pacman, pac, run.pacmanPos), now, run.pacmanActive);
+    for (const p of run.pacmen) {
+      const pos = run.pacmanPos(p);
+      const at = this.screen(pos);
+      drawPacman(ctx, at.x, at.y, facing(p.mover, at, pos), now, run.isActive(p));
+    }
     drawGhost(ctx, ghost.x, ghost.y, facing(run.ghost, ghost, run.ghostPos), now);
-    this.drawDanger(run, pac, now);
+    this.drawDanger(run, now);
+  }
+
+  private onScreen(p: { x: number; y: number }, margin = 0) {
+    return p.x >= margin && p.y >= margin && p.x <= this.w - margin && p.y <= this.h - margin;
+  }
+
+  /** The current target, labeled with its number; an edge arrow when it's off-screen. */
+  private drawTarget(run: Run, now: number) {
+    const { ctx } = this;
+    const pos = run.graph.nodePos(run.target.node);
+    const p = this.screen(pos);
+    const label = `TARGET ${run.found.length + 1}`;
+    if (!this.onScreen(p)) {
+      const g = run.ghostPos;
+      this.edgeArrow(p, COLORS.target, 0.9, `${label} · ${formatMeters(Math.hypot(pos.x - g.x, pos.y - g.y))}`);
+      return;
+    }
+    const pulse = 0.5 + 0.5 * Math.sin(now / 250);
+    ctx.save();
+    ctx.shadowColor = COLORS.target;
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 18 + pulse * 8, 0, Math.PI * 2);
+    ctx.strokeStyle = COLORS.target;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.5 + 0.4 * (1 - pulse);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    drawStar(ctx, p.x, p.y, 13, COLORS.target);
+    ctx.restore();
+    ctx.font = '400 10px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(2,3,10,0.9)';
+    ctx.strokeText(label, p.x, p.y - 30);
+    ctx.fillStyle = COLORS.target;
+    ctx.fillText(label, p.x, p.y - 30);
   }
 
   private drawLandmarks(run: Run, now: number) {
@@ -106,11 +148,12 @@ export class Overlay {
     ctx.globalAlpha = 1;
   }
 
-  /** Red vignette as Pac-Man closes in, and an edge arrow when he's off-screen. */
-  private drawDanger(run: Run, pac: { x: number; y: number }, now: number) {
+  /** Red vignette as the nearest Pac-Man closes in, and an edge arrow for each one off-screen. */
+  private drawDanger(run: Run, now: number) {
     const { ctx } = this;
     const warn = run.config.warnDistance;
-    const closeness = run.pacmanActive ? Math.max(0, 1 - run.pacmanDistance / warn) : 0;
+    const nearest = run.pacmanDistance;
+    const closeness = Math.max(0, 1 - nearest / warn);
     if (closeness > 0) {
       const beat = 0.75 + 0.25 * Math.sin(now / (120 - closeness * 60));
       const g = ctx.createRadialGradient(this.w / 2, this.h / 2, Math.min(this.w, this.h) * 0.3, this.w / 2, this.h / 2, Math.max(this.w, this.h) * 0.75);
@@ -120,19 +163,29 @@ export class Overlay {
       ctx.fillRect(0, 0, this.w, this.h);
     }
 
+    for (const p of run.pacmen) {
+      const at = this.screen(run.pacmanPos(p));
+      if (this.onScreen(at)) continue;
+      const near = run.isActive(p) && p.distance < warn;
+      const alpha = near ? 0.7 + 0.3 * Math.sin(now / 90) : 0.8;
+      const label = Number.isFinite(p.distance) ? formatMeters(p.distance) : '';
+      this.edgeArrow(at, near ? COLORS.danger : COLORS.pacman, alpha, label);
+    }
+  }
+
+  /** Arrow on the screen border pointing toward an off-screen point, with a label inside it. */
+  private edgeArrow(to: { x: number; y: number }, color: string, alpha: number, label: string) {
+    const { ctx } = this;
     const margin = 28;
-    const offscreen = pac.x < 0 || pac.y < 0 || pac.x > this.w || pac.y > this.h;
-    if (!offscreen) return;
     const cx = this.w / 2;
     const cy = this.h / 2;
-    const angle = Math.atan2(pac.y - cy, pac.x - cx);
+    const angle = Math.atan2(to.y - cy, to.x - cx);
     // Intersect the ray from the center with the inset screen rectangle.
     const sx = (cx - margin) / Math.abs(Math.cos(angle) || 1e-6);
     const sy = (cy - margin) / Math.abs(Math.sin(angle) || 1e-6);
     const r = Math.min(sx, sy);
     const x = cx + Math.cos(angle) * r;
     const y = cy + Math.sin(angle) * r;
-    const near = run.pacmanDistance < warn;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
@@ -141,19 +194,25 @@ export class Overlay {
     ctx.lineTo(-8, -11);
     ctx.lineTo(-8, 11);
     ctx.closePath();
-    ctx.fillStyle = near ? COLORS.danger : COLORS.pacman;
-    ctx.globalAlpha = near ? 0.7 + 0.3 * Math.sin(now / 90) : 0.8;
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
     ctx.fill();
     ctx.restore();
-    if (Number.isFinite(run.pacmanDistance)) {
-      ctx.font = '700 11px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = near ? COLORS.danger : COLORS.pacman;
-      const lx = x - Math.cos(angle) * 26;
-      const ly = y - Math.sin(angle) * 26 + 4;
-      ctx.fillText(`${Math.round(run.pacmanDistance)} m`, lx, ly);
-    }
+    if (!label) return;
+    ctx.font = '700 11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(2,3,10,0.85)';
+    const lx = x - Math.cos(angle) * 30;
+    const ly = y - Math.sin(angle) * 22 + 4;
+    ctx.strokeText(label, lx, ly);
+    ctx.fillStyle = color;
+    ctx.fillText(label, lx, ly);
   }
+}
+
+export function formatMeters(m: number) {
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1)} km`;
 }
 
 export function drawGhost(ctx: CanvasRenderingContext2D, x: number, y: number, look: number, now: number, r = SPRITE_R) {

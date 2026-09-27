@@ -36,9 +36,11 @@ src/analytics.ts              run_start / landmark_visit / hint_shown / caught /
 
 To refresh the data: `npm run data:fetch && npm run data:build`. To edit places, change `data/places.json`, then run `npm run data:build`.
 
-**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (52 vs 48 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (62 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
+**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (52 vs 48 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (62 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrows use real walking distance, not straight-line distance.
 
-**Map highlighting.** Every walkable street is drawn in glowing blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, Pac-Man and the target, in a 3 km window around you, with the straight-line distance to the target. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
+**More Pac-Men.** After every 3 targets found (`pacman.extraEveryTargets`), another Pac-Man joins. It spawns 400–900 m from you, checked by both straight-line and walking distance, waits 1.5 s so you can see it arrive, then chases at the shared speed. Each off-screen Pac-Man gets its own edge arrow, and the warnings track the nearest one.
+
+**Map highlighting.** Every walkable street is drawn in glowing blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, every Pac-Man and the numbered current target, in a 3 km window around you, with the straight-line distance to the target. The main map also marks the current target ("TARGET 2"), or shows a pink edge arrow when it's off-screen. Only the current target is ever shown. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
 
 **Targets chain.** Finding a target banks its bonus, shows a fact about it, and picks the next target: one not yet found this run, 1.5–3.5 km from where you are. Hints reset for each new target. The run only ends when Pac-Man catches you (or you quit).
 

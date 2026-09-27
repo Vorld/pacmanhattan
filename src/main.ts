@@ -10,7 +10,7 @@ import { Sfx } from './ui/audio';
 import { BaseMap } from './ui/basemap';
 import { bindDirectionInput } from './ui/input';
 import { Minimap } from './ui/minimap';
-import { Overlay } from './ui/overlay';
+import { formatMeters, Overlay } from './ui/overlay';
 import { Overview } from './ui/overview';
 import { RouteReplay } from './ui/replay';
 
@@ -151,6 +151,11 @@ function onRunEvent(e: RunEvent) {
     const props = { landmark: e.landmark.id, t: Math.round(run.time), visitIndex: run.visited.length };
     track('landmark_visit', props);
     track('hint_shown', { ...props, kind: e.hint.kind, hintIndex: run.hints.length });
+  } else if (e.type === 'pacman') {
+    sfx.alarm();
+    // Let the target banner show first, then announce the new chaser.
+    setTimeout(() => flashBanner(`PAC-MAN #${e.count} JOINS!`, 1600), 1400);
+    track('pacman_spawn', { count: e.count, targetsFound: run.found.length, t: Math.round(run.time) });
   } else {
     endRun(e.type);
   }
@@ -224,11 +229,11 @@ function frame(now: number) {
     if (!paused) run.update(dt);
     const g = run.ghostPos;
     if (run.status === 'playing') game.base.follow(toLonLat(g.x, g.y));
-    game.overlay.draw(run, now);
+    game.overlay.draw(run, now, game.config.overview.showTarget);
     game.minimap.draw(run);
     game.overview.draw(run, now);
     updateHud(run, game.config);
-    if (run.status === 'playing' && !paused && run.pacmanActive) {
+    if (run.status === 'playing' && !paused) {
       sfx.danger(Math.max(0, 1 - run.pacmanDistance / game.config.warnDistance));
     }
   }
@@ -243,12 +248,8 @@ function updateHud(r: Run, config: GameConfig) {
   if (config.overview.showTarget) {
     const t = r.graph.nodePos(r.target.node);
     const g = r.ghostPos;
-    $('target-distance').textContent = `Target ${formatDistance(Math.hypot(t.x - g.x, t.y - g.y))}`;
+    $('target-distance').textContent = `Target ${r.found.length + 1} · ${formatMeters(Math.hypot(t.x - g.x, t.y - g.y))}`;
   }
-}
-
-function formatDistance(m: number) {
-  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1)} km`;
 }
 
 // --- HUD helpers -------------------------------------------------------------

@@ -109,7 +109,7 @@ export class BaseMap {
         type: 'line',
         source: 'walkable',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': roadColor, 'line-opacity': 0.35, 'line-width': width(10, 34), 'line-blur': width(6, 18) },
+        paint: { 'line-color': roadColor, 'line-opacity': 0.22, 'line-width': width(8, 26), 'line-blur': width(5, 14) },
       },
       beforeLabels,
     );
@@ -119,7 +119,7 @@ export class BaseMap {
         type: 'line',
         source: 'walkable',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': roadColor, 'line-opacity': 0.95, 'line-width': width(3, 10) },
+        paint: { 'line-color': roadColor, 'line-opacity': 0.8, 'line-width': width(2.5, 8) },
       },
       beforeLabels,
     );

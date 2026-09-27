@@ -2,7 +2,7 @@
 // configured in config.json (as JSON beacons) when set, and are always kept in
 // window.__pacmanhattanEvents for debugging.
 
-export type AnalyticsEvent = 'run_start' | 'landmark_visit' | 'hint_shown' | 'caught' | 'target_found';
+export type AnalyticsEvent = 'run_start' | 'landmark_visit' | 'hint_shown' | 'caught' | 'target_found' | 'pacman_spawn';
 
 let endpoint: string | null = null;
 const sessionId = getSessionId();

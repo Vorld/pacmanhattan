@@ -7,8 +7,6 @@ import { COLORS, drawGhost, drawPacman, drawStar } from './overlay';
 
 const ROADS_PX_PER_M = 0.13; // raster resolution: sharp at 2x DPR for a ~3 km window
 
-export const TARGET_COLOR = '#ff4fd8';
-
 /**
  * Overview map: every walkable street (dead ends highlighted), landmarks,
  * Pac-Man, and optionally the target, in a window of `viewMeters` around the ghost.
@@ -34,7 +32,7 @@ export class Overview {
     const r = island.ctx;
     r.lineCap = 'round';
     r.lineJoin = 'round';
-    r.lineWidth = 2.4;
+    r.lineWidth = 2;
     for (const [color, isDead] of [[ROAD_COLORS.road, 0], [ROAD_COLORS.deadEnd, 1]] as const) {
       r.strokeStyle = color;
       for (const e of graph.edges) if (dead[e.id] === isDead) strokeEdge(r, graph, this.frame, e.id);
@@ -72,24 +70,30 @@ export class Overview {
       drawStar(ctx, p.x, p.y, run.visited.includes(lm) ? 3.5 : 4.5, run.visited.includes(lm) ? COLORS.visited : COLORS.landmark);
     }
 
-    if (this.showTarget) this.drawTarget(view(this.graph.nodePos(run.target.node)), w, h, now);
+    if (this.showTarget) this.drawTarget(view(this.graph.nodePos(run.target.node)), w, h, now, run.found.length + 1);
 
-    const pac = view(run.pacmanPos);
-    if (inside(pac, -6)) drawPacman(ctx, pac.x, pac.y, 0, now, run.pacmanActive, 5);
+    for (const p of run.pacmen) {
+      const at = view(run.pacmanPos(p));
+      if (inside(at, -6)) drawPacman(ctx, at.x, at.y, 0, now, run.isActive(p), 5);
+    }
     drawGhost(ctx, w / 2, h / 2, 0, now, 5);
   }
 
-  /** Target star, or an arrow on the border pointing to it when it's out of view. */
-  private drawTarget(p: { x: number; y: number }, w: number, h: number, now: number) {
+  /** Numbered target star, or an arrow on the border pointing to it when it's out of view. */
+  private drawTarget(p: { x: number; y: number }, w: number, h: number, now: number, number: number) {
     const { ctx } = this;
     const m = 10;
     if (p.x >= m && p.y >= m && p.x <= w - m && p.y <= h - m) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 7 + 2 * Math.sin(now / 200), 0, Math.PI * 2);
-      ctx.strokeStyle = TARGET_COLOR;
+      ctx.strokeStyle = COLORS.target;
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      drawStar(ctx, p.x, p.y, 6, TARGET_COLOR);
+      drawStar(ctx, p.x, p.y, 6, COLORS.target);
+      ctx.font = '700 10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = COLORS.target;
+      ctx.fillText(String(number), p.x, p.y - 11);
       return;
     }
     const angle = Math.atan2(p.y - h / 2, p.x - w / 2);
@@ -102,7 +106,7 @@ export class Overview {
     ctx.lineTo(-5, -6);
     ctx.lineTo(-5, 6);
     ctx.closePath();
-    ctx.fillStyle = TARGET_COLOR;
+    ctx.fillStyle = COLORS.target;
     ctx.fill();
     ctx.restore();
   }

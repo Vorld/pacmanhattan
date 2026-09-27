@@ -2,7 +2,6 @@ import type { Vec } from '../engine/geo';
 import type { Run } from '../engine/run';
 import { GridFrame, strokeEdge } from './minimap';
 import { COLORS, drawGhost, drawPacman, drawStar } from './overlay';
-import { TARGET_COLOR } from './overview';
 
 const REPLAY_MS = 6000;
 const CONTEXT_M = 350; // show this much map around the route
@@ -56,8 +55,11 @@ export class RouteReplay {
     ctx.strokeStyle = 'rgba(77,107,255,0.45)';
     for (const id of run.discovered) strokeEdge(ctx, g, frame, id);
 
-    const route = (pts: Vec[], color: string, width: number) => {
-      const n = Math.max(1, Math.floor(pts.length * t));
+    // Every route is sampled on the ghost's clock; `start` offsets Pac-Men who joined later.
+    const progress = Math.max(1, Math.floor(run.route.length * t));
+    const route = (pts: Vec[], start: number, color: string, width: number) => {
+      const n = Math.min(pts.length, progress - start);
+      if (n < 1) return null;
       ctx.beginPath();
       pts.slice(0, n).forEach((p, i) => {
         const s = frame.map(p);
@@ -71,9 +73,9 @@ export class RouteReplay {
       return frame.map(pts[n - 1]);
     };
     ctx.globalAlpha = 0.5;
-    const pacHead = route(run.pacmanRoute, COLORS.pacman, 2);
+    const pacHeads = run.pacmen.map((p) => route(p.route, p.routeStart, COLORS.pacman, 2));
     ctx.globalAlpha = 1;
-    const ghostHead = route(run.route, COLORS.ghost, 3);
+    const ghostHead = route(run.route, 0, COLORS.ghost, 3)!;
 
     for (const lm of run.visited) {
       const p = frame.map(g.nodePos(lm.node));
@@ -81,22 +83,22 @@ export class RouteReplay {
     }
     ctx.font = '700 12px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = TARGET_COLOR;
+    ctx.fillStyle = COLORS.target;
     run.found.forEach((f, i) => {
       const p = frame.map(foundPos[i]);
-      drawStar(ctx, p.x, p.y, 8, TARGET_COLOR);
+      drawStar(ctx, p.x, p.y, 8, COLORS.target);
       ctx.fillText(`${i + 1}. ${f.target.name}`, p.x, p.y - 14);
     });
     // The target still being hunted when the run ended: hollow ring.
     const tp = frame.map(targetPos);
     ctx.beginPath();
     ctx.arc(tp.x, tp.y, 10 + 3 * Math.sin(now / 200), 0, Math.PI * 2);
-    ctx.strokeStyle = TARGET_COLOR;
+    ctx.strokeStyle = COLORS.target;
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.fillText(`Next: ${run.target.name}`, tp.x, tp.y - 18);
 
-    drawPacman(ctx, pacHead.x, pacHead.y, 0, now, true, 8);
+    for (const head of pacHeads) if (head) drawPacman(ctx, head.x, head.y, 0, now, true, 8);
     drawGhost(ctx, ghostHead.x, ghostHead.y, 0, now, 8);
   }
 }

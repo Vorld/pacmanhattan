@@ -11,6 +11,9 @@ export interface GameConfig {
     startGraceMs: number; // Pac-Man waits this long before moving
     spawnMinDistance: number; // meters (path distance) from the ghost
     spawnMaxDistance: number;
+    extraEveryTargets: number; // another Pac-Man joins after every N targets found (0 = never)
+    extraSpawnMinDistance: number; // meters from the ghost, straight-line and walking
+    extraSpawnMaxDistance: number;
   };
   catchRadius: number; // meters
   warnDistance: number; // path meters at which proximity warnings start
@@ -45,6 +48,9 @@ export const DEFAULT_CONFIG: GameConfig = {
     startGraceMs: 2500,
     spawnMinDistance: 700,
     spawnMaxDistance: 1100,
+    extraEveryTargets: 3,
+    extraSpawnMinDistance: 400,
+    extraSpawnMaxDistance: 900,
   },
   catchRadius: 14,
   warnDistance: 400,

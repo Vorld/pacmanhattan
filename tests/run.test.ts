@@ -13,7 +13,7 @@ describe('run', () => {
       const run = new Run(graph, places, DEFAULT_CONFIG, { rng: seeded(seed) });
       const d = dist(run.ghostPos, graph.nodePos(run.target.node));
       expect(d).toBeGreaterThanOrEqual(DEFAULT_CONFIG.targetSpawnMinDistance);
-      expect(dist(run.ghostPos, run.pacmanPos)).toBeGreaterThan(DEFAULT_CONFIG.catchRadius * 10);
+      expect(dist(run.ghostPos, run.pacmanPos(run.pacmen[0]))).toBeGreaterThan(DEFAULT_CONFIG.catchRadius * 10);
       run.update(DEFAULT_CONFIG.pacman.startGraceMs / 1000 + 0.01); // first Pac-Man route
       expect(run.pacmanDistance).toBeGreaterThanOrEqual(DEFAULT_CONFIG.pacman.spawnMinDistance - 50);
       expect(run.pacmanDistance).toBeLessThanOrEqual(DEFAULT_CONFIG.pacman.spawnMaxDistance * 1.5 + 50);
@@ -78,6 +78,29 @@ describe('run', () => {
     expect(ids.length).toBe(places.targets.length + 2);
   });
 
+  it('adds a Pac-Man after every third target, at least 400 m away', () => {
+    const cfg = mergeConfig({ pacman: { startGraceMs: 10_000_000 } });
+    for (let seed = 1; seed <= 5; seed++) {
+      const run = new Run(graph, places, cfg, { rng: seeded(seed) });
+      const spawns: number[] = [];
+      run.on((e) => {
+        if (e.type !== 'pacman') return;
+        spawns.push(run.found.length);
+        const p = e.pacman;
+        expect(dist(run.pacmanPos(p), run.ghostPos)).toBeGreaterThanOrEqual(cfg.pacman.extraSpawnMinDistance);
+        expect(p.distance).toBeGreaterThanOrEqual(cfg.pacman.extraSpawnMinDistance);
+        expect(run.isActive(p)).toBe(false); // brief pause before it starts chasing
+      });
+      for (let i = 0; i < 7; i++) {
+        const exit = graph.exits[run.target.node][0];
+        Object.assign(run.ghost, { edge: exit.edge, s: exit.forward ? 0 : graph.edges[exit.edge].length });
+        run.update(DT);
+      }
+      expect(spawns).toEqual([3, 6]);
+      expect(run.pacmen).toHaveLength(3);
+    }
+  });
+
   it('keeps both movers on the street graph through long random play (guardrail)', () => {
     const cfg = mergeConfig({ catchRadius: -1 }); // never end, just stress movement
     const rng = seeded(42);
@@ -90,7 +113,7 @@ describe('run', () => {
       // A player at a wall tries each direction in turn.
       if (stuckFrames > 0 && stuckFrames % 10 === 0) run.queueTurn(dirs[(stuckFrames / 10) % 4]);
       run.update(DT);
-      for (const m of [run.ghost, run.pacman]) {
+      for (const m of [run.ghost, ...run.pacmen.map((p) => p.mover)]) {
         expect(m.s).toBeGreaterThanOrEqual(0);
         expect(m.s).toBeLessThanOrEqual(graph.edges[m.edge].length + 1e-6);
       }
