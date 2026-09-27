@@ -60,6 +60,6 @@ To refresh the data: `npm run data:fetch && npm run data:build`. To edit places,
 
 - **Base map: MapLibre + OpenFreeMap, not Google Maps.** The spec lists Google as primary, but its terms and pricing for this use are still an open question, and it needs an API key. The map layer is isolated in `src/ui/basemap.ts`, and the style URL is set in config, so switching later only touches that file. Map data © OpenStreetMap contributors (ODbL). Tiles by OpenFreeMap / OpenMapTiles.
 - **Pac-Man name and likeness** are Bandai Namco trademarks. The chaser is a generic yellow chomper drawn in code, but the name is used throughout. This must be decided before the beta.
-- **The target is visible on the overview map** by default, at the user's request. This makes hints optional. The PRD's hints-only mode is one config flag away (`overview.showTarget: false`).
+- **The target is visible on the overview map** by default, which makes hints optional. The PRD's hints-only mode is one config flag away (`overview.showTarget: false`).
 - **Zoom** is a fixed range (15–17.5) set in config. Zoom that costs points is not implemented.
 - Landmarks are **Manhattan only**.
