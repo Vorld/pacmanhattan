@@ -37,6 +37,558 @@
     "Sheep Meadow": {
       "id": "sheep-meadow",
       "text": "A flock grazed this field until 1934. You found it by the streets, which is how a mental map gets built."
+    },
+    "Empire State Building": {
+      "id": "empire-state-building",
+      "text": "Built in just 410 days in 1930-31. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Times Square": {
+      "id": "times-square",
+      "text": "Named for The New York Times, which moved here in 1904. The route you just took is the part a map usually erases."
+    },
+    "Grand Central Terminal": {
+      "id": "grand-central-terminal",
+      "text": "Its ceiling shows the zodiac painted backwards. A search result cannot show you which way the door faces the street."
+    },
+    "Rockefeller Center": {
+      "id": "rockefeller-center",
+      "text": "Its Christmas tree tradition began in 1931. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Flatiron Building": {
+      "id": "flatiron-building",
+      "text": "Its triangle shape follows the angle of Broadway. Standing here is how the name becomes a place you can find again."
+    },
+    "Chrysler Building": {
+      "id": "chrysler-building",
+      "text": "Its spire was assembled in secret inside the building. The route you just took is the part a map usually erases."
+    },
+    "One World Trade Center": {
+      "id": "one-world-trade-center",
+      "text": "It stands 1,776 feet tall, for 1776. Standing here is how the name becomes a place you can find again."
+    },
+    "Charging Bull": {
+      "id": "charging-bull",
+      "text": "Dropped off unannounced by artist Arturo Di Modica in 1989. A search result cannot show you which way the door faces the street."
+    },
+    "City Hall": {
+      "id": "city-hall",
+      "text": "The oldest US city hall still used for its original purpose. Arriving on foot is what makes the next block familiar."
+    },
+    "Washington Square Arch": {
+      "id": "washington-square-arch",
+      "text": "Built for the centennial of George Washington's inauguration. Standing here is how the name becomes a place you can find again."
+    },
+    "Union Square": {
+      "id": "union-square",
+      "text": "Home to the city's best-known farmers market. Arriving on foot is what makes the next block familiar."
+    },
+    "Madison Square Garden": {
+      "id": "madison-square-garden",
+      "text": "The fourth arena to carry the name, sitting atop Penn Station. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Bethesda Terrace": {
+      "id": "bethesda-terrace",
+      "text": "Its Angel of the Waters was the first public statue in NYC by a woman. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Columbus Circle": {
+      "id": "columbus-circle",
+      "text": "The point from which all official NYC distances are measured. The skyline photo skips the street you just used."
+    },
+    "Lincoln Center": {
+      "id": "lincoln-center",
+      "text": "Built on land cleared from the old San Juan Hill neighborhood. That detail lives on the block, not in a directions app."
+    },
+    "United Nations Headquarters": {
+      "id": "united-nations-headquarters",
+      "text": "The site is international territory. That detail lives on the block, not in a directions app."
+    },
+    "St. Patrick's Cathedral": {
+      "id": "st-patrick-s-cathedral",
+      "text": "The largest Gothic Revival Catholic cathedral in North America. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Apollo Theater": {
+      "id": "apollo-theater",
+      "text": "Amateur Night has launched careers since 1934. Standing here is how the name becomes a place you can find again."
+    },
+    "Low Memorial Library": {
+      "id": "low-memorial-library",
+      "text": "The domed centerpiece of Columbia University. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Cathedral of St. John the Divine": {
+      "id": "cathedral-of-st-john-the-divine",
+      "text": "Under construction since 1892 and still unfinished. A search result cannot show you which way the door faces the street."
+    },
+    "Grant's Tomb": {
+      "id": "grant-s-tomb",
+      "text": "The largest mausoleum in North America. The route you just took is the part a map usually erases."
+    },
+    "Little Red Lighthouse": {
+      "id": "little-red-lighthouse",
+      "text": "Saved from demolition by a 1942 children's book. The route you just took is the part a map usually erases."
+    },
+    "George Washington Bridge": {
+      "id": "george-washington-bridge",
+      "text": "One of the world's busiest motor-vehicle bridges. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Hamilton Grange": {
+      "id": "hamilton-grange",
+      "text": "Alexander Hamilton's only home, moved twice. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Morris-Jumel Mansion": {
+      "id": "morris-jumel-mansion",
+      "text": "Manhattan's oldest house, Washington's HQ in 1776. A search result cannot show you which way the door faces the street."
+    },
+    "The Vessel": {
+      "id": "the-vessel",
+      "text": "A honeycomb of 154 flights of stairs at Hudson Yards. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Stonewall Inn": {
+      "id": "stonewall-inn",
+      "text": "The first US national monument to LGBTQ+ rights. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Williamsburg Bridge": {
+      "id": "williamsburg-bridge",
+      "text": "It was the longest suspension bridge in the world when it opened in 1903. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Manhattan Bridge Arch": {
+      "id": "manhattan-bridge-arch",
+      "text": "Its grand entrance was modeled on the Porte Saint-Denis in Paris. That detail lives on the block, not in a directions app."
+    },
+    "Old St. Patrick's Cathedral": {
+      "id": "old-st-patrick-s-cathedral",
+      "text": "The city's first Catholic cathedral, dedicated in 1815. The skyline photo skips the street you just used."
+    },
+    "South Street Seaport": {
+      "id": "south-street-seaport",
+      "text": "The old port where the city's shipping trade grew up. That detail lives on the block, not in a directions app."
+    },
+    "Astor Place Cube": {
+      "id": "astor-place-cube",
+      "text": "The 'Alamo' sculpture spins if you push hard enough. A search result cannot show you which way the door faces the street."
+    },
+    "Gramercy Park": {
+      "id": "gramercy-park",
+      "text": "Manhattan's only private park; residents hold keys. That detail lives on the block, not in a directions app."
+    },
+    "Gracie Mansion": {
+      "id": "gracie-mansion",
+      "text": "The official residence of the Mayor since 1942. That detail lives on the block, not in a directions app."
+    },
+    "Roosevelt Island Tramway": {
+      "id": "roosevelt-island-tramway",
+      "text": "One of the few commuter aerial tramways in North America. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Carnegie Hall": {
+      "id": "carnegie-hall",
+      "text": "Tchaikovsky conducted on opening night in 1891. A search result cannot show you which way the door faces the street."
+    },
+    "Javits Center": {
+      "id": "javits-center",
+      "text": "Its green roof is home to thousands of birds and bees. Arriving on foot is what makes the next block familiar."
+    },
+    "The Dakota": {
+      "id": "the-dakota",
+      "text": "Named because it once seemed as remote as the Dakota Territory. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Dyckman Farmhouse": {
+      "id": "dyckman-farmhouse",
+      "text": "Manhattan's last remaining Dutch colonial farmhouse. Arriving on foot is what makes the next block familiar."
+    },
+    "Strawberry Fields": {
+      "id": "strawberry-fields",
+      "text": "Its 'Imagine' mosaic honors John Lennon. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Belvedere Castle": {
+      "id": "belvedere-castle",
+      "text": "A 'folly' built as a lookout, now a weather station. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "The Plaza Hotel": {
+      "id": "the-plaza-hotel",
+      "text": "Home of Eloise, the girl who lived on the top floor. A search result cannot show you which way the door faces the street."
+    },
+    "Port Authority Bus Terminal": {
+      "id": "port-authority-bus-terminal",
+      "text": "The busiest bus terminal in the world. Arriving on foot is what makes the next block familiar."
+    },
+    "Harlem Meer": {
+      "id": "harlem-meer",
+      "text": "Meer is Dutch for lake. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Audubon Ballroom": {
+      "id": "audubon-ballroom",
+      "text": "Where Malcolm X was assassinated in 1965. Arriving on foot is what makes the next block familiar."
+    },
+    "Shepard Hall": {
+      "id": "shepard-hall",
+      "text": "City College's Gothic hall, clad in Manhattan schist. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Ghostbusters Firehouse": {
+      "id": "ghostbusters-firehouse",
+      "text": "Hook & Ladder 8 played the Ghostbusters' HQ in 1984. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Hotel Chelsea": {
+      "id": "hotel-chelsea",
+      "text": "Home over the years to Twain, Warhol, and Patti Smith. The skyline photo skips the street you just used."
+    },
+    "Macy's Herald Square": {
+      "id": "macy-s-herald-square",
+      "text": "Once billed as the world's largest store. A search result cannot show you which way the door faces the street."
+    },
+    "Joe's Pizza": {
+      "id": "joe-s-pizza",
+      "text": "The classic Carmine Street slice since 1975. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Russ & Daughters": {
+      "id": "russ-daughters",
+      "text": "An 'appetizing' shop open since 1914. The line out front is part of the map. An app will not show you that."
+    },
+    "Levain Bakery": {
+      "id": "levain-bakery",
+      "text": "Famous for six-ounce cookies. Midtown is not only towers. It is also a counter you can walk to."
+    },
+    "Magnolia Bakery": {
+      "id": "magnolia-bakery",
+      "text": "Its cupcakes starred on Sex and the City. A pin can name the door. It cannot make you find the block."
+    },
+    "Sylvia's": {
+      "id": "sylvia-s",
+      "text": "The Queen of Soul Food, open since 1962. Midtown is not only towers. It is also a counter you can walk to."
+    },
+    "Tavern on the Green": {
+      "id": "tavern-on-the-green",
+      "text": "Built in 1870 as a sheepfold for Central Park's sheep. The line out front is part of the map. An app will not show you that."
+    },
+    "Nom Wah Tea Parlor": {
+      "id": "nom-wah-tea-parlor",
+      "text": "Chinatown's oldest dim sum parlor, opened 1920. You got here on the streets, which is the only way a place like this sticks."
+    },
+    "Ferrara Bakery": {
+      "id": "ferrara-bakery",
+      "text": "Little Italy pastry shop since 1892. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Veselka": {
+      "id": "veselka",
+      "text": "Ukrainian pierogi around the clock since 1954. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Lombardi's": {
+      "id": "lombardi-s",
+      "text": "Often called America's first pizzeria. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Gray's Papaya": {
+      "id": "gray-s-papaya",
+      "text": "Hot dogs and papaya drinks on the Upper West Side. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Junior's": {
+      "id": "junior-s",
+      "text": "Cheesecake in the heart of the Theater District. Midtown is not only towers. It is also a counter you can walk to."
+    },
+    "Shake Shack Madison Square Park": {
+      "id": "shake-shack-madison-square-park",
+      "text": "The original Shake Shack started as a hot dog cart. The line out front is part of the map. An app will not show you that."
+    },
+    "Keens Steakhouse": {
+      "id": "keens-steakhouse",
+      "text": "Its ceiling holds thousands of clay pipes. You crossed real streets for this. That is what puts it in your head."
+    },
+    "Balthazar": {
+      "id": "balthazar",
+      "text": "A Paris-style brasserie in SoHo. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Minetta Tavern": {
+      "id": "minetta-tavern",
+      "text": "A Greenwich Village tavern dating to 1937. You crossed real streets for this. That is what puts it in your head."
+    },
+    "Delmonico's": {
+      "id": "delmonico-s",
+      "text": "Where the Delmonico steak got its name. A pin can name the door. It cannot make you find the block."
+    },
+    "Fraunces Tavern": {
+      "id": "fraunces-tavern",
+      "text": "Washington bid farewell to his officers here in 1783. Midtown is not only towers. It is also a counter you can walk to."
+    },
+    "Chelsea Market": {
+      "id": "chelsea-market",
+      "text": "The old Nabisco factory where the Oreo was invented. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Zabar's": {
+      "id": "zabar-s",
+      "text": "An Upper West Side food emporium since 1934. The line out front is part of the map. An app will not show you that."
+    },
+    "Barney Greengrass": {
+      "id": "barney-greengrass",
+      "text": "'The Sturgeon King' since 1908. You crossed real streets for this. That is what puts it in your head."
+    },
+    "Serendipity 3": {
+      "id": "serendipity-3",
+      "text": "Home of the Frrrozen Hot Chocolate. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Rao's": {
+      "id": "rao-s",
+      "text": "Ten tables, nearly impossible to book. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Dominique Ansel Bakery": {
+      "id": "dominique-ansel-bakery",
+      "text": "Birthplace of the Cronut. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Pete's Tavern": {
+      "id": "pete-s-tavern",
+      "text": "Claims to be NYC's oldest continuously operating bar. You crossed real streets for this. That is what puts it in your head."
+    },
+    "P.J. Clarke's": {
+      "id": "p-j-clarke-s",
+      "text": "A saloon from 1884 that refused to be torn down. You crossed real streets for this. That is what puts it in your head."
+    },
+    "Mamoun's Falafel": {
+      "id": "mamoun-s-falafel",
+      "text": "Serving falafel on MacDougal since 1971. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Red Rooster": {
+      "id": "red-rooster",
+      "text": "Marcus Samuelsson's Harlem restaurant. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Metropolitan Museum of Art": {
+      "id": "metropolitan-museum-of-art",
+      "text": "More than two million works across 5,000 years. You walked here, so the address is yours now, not just a search result."
+    },
+    "Museum of Modern Art": {
+      "id": "museum-of-modern-art",
+      "text": "Home of Van Gogh's The Starry Night. Once you have approached it from the street, you can find it again without the pin."
+    },
+    "Solomon R. Guggenheim Museum": {
+      "id": "solomon-r-guggenheim-museum",
+      "text": "Frank Lloyd Wright's spiral opened in 1959. The building's place in the grid is the part a ticket page skips."
+    },
+    "American Museum of Natural History": {
+      "id": "american-museum-of-natural-history",
+      "text": "Its blue whale model is 94 feet long. The collection is inside. What you keep is where the building sits in the city."
+    },
+    "Whitney Museum of American Art": {
+      "id": "whitney-museum-of-american-art",
+      "text": "Founded by sculptor Gertrude Vanderbilt Whitney. The collection is inside. What you keep is where the building sits in the city."
+    },
+    "Intrepid Museum": {
+      "id": "intrepid-museum",
+      "text": "An aircraft carrier turned museum. The collection is inside. What you keep is where the building sits in the city."
+    },
+    "New York Public Library": {
+      "id": "new-york-public-library",
+      "text": "Guarded by the lions Patience and Fortitude. The pin stops at the entrance. The lesson is which streets you crossed to reach it."
+    },
+    "9/11 Memorial & Museum": {
+      "id": "9-11-memorial-museum",
+      "text": "Two pools sit in the footprints of the Twin Towers. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "Tenement Museum": {
+      "id": "tenement-museum",
+      "text": "Tells immigrant stories from 97 Orchard Street. You will remember the corner, not the search result."
+    },
+    "The Met Cloisters": {
+      "id": "the-met-cloisters",
+      "text": "Built from pieces of medieval European abbeys. Once you have approached it from the street, you can find it again without the pin."
+    },
+    "The Frick Collection": {
+      "id": "the-frick-collection",
+      "text": "Old Masters in Henry Clay Frick's mansion. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "Neue Galerie": {
+      "id": "neue-galerie",
+      "text": "Home of Klimt's 'Woman in Gold'. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "Cooper Hewitt": {
+      "id": "cooper-hewitt",
+      "text": "The national design museum, in Carnegie's mansion. You will remember the corner, not the search result."
+    },
+    "Museum of the City of New York": {
+      "id": "museum-of-the-city-of-new-york",
+      "text": "Tells the story of the city from 1609 on. You will remember the corner, not the search result."
+    },
+    "Studio Museum in Harlem": {
+      "id": "studio-museum-in-harlem",
+      "text": "Champions artists of African descent. Once you have approached it from the street, you can find it again without the pin."
+    },
+    "New Museum": {
+      "id": "new-museum",
+      "text": "Its building looks like a stack of offset boxes. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "The Morgan Library & Museum": {
+      "id": "the-morgan-library-museum",
+      "text": "J.P. Morgan's private library, with three Gutenberg Bibles. You walked here, so the address is yours now, not just a search result."
+    },
+    "New-York Historical Society": {
+      "id": "new-york-historical-society",
+      "text": "New York's oldest museum, founded 1804. You walked here, so the address is yours now, not just a search result."
+    },
+    "Hispanic Society Museum": {
+      "id": "hispanic-society-museum",
+      "text": "Holds works by Goya, Velazquez, and Sorolla. Once you have approached it from the street, you can find it again without the pin."
+    },
+    "Museum of Jewish Heritage": {
+      "id": "museum-of-jewish-heritage",
+      "text": "A living memorial to the Holocaust. You will remember the corner, not the search result."
+    },
+    "Merchant's House Museum": {
+      "id": "merchant-s-house-museum",
+      "text": "A family home frozen in the 1800s, said to be haunted. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "The Jewish Museum": {
+      "id": "the-jewish-museum",
+      "text": "Housed in the Warburg mansion on Fifth Avenue. The pin stops at the entrance. The lesson is which streets you crossed to reach it."
+    },
+    "Strand Bookstore": {
+      "id": "strand-bookstore",
+      "text": "Famous for its '18 miles of books'. You walked here, so the address is yours now, not just a search result."
+    },
+    "Jefferson Market Library": {
+      "id": "jefferson-market-library",
+      "text": "A former courthouse turned library. The collection is inside. What you keep is where the building sits in the city."
+    },
+    "Central Park Zoo": {
+      "id": "central-park-zoo",
+      "text": "Its sea lion feedings draw crowds daily. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Bryant Park": {
+      "id": "bryant-park",
+      "text": "Winter brings a free ice rink. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Madison Square Park": {
+      "id": "madison-square-park",
+      "text": "Once home to the Statue of Liberty's torch. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Tompkins Square Park": {
+      "id": "tompkins-square-park",
+      "text": "Birthplace of the Hare Krishna movement in the US. The paths around it are now yours. A pin never teaches those."
+    },
+    "Fort Tryon Park": {
+      "id": "fort-tryon-park",
+      "text": "Designed by the Olmsted Brothers, given by Rockefeller. A transit app sends you past this. Walking is how you learn it is here."
+    },
+    "Marcus Garvey Park": {
+      "id": "marcus-garvey-park",
+      "text": "Its fire watchtower dates to 1857. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "Morningside Park": {
+      "id": "morningside-park",
+      "text": "A cliffside park designed by Olmsted and Vaux. The green is the lesson. The pin is only the gate."
+    },
+    "Conservatory Garden": {
+      "id": "conservatory-garden",
+      "text": "Central Park's only formal garden. The paths around it are now yours. A pin never teaches those."
+    },
+    "Seward Park": {
+      "id": "seward-park",
+      "text": "Home to one of the first municipal playgrounds in the US. You found the open ground by the streets around it. That is how a neighborhood gets a shape."
+    },
+    "Columbus Park": {
+      "id": "columbus-park",
+      "text": "Chinatown's park, once the notorious Five Points. Standing in it is how you learn what the blocks beside it feel like."
+    },
+    "Stuyvesant Square": {
+      "id": "stuyvesant-square",
+      "text": "Land donated by Peter Stuyvesant's descendant. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "St. Nicholas Park": {
+      "id": "st-nicholas-park",
+      "text": "A steep park below City College. The paths around it are now yours. A pin never teaches those."
+    },
+    "Highbridge Water Tower": {
+      "id": "highbridge-water-tower",
+      "text": "Once held water from the Croton Aqueduct. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Paley Park": {
+      "id": "paley-park",
+      "text": "A tiny pocket park with a 20-foot waterfall. You found the open ground by the streets around it. That is how a neighborhood gets a shape."
+    },
+    "Rockefeller Park": {
+      "id": "rockefeller-park",
+      "text": "Battery Park City's riverside lawn. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "The Great Lawn": {
+      "id": "the-great-lawn",
+      "text": "Built over the filled-in old reservoir. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Sara D. Roosevelt Park": {
+      "id": "sara-d-roosevelt-park",
+      "text": "A long, narrow park on the Lower East Side. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Alice in Wonderland Statue": {
+      "id": "alice-in-wonderland-statue",
+      "text": "Kids are encouraged to climb it. Arriving on foot is what makes the next block familiar."
+    },
+    "Fearless Girl": {
+      "id": "fearless-girl",
+      "text": "She now stares down the New York Stock Exchange. The route you just took is the part a map usually erases."
+    },
+    "Cleopatra's Needle": {
+      "id": "cleopatra-s-needle",
+      "text": "An Egyptian obelisk about 3,500 years old. Arriving on foot is what makes the next block familiar."
+    },
+    "St. Paul's Chapel": {
+      "id": "st-paul-s-chapel",
+      "text": "Manhattan's oldest surviving church, from 1766. The skyline photo skips the street you just used."
+    },
+    "Woolworth Building": {
+      "id": "woolworth-building",
+      "text": "Nicknamed the 'Cathedral of Commerce'. A search result cannot show you which way the door faces the street."
+    },
+    "African Burial Ground": {
+      "id": "african-burial-ground",
+      "text": "Resting place of about 15,000 free and enslaved Africans. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Irish Hunger Memorial": {
+      "id": "irish-hunger-memorial",
+      "text": "A real Irish cottage on a slice of Irish landscape. A search result cannot show you which way the door faces the street."
+    },
+    "Duke Ellington Memorial": {
+      "id": "duke-ellington-memorial",
+      "text": "Duke stands beside his piano on columns held by nine muses. That detail lives on the block, not in a directions app."
+    },
+    "LOVE Sculpture": {
+      "id": "love-sculpture",
+      "text": "Robert Indiana's famous tilted O. Arriving on foot is what makes the next block familiar."
+    },
+    "Tiffany & Co. Fifth Avenue": {
+      "id": "tiffany-co-fifth-avenue",
+      "text": "Where Holly Golightly had breakfast. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "The Ansonia": {
+      "id": "the-ansonia",
+      "text": "Once kept a small farm on its roof. Arriving on foot is what makes the next block familiar."
+    },
+    "Cooper Union Foundation Building": {
+      "id": "cooper-union-foundation-building",
+      "text": "Lincoln gave a career-making speech here in 1860. Standing here is how the name becomes a place you can find again."
+    },
+    "Temple Emanu-El": {
+      "id": "temple-emanu-el",
+      "text": "One of the largest synagogues in the world. Standing here is how the name becomes a place you can find again."
+    },
+    "Federal Hall": {
+      "id": "federal-hall",
+      "text": "Where Washington took the oath as first President. Arriving on foot is what makes the next block familiar."
+    },
+    "Castle Clinton": {
+      "id": "castle-clinton",
+      "text": "A fort that became America's first immigration station. Arriving on foot is what makes the next block familiar."
+    },
+    "Sherman Monument": {
+      "id": "sherman-monument",
+      "text": "A gilded general led by the figure of Victory. The route you just took is the part a map usually erases."
+    },
+    "Trinity Church": {
+      "id": "trinity-church",
+      "text": "Alexander Hamilton is buried in its churchyard. A search result cannot show you which way the door faces the street."
+    },
+    "Bow Bridge": {
+      "id": "bow-bridge",
+      "text": "Central Park's most-filmed bridge. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Soldiers' and Sailors' Monument": {
+      "id": "soldiers-and-sailors-monument",
+      "text": "A marble temple honoring Union soldiers. The route you just took is the part a map usually erases."
+    },
+    "Eldridge Street Synagogue": {
+      "id": "eldridge-street-synagogue",
+      "text": "One of the first great synagogues built by Eastern European Jews in the US. You can point to it from the corner now. That is a mental map, not a bookmark."
     }
   },
   "edges": {
