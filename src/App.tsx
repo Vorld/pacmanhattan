@@ -1,12 +1,60 @@
+import type { ReactNode } from 'react'
+import { inManhattan } from './game/geo'
+import { useGeolocation } from './game/useGeolocation'
+import { useTrail } from './game/useTrail'
 import MazeMap from './map/MazeMap'
 
+// Blinky until ghost picking lands on the landing screen.
+const GHOST_COLOR = '#ff0000'
+
+const sim = new URLSearchParams(window.location.search).has('sim')
+
 export default function App() {
+  const { position, status, moveTo } = useGeolocation(sim)
+  const trail = useTrail(position)
+  const offIsland = position !== null && !inManhattan(position)
+
   return (
     <main className="relative h-full overflow-hidden">
-      <MazeMap />
+      <MazeMap player={position} trail={trail} ghostColor={GHOST_COLOR} onTap={moveTo} />
+
       <h1 className="pointer-events-none absolute top-4 left-4 font-arcade text-xs text-pac glow-maze">
         PACMANhattan
       </h1>
+      {sim && (
+        <p className="pointer-events-none absolute top-4 right-4 font-arcade text-[10px] text-inky">SIM</p>
+      )}
+
+      {status === 'locating' && (
+        <Overlay title="FINDING YOU…" blink>
+          Pac-Man needs to know where you are.
+        </Overlay>
+      )}
+      {status === 'denied' && (
+        <Overlay title="LOCATION BLOCKED">
+          PACMANhattan needs your location to play. Allow location access for this site in your browser settings, then
+          reload.
+        </Overlay>
+      )}
+      {status === 'unavailable' && (
+        <Overlay title="CAN'T FIND YOU">
+          Your location isn't coming through. Check that location services are on, then reload.
+        </Overlay>
+      )}
+      {status === 'ok' && offIsland && (
+        <Overlay title="HEAD TO MANHATTAN">The whole island is the board. Come find us to play.</Overlay>
+      )}
     </main>
+  )
+}
+
+function Overlay({ title, blink, children }: { title: string; blink?: boolean; children: ReactNode }) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75 px-8 text-center">
+      <h2 className={`font-arcade text-base leading-relaxed text-pac glow-maze ${blink ? 'animate-blink' : ''}`}>
+        {title}
+      </h2>
+      <p className="max-w-xs text-sm leading-relaxed text-neutral-300">{children}</p>
+    </div>
   )
 }

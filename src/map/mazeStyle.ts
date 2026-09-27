@@ -73,6 +73,7 @@ export const mazeStyle: StyleSpecification = {
     omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
     offIsland: { type: 'geojson', data: offIsland },
     manhattan: { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: manhattan as MultiPolygon } },
+    trail: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
   },
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#000' } },
@@ -109,6 +110,21 @@ export const mazeStyle: StyleSpecification = {
       filter: streets,
       layout: round,
       paint: { 'line-color': '#000', 'line-width': width(0, 31) },
+    },
+    // Ghost trail — color is set at runtime to the player's ghost.
+    {
+      id: 'trail-glow',
+      type: 'line',
+      source: 'trail',
+      layout: round,
+      paint: { 'line-color': '#fff', 'line-width': 14, 'line-blur': 10, 'line-opacity': 0.35 },
+    },
+    {
+      id: 'trail',
+      type: 'line',
+      source: 'trail',
+      layout: round,
+      paint: { 'line-color': '#fff', 'line-width': 4, 'line-opacity': 0.7 },
     },
     {
       id: 'street-label',
