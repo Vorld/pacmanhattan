@@ -1,6 +1,7 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 import type { MultiPolygon } from 'geojson'
 import manhattan from '../game/manhattan.json'
+import parks from './parks.json'
 
 const MAZE = '#2121ff'
 const LABEL = '#8a8aa8'
@@ -64,6 +65,12 @@ const streets: ExpressionSpecification = [
   ['!=', ['get', 'brunnel'], 'tunnel'],
 ]
 
+const parkShapes = parks as MultiPolygon
+
+function pathWidth(atZ12: number, atZ18: number): ExpressionSpecification {
+  return ['interpolate', ['exponential', 2], ['zoom'], 12, atZ12, 18, atZ18]
+}
+
 const round = { 'line-cap': 'round', 'line-join': 'round' } as const
 
 export const mazeStyle: StyleSpecification = {
@@ -73,6 +80,10 @@ export const mazeStyle: StyleSpecification = {
     omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
     offIsland: { type: 'geojson', data: offIsland },
     manhattan: { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: manhattan as MultiPolygon } },
+    parks: { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: parkShapes } },
+    // Footpaths clipped to parks at build time (OSM, sidewalks removed). Manhattan maps its
+    // sidewalks as footpaths too, so unclipped paths would double every street.
+    parkPaths: { type: 'geojson', data: '/data/park-paths.json' },
     trail: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     dots: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
   },
@@ -81,9 +92,32 @@ export const mazeStyle: StyleSpecification = {
     {
       id: 'park',
       type: 'fill',
+      source: 'parks',
+      paint: { 'fill-color': '#051a0d' },
+    },
+    {
+      id: 'building',
+      type: 'fill',
       source: 'omt',
-      'source-layer': 'park',
-      paint: { 'fill-color': '#06140c' },
+      'source-layer': 'building',
+      minzoom: 14,
+      paint: { 'fill-color': '#0b0b22', 'fill-outline-color': '#1d1d4d' },
+    },
+    {
+      id: 'path-wall',
+      type: 'line',
+      source: 'parkPaths',
+      minzoom: 14,
+      layout: round,
+      paint: { 'line-color': MAZE, 'line-width': pathWidth(0.5, 16), 'line-opacity': 0.8 },
+    },
+    {
+      id: 'path-corridor',
+      type: 'line',
+      source: 'parkPaths',
+      minzoom: 14,
+      layout: round,
+      paint: { 'line-color': '#000', 'line-width': pathWidth(0, 13) },
     },
     {
       id: 'street-glow',

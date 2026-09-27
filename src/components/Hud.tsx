@@ -1,13 +1,16 @@
+import { dangerLevel, type Danger } from '../game/danger'
+
 type Props = {
   /** Meters to Pac-Man, or null before he spawns. */
   distance: number | null
   elapsedMs: number
 }
 
-function distanceColor(m: number) {
-  if (m < 200) return 'text-blinky border-blinky'
-  if (m < 400) return 'text-pac border-pac'
-  return 'text-green-400 border-green-400'
+const PILL: Record<Danger, string> = {
+  safe: 'text-green-400 border-green-400',
+  near: 'text-pac border-pac',
+  close: 'text-blinky border-blinky',
+  critical: 'text-blinky border-blinky animate-shake',
 }
 
 function clock(ms: number) {
@@ -23,7 +26,7 @@ export default function Hud({ distance, elapsedMs }: Props) {
           PAC-MAN…
         </span>
       ) : (
-        <span className={`rounded-full border bg-black/80 px-3 py-2 ${distanceColor(distance)}`}>
+        <span className={`rounded-full border bg-black/80 px-3 py-2 ${PILL[dangerLevel(distance)]}`}>
           ● {Math.round(distance)}m
         </span>
       )}

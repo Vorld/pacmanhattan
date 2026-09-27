@@ -36,7 +36,7 @@ A 1980 arcade cabinet, played on the streets of Manhattan.
 
 - **Rotated so the grid is vertical.** Manhattan's grid runs ~29° off true north; we set the map bearing to 29° so avenues run straight up the screen and the island fills a portrait phone like an arcade maze.
 - **Locked to Manhattan.** The map can't pan or zoom off the island.
-- **Maze styling:** black land and water, streets drawn as glowing neon-blue corridors, small faint gray street labels so players can still navigate. No buildings, no clutter.
+- **Maze styling:** black land and water, streets drawn as glowing neon-blue corridors, park footpaths as narrower corridors (clipped to parks, so sidewalks don't double every street), buildings as faint navy footprints, and small gray street labels so players can still navigate.
 - **Dots:** streets near you are sprinkled with dots. Pac-Man eats them as he moves — that's his trail.
 - **Ghost trail:** a faint glowing line in your ghost's color showing everywhere you've been.
 
@@ -105,10 +105,10 @@ A 1980 arcade cabinet, played on the streets of Manhattan.
 
 **Done:** small ✕ in the corner, hold to confirm (so a stray tap doesn't end your run).
 
-**Proximity alert:** under 200m the screen border pulses yellow; under 100m it pulses red and faster.
+**Tension as Pac-Man closes in:** the screen edge glows and pulses — yellow under 200m, red under 100m, fast red under 50m (the distance pill shakes too). Phones that support it buzz each time it escalates (not iOS).
 
 **Pac-Man:**
-- Walks real streets toward you at a fixed **~4 km/h**
+- Walks real streets (and park paths) toward you at a fixed **~4 km/h**, and walks the last few meters straight to you so he always actually arrives
 - Re-routes to your position every ~10 seconds
 - Never stops (except during Freeze)
 
@@ -151,7 +151,7 @@ Open-ended prompts with no single answer and no pin on the map — you decide wh
 
 ## 5. Caught
 
-Pac-Man within **50m for 3+ seconds** = caught (the delay absorbs GPS jitter).
+Pac-Man within **15m for 1 second** = caught — the moment the sprites touch on screen (the brief hold absorbs GPS jitter).
 
 1. Pac-Man chomps you — your ghost turns into the classic floating **eyes**.
 2. **GAME OVER** screen, arcade style:
@@ -204,7 +204,6 @@ Holding **✕ done** ends the run and shows the same screen — no penalty.
 ### Should Have
 - [ ] Freeze and Power Pellet rewards
 - [ ] Fly-in + READY! intro
-- [ ] Proximity border pulse
 - [ ] Caught animation (ghost → eyes)
 - [ ] Chiptune sound effects
 

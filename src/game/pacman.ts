@@ -36,14 +36,18 @@ export function dotsAhead(route: Route, traveled: number, spacing: number): LngL
   return dots
 }
 
-/** Walking route from → to. Falls back to a straight line if routing is down. */
+/**
+ * Walking route from → to. It ends exactly on `to` (a short final approach off the street),
+ * so Pac-Man actually reaches the player instead of stopping at the nearest road.
+ * Falls back to a straight line if routing is down.
+ */
 export async function fetchRoute(from: LngLat, to: LngLat, signal?: AbortSignal): Promise<Route> {
   try {
     const url = `${OSRM}/route/v1/driving/${from.join(',')};${to.join(',')}?overview=full&geometries=geojson`
     const res = await fetch(url, { signal })
     const data = await res.json()
     const coords: LngLat[] | undefined = data.routes?.[0]?.geometry?.coordinates
-    if (coords && coords.length >= 2) return makeRoute([from, ...coords])
+    if (coords && coords.length >= 2) return makeRoute([from, ...coords, to])
   } catch (err) {
     if (signal?.aborted) throw err
   }

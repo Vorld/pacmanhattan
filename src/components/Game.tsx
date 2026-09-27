@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { buzz, DANGER_RANK, dangerLevel } from '../game/danger'
 import { haversine, pathLength, type LngLat } from '../game/geo'
 import { useCatch } from '../game/useCatch'
 import { useNow } from '../game/useNow'
 import { usePacman } from '../game/usePacman'
 import { useTrail } from '../game/useTrail'
 import MazeMap from '../map/MazeMap'
+import DangerGlow from './DangerGlow'
 import GameOver from './GameOver'
 import Hud from './Hud'
 import QuitButton from './QuitButton'
@@ -45,6 +47,14 @@ export default function Game({ position, ready, ghostColor, onTap, onPlayAgain }
   const pacman = pacmanAt(clock)
   const distance = pacman && position ? haversine(pacman.position, position) : null
 
+  // Buzz each time the danger level goes up.
+  const danger = playing ? dangerLevel(distance) : 'safe'
+  const lastDanger = useRef(danger)
+  useEffect(() => {
+    if (DANGER_RANK[danger] > DANGER_RANK[lastDanger.current]) buzz(danger)
+    lastDanger.current = danger
+  }, [danger])
+
   useCatch(pacmanAt, position, playing && startedAt !== null, (at) => setEnding((e) => e ?? { at, caught: true }))
 
   useEffect(() => {
@@ -62,6 +72,7 @@ export default function Game({ position, ready, ghostColor, onTap, onPlayAgain }
     <>
       <MazeMap player={position} ghostColor={ghostColor} pacmanAt={pacmanAt} onTap={playing ? onTap : undefined} />
 
+      <DangerGlow level={danger} />
       {!showSummary && <Hud distance={distance} elapsedMs={startedAt ? clock - startedAt : 0} />}
       {playing && ready && <QuitButton onQuit={quit} />}
 

@@ -81,6 +81,52 @@ body {
   }
 }
 
+/* Screen-edge glow as Pac-Man closes in: yellow → red, slow → fast. */
+.danger-glow {
+  animation: danger-pulse var(--pulse) ease-in-out infinite;
+  box-shadow: inset 0 0 var(--blur) var(--spread) var(--glow);
+}
+
+.danger-near {
+  --glow: rgb(255 212 0 / 0.55);
+  --pulse: 1.4s;
+  --blur: 50px;
+  --spread: 6px;
+}
+
+.danger-close {
+  --glow: rgb(255 0 0 / 0.6);
+  --pulse: 0.8s;
+  --blur: 70px;
+  --spread: 12px;
+}
+
+.danger-critical {
+  --glow: rgb(255 0 0 / 0.85);
+  --pulse: 0.4s;
+  --blur: 90px;
+  --spread: 24px;
+}
+
+@keyframes danger-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-shake {
+  animation: shake 0.25s steps(2) infinite;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
 /* Hold-to-quit ring fills over one second; releasing early removes it. */
 .hold-ring {
   stroke-dasharray: 1;

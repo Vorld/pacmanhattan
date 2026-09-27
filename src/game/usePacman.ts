@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { bearing, haversine, type LngLat } from './geo'
-import { fetchRoute, PACMAN_SPEED, pointAlong, spawnPoint, type Route } from './pacman'
+import { fetchRoute, makeRoute, PACMAN_SPEED, pointAlong, spawnPoint, type Route } from './pacman'
 
 // Re-route as soon as the player has moved this far from where Pac-Man is heading…
 const MOVED_METERS = 15
@@ -11,6 +11,8 @@ const MIN_REROUTE_MS = 2_000
 // And refresh anyway every so often, in case a better path opened up.
 const REROUTE_MS = 10_000
 const CHECK_MS = 500
+// Within this range he just comes straight at you — the router could detour via another street.
+const DIRECT_METERS = 40
 // Face a point this far ahead, so tiny route segments don't make him flip around.
 const LOOKAHEAD_METERS = 10
 
@@ -54,7 +56,8 @@ export function usePacman(player: LngLat | null, active: boolean) {
       inFlight = true
       const requestedAt = Date.now()
       try {
-        const route = await fetchRoute(from, to, controller.signal)
+        const route =
+          haversine(from, to) < DIRECT_METERS ? makeRoute([from, to]) : await fetchRoute(from, to, controller.signal)
         leg.current = { route, startedAt: requestedAt, target: to }
       } catch {
         // aborted

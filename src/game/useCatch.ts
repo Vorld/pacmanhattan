@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react'
 import { haversine, type LngLat } from './geo'
 import type { PacmanFrame } from './usePacman'
 
-export const CATCH_METERS = 50
-// Pac-Man has to stay this close for a while, so a single GPS blip can't end the game.
-const CATCH_HOLD_MS = 3_000
+// Close enough that the sprites touch on screen.
+export const CATCH_METERS = 15
+// Pac-Man has to stay this close briefly, so a single GPS blip can't end the game.
+const CATCH_HOLD_MS = 1_000
 const CHECK_MS = 250
 
 /** Calls `onCaught` once Pac-Man has been within CATCH_METERS of the player for CATCH_HOLD_MS. */
