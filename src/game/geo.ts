@@ -48,3 +48,13 @@ export function inManhattan(point: LngLat): boolean {
     ([outer, ...holes]) => inRing(point, outer) && !holes.some((h) => inRing(point, h)),
   )
 }
+
+/** Total length of a path in meters, skipping any single jump longer than `maxStep` (GPS gaps, sim taps). */
+export function pathLength(path: LngLat[], maxStep = Infinity): number {
+  let total = 0
+  for (let i = 1; i < path.length; i++) {
+    const step = haversine(path[i - 1], path[i])
+    if (step <= maxStep) total += step
+  }
+  return total
+}

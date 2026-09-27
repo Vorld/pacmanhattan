@@ -81,6 +81,19 @@ body {
   }
 }
 
+/* Hold-to-quit ring fills over one second; releasing early removes it. */
+.hold-ring {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hold-fill 1s linear forwards;
+}
+
+@keyframes hold-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @keyframes blink {
   50% {
     opacity: 0;
