@@ -1181,7 +1181,7 @@
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 
-  window.PM.debug = { state, CFG, get B() { return B; }, pick, chooseMode, startRun, startVersus, closeCard,
+  window.PM.debug = { state, CFG, get B() { return B; }, get demo() { return demo; }, pick, chooseMode, startRun, startVersus, closeCard,
     press: (d) => { const g = state.ghost; g.inp.queued = d; g.inp.queuedAt = now; g.started = true; },
     hold: (d, on) => (on ? state.ghost.inp.held.add(d) : state.ghost.inp.held.delete(d)),
     // two-player: i is 0 (WASD) or 1 (arrows)

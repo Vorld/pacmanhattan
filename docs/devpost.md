@@ -7,6 +7,8 @@
 **Track:** Know Your City
 **Also submit to:** Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack
 
+**Images:** `docs/media/pacmanhattan-cover-3x2.jpg` (3000x2000, Devpost thumbnail and first gallery image) and `docs/media/pacmanhattan-banner-3x1.jpg` (3840x1280, wide banner). Both are real screenshots of the game's title screen.
+
 **Try it:** https://pac-manhattan.tech (backup: https://pacmanhattan-kappa.vercel.app)
 **Code:** https://github.com/Vorld/pacmanhattan
 
