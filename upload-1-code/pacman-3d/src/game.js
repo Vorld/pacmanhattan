@@ -993,7 +993,8 @@
     const dt = Math.min(0.05, (t - last) / 1000);
     last = t;
     now += dt;
-    if (state.mode === 'play') (state.versus ? updateVersus : update)(dt);
+    // keep the loop alive even if one frame throws, so an error can't freeze the whole game
+    try { if (state.mode === 'play') (state.versus ? updateVersus : update)(dt); } catch (e) { console.error(e); }
     try { draw(dt); } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
