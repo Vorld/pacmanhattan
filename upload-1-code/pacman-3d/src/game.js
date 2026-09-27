@@ -539,7 +539,7 @@
       o.trail.reset();
       o.ghost3d.group.visible = true; o.bubble.setVisible(true);
       return { ...v, i, o, g: newGhost(start), found: 0, alive: true, diedAt: 0, visited: new Set([start.name]),
-        hint: null, hintLog: [], camPos: null, danger: Infinity };
+        hint: null, hintLog: [], passport: [], camPos: null, danger: Infinity };
     });
     newVersusTask(true);
     addChomper(alivePos());
@@ -679,6 +679,8 @@
       for (const l of B.LANDMARKS) {
         if (p.visited.has(l.name) || Math.hypot(l.sx - gp[0], l.sy - gp[1]) >= CFG.arriveDist) continue;
         p.visited.add(l.name);
+        p.passport.push({ kind: 'landmark', place: l });
+        ui.setVersusPassport(p.i, p.passport);
         versusHint(p, l);
         audio.ding();
         ui.toast({ title: '★ ' + l.name, body: 'Hint: ' + p.hintLog[0].text, kind: 'info', secs: 6, side: p.i });
@@ -691,6 +693,8 @@
       if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) >= CFG.arriveDist) continue;
       p.found++;
       state.tasksDone++;
+      p.passport.push({ kind: 'found', place: t });
+      ui.setVersusPassport(p.i, p.passport);
       ui.setVersusPlayer(p);
       if (versusCheckEnd()) return;
       audio.fanfare();
@@ -772,6 +776,12 @@
         if (q === p && q.alive && q.hint && state.time < q.hint.until) {
           q.o.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (q.hint.until - state.time) / 2), now);
         } else q.o.arrow.update(0, 0, 0, 0, now);
+      }
+      // your own ghost stays on top: hide the rival's ghost where it overlaps yours (as at the start)
+      for (const q of ps) {
+        const show = q.alive && (q === p || Math.hypot(pos[q.i][0] - gp[0], pos[q.i][1] - gp[1]) > 40);
+        q.o.ghost3d.group.visible = show;
+        q.o.bubble.setVisible(show);
       }
       for (const [name, m] of world.markers) {
         const seen = p.visited.has(name);
@@ -1136,7 +1146,8 @@
     const dt = Math.min(0.05, (t - last) / 1000);
     last = t;
     now += dt;
-    if (state.mode === 'play') (state.versus ? updateVersus : update)(dt);
+    // keep the loop alive even if one frame throws, so an error can't freeze the whole game
+    try { if (state.mode === 'play') (state.versus ? updateVersus : update)(dt); } catch (e) { console.error(e); }
     try { draw(dt); } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
