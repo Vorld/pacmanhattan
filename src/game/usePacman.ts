@@ -2,14 +2,19 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { bearing, haversine, type LngLat } from './geo'
 import { fetchRoute, PACMAN_SPEED, pointAlong, spawnPoint, type Route } from './pacman'
 
-const REROUTE_MS = 10_000
-// Also re-route early when he's about to run out of path, so he never stands still.
+// Re-route as soon as the player has moved this far from where Pac-Man is heading…
+const MOVED_METERS = 15
+// …or he's about to run out of path, so he never stands still…
 const LOW_ROUTE_METERS = 20
-const CHECK_MS = 2_000
+// …but no more often than this (the routing server asks for fair use).
+const MIN_REROUTE_MS = 2_000
+// And refresh anyway every so often, in case a better path opened up.
+const REROUTE_MS = 10_000
+const CHECK_MS = 500
 // Face a point this far ahead, so tiny route segments don't make him flip around.
 const LOOKAHEAD_METERS = 10
 
-type Leg = { route: Route; startedAt: number }
+type Leg = { route: Route; startedAt: number; target: LngLat }
 
 export type PacmanFrame = { position: LngLat; heading: number; route: Route; traveled: number }
 
@@ -50,7 +55,7 @@ export function usePacman(player: LngLat | null, active: boolean) {
       const requestedAt = Date.now()
       try {
         const route = await fetchRoute(from, to, controller.signal)
-        leg.current = { route, startedAt: requestedAt }
+        leg.current = { route, startedAt: requestedAt, target: to }
       } catch {
         // aborted
       } finally {
@@ -69,10 +74,13 @@ export function usePacman(player: LngLat | null, active: boolean) {
     const timer = setInterval(() => {
       const now = Date.now()
       const frame = pacmanAt(now)
-      if (!frame || !leg.current) return
-      const stale = now - leg.current.startedAt >= REROUTE_MS
+      const l = leg.current
+      const to = playerRef.current
+      if (!frame || !l || !to) return
+      const age = now - l.startedAt
+      const moved = haversine(l.target, to) >= MOVED_METERS
       const runningOut = frame.route.length - frame.traveled < LOW_ROUTE_METERS
-      if (stale || runningOut) routeFrom(frame.position)
+      if (age >= REROUTE_MS || (age >= MIN_REROUTE_MS && (moved || runningOut))) routeFrom(frame.position)
     }, CHECK_MS)
 
     return () => {
