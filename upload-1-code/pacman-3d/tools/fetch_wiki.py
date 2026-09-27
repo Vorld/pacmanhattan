@@ -111,7 +111,9 @@ def main():
             ii = (p.get('imageinfo') or [{}])[0]
             em = ii.get('extmetadata', {})
             out[n]['thumb'] = ii.get('thumburl')
-            out[n]['credit'] = clean_html(em.get('Artist', {}).get('value', ''))[:80]
+            credit = clean_html(em.get('Artist', {}).get('value', ''))
+            credit = re.sub(r'^(.{4,}?)\1', r'\1', credit)  # Commons repeats the name in a hidden span ("Unknown authorUnknown author")
+            out[n]['credit'] = credit[:80]
             out[n]['license'] = clean_html(em.get('LicenseShortName', {}).get('value', ''))
             out[n]['file'] = ii.get('descriptionurl') or ''
         json.dump(out, open(cache, 'w'), indent=1)

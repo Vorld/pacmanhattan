@@ -33,7 +33,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **Solve a riddle, find the place.** Each task is a riddle about a real spot ("Simon and Garfunkel sang of this cantilever path spanning the East River..."). Figure it out before the name is revealed for a 50% bonus. The name appears after 30 seconds, at a landmark, or when you press R.
 - **Themed runs.** Type a theme like "food spots", "movie locations" or "first date in Brooklyn", and Gemini picks that run's places, only from the places in the game. It works in 1 and 2 player, so judges can type their own.
 - **Visit landmarks** for a card with an HD photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
-- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
+- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC residential database: "151 residential buildings within a block or two, typically built around 1879; the oldest dates to 1819."
 - **Riddle stats.** After you solve one, see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
 - **What you just learned.** Eight places add a short lesson to their card, written with Grok.
 - **Dodge three kinds of chompers.** Chomps chases you, Sneaky cuts you off on the way to your target, and Snooze wanders until you get close. A new one joins after every task.
@@ -56,7 +56,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
   - It picks the places for themed runs, limited by a response schema to the map's exact place names and checked again on the server.
   - It writes the end-of-run postcard, which is rejected and rewritten if it names a place or number that didn't happen in your run.
 - **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, and reads each postcard aloud through a server function, so no API key ever reaches the browser.
-- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We loaded 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by location. Every riddle outcome is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
+- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We loaded 767,563 NYC residential buildings (PLUTO lots joined with HPD data) and query the ones around each place by location. Every riddle outcome is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
 - **MongoDB Atlas** stores global high scores, Passport stamps and every finished run (with its theme) through Vercel functions, with a browser fallback if the database can't be reached.
 - **Grok, built in Cursor,** wrote the "What you just learned" lessons and generated their pictures.
 - **Photos:** 189 Wikimedia Commons photos with the author and license on every card.

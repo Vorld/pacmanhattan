@@ -1,4 +1,4 @@
-// "Know the block": the buildings within about 150 m of a place, from the 767k-building NYC table in Tiger Data
+// "Know the block": the residential buildings within about 150 m of a place, from the 767k-building NYC table in Tiger Data
 // (NYC PLUTO lots joined with HPD data).
 //   GET /api/block?lat=..&lon=..  -> {buildings, typicalYear, oldestYear, apartments}
 import { handle, bad, query } from './_lib/db.js';

@@ -202,7 +202,7 @@
         if (blk && blk.buildings > 0 && blk.typicalYear) {
           const apts = blk.apartments > 0 ? ` Home to ${blk.apartments.toLocaleString()} apartments.` : '';
           const old = blk.oldestYear && blk.oldestYear < blk.typicalYear ? `; the oldest dates to ${blk.oldestYear}` : '';
-          rows.push(`<div><b>Know the block${p.ntaname ? ' · ' + esc(p.ntaname) : ''}:</b> ${blk.buildings} buildings within a block or two, typically built around ${blk.typicalYear}${old}.${apts}</div>`);
+          rows.push(`<div><b>Know the block${p.ntaname ? ' · ' + esc(p.ntaname) : ''}:</b> ${blk.buildings} residential buildings within a block or two, typically built around ${blk.typicalYear}${old}.${apts}</div>`);
         }
         if (rd && rd.finds > 0) {
           rows.push(rd.finds === 1
@@ -211,7 +211,7 @@
         }
         const el = $('card-live');
         if (!el || !rows.length) return;
-        el.innerHTML = rows.join('') + '<div class="card-live-src">Live from Tiger Data: NYC PLUTO buildings and every player\'s riddle attempts</div>';
+        el.innerHTML = rows.join('') + '<div class="card-live-src">Live from Tiger Data: NYC residential buildings (PLUTO + HPD) and every player\'s riddle attempts</div>';
         el.hidden = false;
       });
     },
