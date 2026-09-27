@@ -112,8 +112,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 .lobby-head { display: grid; gap: 6px; }
 .borough-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .borough:first-child { grid-column: span 2; }
-#b-bridges { grid-column: 1 / -1; } /* Manhattan + Brooklyn: full-width card under the five boroughs */
+#b-bridges, #b-nyc { grid-column: 1 / -1; } /* multi-borough maps: full-width cards under the five boroughs */
 #b-bridges img { height: 220px; }
+#b-nyc img { height: 320px; object-fit: contain; }
 @media (max-width: 900px) { .borough-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .borough-grid { grid-template-columns: 1fr; } .borough:first-child { grid-column: auto; } }
 .borough { display: grid; grid-template-rows: auto 1fr; padding: 0; overflow: hidden; text-align: left; border: 0; border-radius: 20px; background: #fff;
@@ -500,7 +501,9 @@ button.mode:hover { border-color: var(--ghost); }
     other(e, n) { return e.a === n ? e.b : e.a; }
 
     // Dijkstra from a position; returns Float32Array of distances (to maxD)
-    distancesFrom(pos, maxD = Infinity) {
+    // opts.noFerry: stay on land (chompers can't board the ferry, edge class 4)
+    distancesFrom(pos, maxD = Infinity, opts) {
+      const noFerry = opts && opts.noFerry;
       const n = this.nx.length;
       const dist = new Float64Array(n).fill(Infinity);
       const heap = new Heap();
@@ -510,13 +513,14 @@ button.mode:hover { border-color: var(--ghost); }
       while (heap.size) {
         const [d, u] = heap.pop();
         if (d > dist[u] || d > maxD) continue;
-        for (const e of this.adj[u]) push(this.other(e, u), d + e.len);
+        for (const e of this.adj[u]) if (!(noFerry && e.cls === 4)) push(this.other(e, u), d + e.len);
       }
       return dist;
     }
 
     // A* between two positions; returns {dist, nodes:[...]} path of nodes to walk through (from start)
-    path(from, to) {
+    path(from, to, opts) {
+      const noFerry = opts && opts.noFerry;
       if (from.e === to.e) return { dist: Math.abs(from.s - to.s), nodes: [] };
       const n = this.nx.length;
       const g = new Map(), prev = new Map();
@@ -540,6 +544,7 @@ button.mode:hover { border-color: var(--ghost); }
           if (c < bestCost) { bestCost = c; bestEnd = u; }
         }
         for (const e of this.adj[u]) {
+          if (noFerry && e.cls === 4) continue;
           const v = this.other(e, u);
           const nd = gu + e.len;
           if (!g.has(v) || nd < g.get(v)) { g.set(v, nd); prev.set(v, u); heap.push(nd + h(v), v); }
@@ -607,7 +612,7 @@ button.mode:hover { border-color: var(--ghost); }
     pathCase: '#a8c795',
   };
   // street widths (m) by class: 0 park path, 1 pedestrian, 2 local, 3 major
-  const WIDTH = [4, 7, 11, 16];
+  const WIDTH = [4, 7, 11, 16, 7]; // class 4: ferry route
 
   class TilePainter {
     constructor(data, graph) {
@@ -666,6 +671,7 @@ button.mode:hover { border-color: var(--ghost); }
       const minW = 1.2 / S;
       for (const pass of detail ? [0, 1] : [1]) {
         for (const e of edges) {
+          if (e.cls === 4) continue; // ferry: drawn below
           if (!detail && e.cls === 0) continue;
           const w = Math.max(minW, WIDTH[e.cls]);
           g.lineWidth = pass === 0 ? w + 3 : w;
@@ -677,6 +683,15 @@ button.mode:hover { border-color: var(--ghost); }
           g.stroke();
         }
       }
+      // ferry routes: dashed white line across the water
+      g.setLineDash([22, 16]); g.lineWidth = Math.max(minW, WIDTH[4]); g.strokeStyle = 'rgba(255,255,255,0.9)';
+      for (const e of edges) {
+        if (e.cls !== 4) continue;
+        g.beginPath(); g.moveTo(e.pts[0][0], e.pts[0][1]);
+        for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]);
+        g.stroke();
+      }
+      g.setLineDash([]);
       return cv;
     }
 
@@ -1097,6 +1112,13 @@ button.mode:hover { border-color: var(--ghost); }
       for (let tx = Math.floor(this.islandBox[0] / this.baseM); tx <= Math.floor(this.islandBox[2] / this.baseM); tx++)
         for (let ty = Math.floor(this.islandBox[1] / this.baseM); ty <= Math.floor(this.islandBox[3] / this.baseM); ty++)
           this.baseQueue.push([tx, ty]);
+      // big multi-borough maps: skip open-water tiles far from any street or ferry route
+      const used = new Set();
+      for (const e of this.graph.edges) for (const [x, y] of e.pts) {
+        const tx = Math.floor(x / this.baseM), ty = Math.floor(y / this.baseM);
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) used.add((tx + dx) + ',' + (ty + dy));
+      }
+      this.baseQueue = this.baseQueue.filter(([tx, ty]) => used.has(tx + ',' + ty));
     }
 
     tileMesh(tx, ty, M, px, y, detail) {
@@ -2178,6 +2200,7 @@ button.mode:hover { border-color: var(--ghost); }
   // ---------- tuning ----------
   const CFG = {
     ghostSpeed: 82,           // metres per game-second
+    ferrySpeed: 5,            // x ghost speed while riding the Staten Island Ferry (chompers can't board)
     chomperBase: 0.80,        // x ghost speed at run start
     chomperPerTask: 0.045,    // added per completed task
     chomperPerSec: 0.0012,    // added per second within a task
@@ -2437,7 +2460,7 @@ button.mode:hover { border-color: var(--ghost); }
         const e = graph.edgeBetween(next, c.path[0]);
         if (!e) { c.path = []; return; }
         enterEdge(c, e, next);
-      } else if (target.e.a === next || target.e.b === next) {
+      } else if ((target.e.a === next || target.e.b === next) && target.e.cls !== 4) { // chompers wait at the ferry terminal
         enterEdge(c, target.e, next);
       } else return;
     }
@@ -2526,9 +2549,9 @@ button.mode:hover { border-color: var(--ghost); }
   // pick far-away spawn points: not near the ghost(s), the target, or each other
   function spawnPoints(count, from = [state.ghost]) {
     const graph = B.graph;
-    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6);
+    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6, { noFerry: true });
     for (const f of from.slice(1)) {
-      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6);
+      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6, { noFerry: true });
       dist = dist.map((v, i) => Math.min(v, d2[i]));
     }
     const t = state.task;
@@ -2776,7 +2799,7 @@ button.mode:hover { border-color: var(--ghost); }
       const g = p.g;
       if (!p.alive) { pos.push(posXY(g)); continue; }
       g.anim += dt;
-      moveGhost(g, CFG.ghostSpeed * dt);
+      moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
       const gp = posXY(g);
       pos.push(gp);
       p.o.trail.add(gp[0], gp[1], state.time);
@@ -2789,7 +2812,7 @@ button.mode:hover { border-color: var(--ghost); }
     for (const p of alive()) { const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]); if (d < pd) { pd = d; prey = p; } }
     c.repath -= dt;
     if (c.repath <= 0 || c.prey !== prey) {
-      const path = B.graph.path(c, prey.g);
+      const path = B.graph.path(c, prey.g, { noFerry: true });
       c.path = path ? path.nodes : [];
       c.goal = prey.g; c.prey = prey; c.mode = 'chase'; c.repath = 0.3;
     }
@@ -2966,7 +2989,10 @@ button.mode:hover { border-color: var(--ghost); }
     if (!g.started) return;
     state.taskTime += dt;
     g.anim += dt;
-    moveGhost(g, CFG.ghostSpeed * dt);
+    moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
+    const onFerry = g.e.cls === 4;
+    if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
+    state.onFerry = onFerry;
     const gp = posXY(g);
     B.trail.add(gp[0], gp[1], state.time);
 
@@ -2991,7 +3017,7 @@ button.mode:hover { border-color: var(--ghost); }
       c.mode = goal.mode;
       c.repath -= dt;
       if (c.repath <= 0 || c.goalMode !== goal.mode) {
-        const p = B.graph.path(c, goal.pos);
+        const p = B.graph.path(c, goal.pos, { noFerry: true });
         c.path = p ? p.nodes : [];
         c.goal = goal.pos; c.goalMode = goal.mode;
         c.repath = c.kind === 'chaser' ? 0.3 : 0.5;

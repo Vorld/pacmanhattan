@@ -16,7 +16,7 @@
     pathCase: '#a8c795',
   };
   // street widths (m) by class: 0 park path, 1 pedestrian, 2 local, 3 major
-  const WIDTH = [4, 7, 11, 16];
+  const WIDTH = [4, 7, 11, 16, 7]; // class 4: ferry route
 
   class TilePainter {
     constructor(data, graph) {
@@ -75,6 +75,7 @@
       const minW = 1.2 / S;
       for (const pass of detail ? [0, 1] : [1]) {
         for (const e of edges) {
+          if (e.cls === 4) continue; // ferry: drawn below
           if (!detail && e.cls === 0) continue;
           const w = Math.max(minW, WIDTH[e.cls]);
           g.lineWidth = pass === 0 ? w + 3 : w;
@@ -86,6 +87,15 @@
           g.stroke();
         }
       }
+      // ferry routes: dashed white line across the water
+      g.setLineDash([22, 16]); g.lineWidth = Math.max(minW, WIDTH[4]); g.strokeStyle = 'rgba(255,255,255,0.9)';
+      for (const e of edges) {
+        if (e.cls !== 4) continue;
+        g.beginPath(); g.moveTo(e.pts[0][0], e.pts[0][1]);
+        for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]);
+        g.stroke();
+      }
+      g.setLineDash([]);
       return cv;
     }
 

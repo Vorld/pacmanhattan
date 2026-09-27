@@ -89,6 +89,13 @@
       for (let tx = Math.floor(this.islandBox[0] / this.baseM); tx <= Math.floor(this.islandBox[2] / this.baseM); tx++)
         for (let ty = Math.floor(this.islandBox[1] / this.baseM); ty <= Math.floor(this.islandBox[3] / this.baseM); ty++)
           this.baseQueue.push([tx, ty]);
+      // big multi-borough maps: skip open-water tiles far from any street or ferry route
+      const used = new Set();
+      for (const e of this.graph.edges) for (const [x, y] of e.pts) {
+        const tx = Math.floor(x / this.baseM), ty = Math.floor(y / this.baseM);
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) used.add((tx + dx) + ',' + (ty + dy));
+      }
+      this.baseQueue = this.baseQueue.filter(([tx, ty]) => used.has(tx + ',' + ty));
     }
 
     tileMesh(tx, ty, M, px, y, detail) {

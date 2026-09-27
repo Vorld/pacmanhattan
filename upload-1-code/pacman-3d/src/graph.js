@@ -100,7 +100,9 @@
     other(e, n) { return e.a === n ? e.b : e.a; }
 
     // Dijkstra from a position; returns Float32Array of distances (to maxD)
-    distancesFrom(pos, maxD = Infinity) {
+    // opts.noFerry: stay on land (chompers can't board the ferry, edge class 4)
+    distancesFrom(pos, maxD = Infinity, opts) {
+      const noFerry = opts && opts.noFerry;
       const n = this.nx.length;
       const dist = new Float64Array(n).fill(Infinity);
       const heap = new Heap();
@@ -110,13 +112,14 @@
       while (heap.size) {
         const [d, u] = heap.pop();
         if (d > dist[u] || d > maxD) continue;
-        for (const e of this.adj[u]) push(this.other(e, u), d + e.len);
+        for (const e of this.adj[u]) if (!(noFerry && e.cls === 4)) push(this.other(e, u), d + e.len);
       }
       return dist;
     }
 
     // A* between two positions; returns {dist, nodes:[...]} path of nodes to walk through (from start)
-    path(from, to) {
+    path(from, to, opts) {
+      const noFerry = opts && opts.noFerry;
       if (from.e === to.e) return { dist: Math.abs(from.s - to.s), nodes: [] };
       const n = this.nx.length;
       const g = new Map(), prev = new Map();
@@ -140,6 +143,7 @@
           if (c < bestCost) { bestCost = c; bestEnd = u; }
         }
         for (const e of this.adj[u]) {
+          if (noFerry && e.cls === 4) continue;
           const v = this.other(e, u);
           const nd = gu + e.len;
           if (!g.has(v) || nd < g.get(v)) { g.set(v, nd); prev.set(v, u); heap.push(nd + h(v), v); }

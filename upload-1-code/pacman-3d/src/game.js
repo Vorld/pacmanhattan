@@ -5,6 +5,7 @@
   // ---------- tuning ----------
   const CFG = {
     ghostSpeed: 82,           // metres per game-second
+    ferrySpeed: 5,            // x ghost speed while riding the Staten Island Ferry (chompers can't board)
     chomperBase: 0.80,        // x ghost speed at run start
     chomperPerTask: 0.045,    // added per completed task
     chomperPerSec: 0.0012,    // added per second within a task
@@ -264,7 +265,7 @@
         const e = graph.edgeBetween(next, c.path[0]);
         if (!e) { c.path = []; return; }
         enterEdge(c, e, next);
-      } else if (target.e.a === next || target.e.b === next) {
+      } else if ((target.e.a === next || target.e.b === next) && target.e.cls !== 4) { // chompers wait at the ferry terminal
         enterEdge(c, target.e, next);
       } else return;
     }
@@ -353,9 +354,9 @@
   // pick far-away spawn points: not near the ghost(s), the target, or each other
   function spawnPoints(count, from = [state.ghost]) {
     const graph = B.graph;
-    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6);
+    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6, { noFerry: true });
     for (const f of from.slice(1)) {
-      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6);
+      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6, { noFerry: true });
       dist = dist.map((v, i) => Math.min(v, d2[i]));
     }
     const t = state.task;
@@ -603,7 +604,7 @@
       const g = p.g;
       if (!p.alive) { pos.push(posXY(g)); continue; }
       g.anim += dt;
-      moveGhost(g, CFG.ghostSpeed * dt);
+      moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
       const gp = posXY(g);
       pos.push(gp);
       p.o.trail.add(gp[0], gp[1], state.time);
@@ -616,7 +617,7 @@
     for (const p of alive()) { const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]); if (d < pd) { pd = d; prey = p; } }
     c.repath -= dt;
     if (c.repath <= 0 || c.prey !== prey) {
-      const path = B.graph.path(c, prey.g);
+      const path = B.graph.path(c, prey.g, { noFerry: true });
       c.path = path ? path.nodes : [];
       c.goal = prey.g; c.prey = prey; c.mode = 'chase'; c.repath = 0.3;
     }
@@ -793,7 +794,10 @@
     if (!g.started) return;
     state.taskTime += dt;
     g.anim += dt;
-    moveGhost(g, CFG.ghostSpeed * dt);
+    moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
+    const onFerry = g.e.cls === 4;
+    if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
+    state.onFerry = onFerry;
     const gp = posXY(g);
     B.trail.add(gp[0], gp[1], state.time);
 
@@ -818,7 +822,7 @@
       c.mode = goal.mode;
       c.repath -= dt;
       if (c.repath <= 0 || c.goalMode !== goal.mode) {
-        const p = B.graph.path(c, goal.pos);
+        const p = B.graph.path(c, goal.pos, { noFerry: true });
         c.path = p ? p.nodes : [];
         c.goal = goal.pos; c.goalMode = goal.mode;
         c.repath = c.kind === 'chaser' ? 0.3 : 0.5;
