@@ -743,6 +743,12 @@
           q.o.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (q.hint.until - state.time) / 2), now);
         } else q.o.arrow.update(0, 0, 0, 0, now);
       }
+      // your own ghost stays on top: hide the rival's ghost where it overlaps yours (as at the start)
+      for (const q of ps) {
+        const show = q.alive && (q === p || Math.hypot(pos[q.i][0] - gp[0], pos[q.i][1] - gp[1]) > 40);
+        q.o.ghost3d.group.visible = show;
+        q.o.bubble.setVisible(show);
+      }
       for (const [name, m] of world.markers) {
         const seen = p.visited.has(name);
         m.g.visible = !seen;
