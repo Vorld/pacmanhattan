@@ -28,6 +28,11 @@
       $('btn-save').onclick = () => this.saveInitials();
       $('btn-card').onclick = () => h.onCloseCard();
       $('btn-howto').onclick = () => $('howto').classList.toggle('hidden');
+      $('btn-solo').onclick = () => h.onMode(false);
+      $('btn-duo').onclick = () => h.onMode(true);
+      $('btn-mode-back').onclick = () => this.showLobby();
+      $('btn-rematch').onclick = () => h.onAgain();
+      $('btn-vs-lobby').onclick = () => h.onLobby();
       $('passport-toggle').onclick = () => { $('passport').classList.toggle('collapsed'); };
       $('initials').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') this.saveInitials(); });
       this.mini = $('minimap');
@@ -36,7 +41,7 @@
     },
 
     show(id, on) { $(id).classList.toggle('hidden', !on); },
-    hideAllScreens() { for (const id of ['lobby', 'loadscreen', 'over', 'pause', 'card']) this.show(id, false); },
+    hideAllScreens() { for (const id of ['lobby', 'modepick', 'loadscreen', 'over', 'vsover', 'pause', 'card']) this.show(id, false); },
 
     // ---------- lobby ----------
     renderLobby(list) {
@@ -60,19 +65,25 @@
       for (const el of document.querySelectorAll('.borough')) el.onclick = () => this.h.onPick(el.dataset.id);
     },
     showLobby() {
-      this.hideAllScreens(); this.show('hud', false);
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false);
       if (this.lobbyList) this.renderLobby(this.lobbyList);
       this.show('lobby', true);
     },
+    showModePick(name) {
+      this.hideAllScreens();
+      $('mode-borough').textContent = name;
+      this.show('modepick', true);
+      setTimeout(() => $('btn-solo').focus(), 30);
+    },
     showLoading(name, p, msg) {
-      this.hideAllScreens(); this.show('hud', false); this.show('loadscreen', true);
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false); this.show('loadscreen', true);
       $('load-title').textContent = 'Loading ' + name;
       $('load-bar').style.width = Math.round((p || 0) * 100) + '%';
       $('load-msg').textContent = msg || '';
     },
 
     showHUD(meta) {
-      this.hideAllScreens(); this.show('hud', true); this.toastEl.innerHTML = '';
+      this.hideAllScreens(); this.show('vs-hud', false); this.show('hud', true); this.toastEl.innerHTML = '';
       $('borough-label').textContent = meta.name;
     },
     hideHUD() { this.show('hud', false); },
@@ -118,12 +129,14 @@
       $('passport').classList.add('bump'); setTimeout(() => $('passport').classList.remove('bump'), 500);
     },
 
-    toast({ title, body, hint, kind, secs }) {
+    // side: 0 or 1 puts the toast on that player's half of the split screen
+    toast({ title, body, hint, kind, secs, side }) {
+      const box = side === undefined ? this.toastEl : $('vs-toasts-' + side);
       const el = document.createElement('div');
       el.className = 'toast ' + (kind || '');
       el.innerHTML = `<div class="t-title">${esc(title)}</div>${body ? `<div class="t-body">${esc(body)}</div>` : ''}${hint ? `<div class="t-hint">Hint: ${esc(hint)}</div>` : ''}`;
-      this.toastEl.prepend(el);
-      while (this.toastEl.children.length > 3) this.toastEl.lastChild.remove();
+      box.prepend(el);
+      while (box.children.length > (side === undefined ? 3 : 2)) box.lastChild.remove();
       setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, (secs || 5) * 1000);
     },
 
@@ -155,6 +168,67 @@
       setTimeout(() => $('btn-card').focus(), 30);
     },
     hideCard() { this.show('card', false); },
+
+    // ---------- two-player split screen ----------
+    showVersusHUD(meta, players) {
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', true);
+      $('vs-borough').textContent = meta.name;
+      for (const p of players) {
+        const el = $('vs-side-' + p.i);
+        el.style.setProperty('--pc', p.color);
+        el.querySelector('.vs-name').textContent = p.name;
+        el.querySelector('.vs-keys').textContent = p.keys;
+        $('vs-toasts-' + p.i).innerHTML = '';
+        this.setVersusPlayer(p);
+      }
+      this._vsStreet = [];
+      this._vsCount = null;
+    },
+    setVersusPlayer(p) {
+      const el = $('vs-side-' + p.i);
+      el.querySelector('.vs-found').textContent = p.found;
+      el.classList.toggle('out', !p.alive);
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    },
+    setVersusTask(t, cat, icon, n) {
+      $('vs-num').textContent = 'target ' + n;
+      $('vs-task-name').textContent = t.name;
+      $('vs-task-cat').textContent = icon + ' ' + cat;
+      const card = $('vs-task');
+      card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+    },
+    setVersusHints(i, list) {
+      const el = $('vs-side-' + i).querySelector('.vs-hints');
+      el.innerHTML = list.length ? `<div class="hint"><b>${esc(list[0].from)}:</b> ${esc(list[0].text)}</div>`
+        : '<div class="hint muted">Reach a ★ landmark for a hint.</div>';
+    },
+    setVersusStreet(i, text) {
+      if (this._vsStreet[i] === text) return;
+      this._vsStreet[i] = text;
+      $('vs-side-' + i).querySelector('.vs-street').textContent = text ? '📍 ' + text : '';
+    },
+    setVersusCountdown(secs) {
+      const label = secs > 0 ? String(Math.ceil(secs)) : '';
+      if (this._vsCount === label) return;
+      this._vsCount = label;
+      $('vs-count').textContent = label;
+      this.show('vs-count', !!label);
+    },
+    showVersusOver({ boroughName, players, winner, reason, time }) {
+      this.show('vs-hud', false);
+      this.hideAllScreens();
+      $('vso-borough').textContent = boroughName;
+      $('vso-title').textContent = winner ? winner.name + ' wins!' : "It's a tie!";
+      $('vso-title').style.color = winner ? winner.color : '';
+      $('vso-reason').textContent = reason;
+      $('vso-grid').innerHTML = players.map((p) => `<div class="vso-p ${p === winner ? 'win' : ''}" style="--pc:${p.color}">
+        <div class="vs-who"><span class="vs-dot"></span><span>${esc(p.name)}</span></div>
+        <div class="big">${p.found}</div>
+        <div class="small muted">target${p.found === 1 ? '' : 's'} · ${p.alive ? 'still running' : 'out at ' + fmtTime(p.diedAt)}</div>
+      </div>`).join('');
+      this.show('vsover', true);
+      setTimeout(() => $('btn-rematch').focus(), 30);
+    },
 
     // ---------- minimap ----------
     resetMini() { this.miniData = null; },

@@ -44,6 +44,30 @@
   <div id="start-hint" class="hidden">Point your cursor where you want to go and click, or press an arrow key</div>
 </div>
 
+<div id="vs-hud" class="hidden">
+  <div id="vs-divider"></div>
+  <div id="vs-task" class="panel">
+    <div class="eyebrow">Race to <span id="vs-num">target 1</span> · <span id="vs-borough"></span></div>
+    <div id="vs-task-name">…</div>
+    <div id="vs-task-cat" class="muted small"></div>
+  </div>
+  <div class="vs-side panel" id="vs-side-0">
+    <div class="vs-who"><span class="vs-dot"></span><span class="vs-name"></span><span class="vs-keys"></span></div>
+    <div class="vs-score"><b class="vs-found">0</b> found</div>
+    <div class="vs-street small muted"></div>
+    <div class="vs-hints"></div>
+  </div>
+  <div class="vs-side panel" id="vs-side-1">
+    <div class="vs-who"><span class="vs-dot"></span><span class="vs-name"></span><span class="vs-keys"></span></div>
+    <div class="vs-score"><b class="vs-found">0</b> found</div>
+    <div class="vs-street small muted"></div>
+    <div class="vs-hints"></div>
+  </div>
+  <div id="vs-toasts-0" class="vs-toasts"></div>
+  <div id="vs-toasts-1" class="vs-toasts"></div>
+  <div id="vs-count" class="hidden"></div>
+</div>
+
 <div id="lobby" class="screen">
   <div class="lobby">
     <header class="lobby-head">
@@ -59,10 +83,32 @@
           <li><b>Find the place</b> named in your task. It glows gold under a beam of light once it's in view.</li>
           <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint. Each one goes in your Passport so you can look at it again.</li>
           <li><b>Don't get chomped.</b> A new chomper joins after every task, up to three, and each has its own way of hunting.</li>
+          <li><b>2 players:</b> split screen on one keyboard. Player 1 uses WASD, Player 2 the arrow keys. You race to the same places while one chomper hunts whoever is closer. Get caught and you're out. Most targets wins.</li>
         </ol>
         <p class="muted small">P to pause, M to mute. In Manhattan, up is uptown.</p>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="modepick" class="screen hidden">
+  <div class="card narrow">
+    <div id="mode-borough" class="eyebrow"></div>
+    <h2>How many players?</h2>
+    <button id="btn-solo" class="mode"><b>1 player</b><span>Arrow keys or WASD, or steer with your cursor.</span></button>
+    <button id="btn-duo" class="mode"><b>2 players</b><span>Split screen, one keyboard. Race each other to the same places: WASD vs. arrow keys.</span></button>
+    <button id="btn-mode-back" class="linkish">Back to the maps</button>
+  </div>
+</div>
+
+<div id="vsover" class="screen hidden">
+  <div class="card narrow vs-over">
+    <div id="vso-borough" class="eyebrow"></div>
+    <h2 id="vso-title"></h2>
+    <p id="vso-reason" class="muted small"></p>
+    <div id="vso-grid" class="vso-grid"></div>
+    <button id="btn-rematch" class="primary">Rematch</button>
+    <button id="btn-vs-lobby">Pick another map</button>
   </div>
 </div>
 

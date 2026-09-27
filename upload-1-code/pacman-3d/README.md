@@ -8,6 +8,8 @@ You're the ghost. Hungry chompers hunt you through real New York streets while y
 - Visit the ★ landmarks to earn points and a hint with the target's walking distance and direction. The game pauses on a card with a photo, a fun fact, and a Street View link. Every place you reach goes into your Passport on the right, where you can click to see it again. Landmark stamps are kept per borough between runs.
 - A new chomper joins after each task, up to three: Chomps chases you, Sneaky cuts you off on the way to your target, and Snooze wanders until you get close. They all respawn far away when you finish a task.
 
+- After you pick a map, choose 1 or 2 players. **2 players** is split screen on one keyboard: Player 1 steers with WASD (left half), Player 2 with the arrow keys (right half). After a 3-second countdown, both ghosts start from the same spot and race to the same target. Whoever reaches it first scores, and both get the next target, picked to be about equally far from each of them. One chomper chases whoever is closer. ★ landmarks give that player a hint without pausing the game. Getting caught puts you out. The match ends as soon as the winner is certain: most targets wins, and a tie goes to whoever survived longer.
+
 In Manhattan the map is rotated about 29° to the street grid, so up is uptown and right is east. The other boroughs are north-up.
 
 ## Run it
@@ -30,7 +32,7 @@ src/characters3d.js toon ghost and chompers, location bubble, trail, hint arrow
 src/sprites.js      2D overlay arrow for an off-screen chomper
 src/audio.js        WebAudio sound effects (no asset files)
 src/ui.js           lobby, HUD, Passport, toasts, minimap with fog of war, game over, local high scores
-src/game.js         borough loading, game loop, input, chomper personalities, tasks, hints, scoring (tuning in CFG)
+src/game.js         borough loading, game loop, input, chomper personalities, tasks, hints, scoring (tuning in CFG), two-player race
 src/style.css       styles
 data/boroughs.json  lobby cards (name, area, difficulty, preview)
 data/<borough>/     map.json, graph.json, places.json for each borough

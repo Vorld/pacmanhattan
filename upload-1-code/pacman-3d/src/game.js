@@ -44,7 +44,7 @@
   function resize() {
     W = Math.floor(innerWidth * DPR); H = Math.floor(innerHeight * DPR);
     renderer.setSize(innerWidth, innerHeight, false);
-    if (B) { B.world.camera.aspect = innerWidth / innerHeight; B.world.camera.updateProjectionMatrix(); B.world.w = W; B.world.h = H; }
+    if (B) { B.world.camera.aspect = innerWidth / innerHeight; B.world.camera.updateProjectionMatrix(); B.world.w = W; B.world.h = H; sizeVersusCams(); }
     fx.width = W; fx.height = H;
     fx.style.width = innerWidth + 'px'; fx.style.height = innerHeight + 'px';
   }
@@ -105,45 +105,71 @@
     state.mode = 'building';
   }
 
+  // a ghost parked on the street node nearest a place
+  function newGhost(place) {
+    const g = { e: place.pos.e, s: place.pos.s, dir: 1, moving: false, started: false, anim: 0, inp: newInput() };
+    if (g.s < g.e.len / 2) { g.node = g.e.a; g.s = 0; } else { g.node = g.e.b; g.s = g.e.len; }
+    return g;
+  }
+
   function startPlace() {
     return B.LANDMARKS.find((l) => l.name === B.meta.start) || B.LANDMARKS[0];
   }
 
   // ---------- input ----------
-  const held = new Set();
-  let queued = null, queuedAt = 0;
+  // each ghost has its own input: keys held, and the last key pressed (a turn queued for the next corner)
+  const newInput = () => ({ held: new Set(), queued: null, queuedAt: 0 });
+  const clearInput = (g) => { if (g) { g.inp.held.clear(); g.inp.queued = null; } };
   let mouse = null, mouseActive = false;
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+  const P1KEYS = { KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right' };
+  const P2KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  // which ghost a key steers, and which way: [ghost, dir], or null
+  function keyTarget(code) {
+    if (state.versus) {
+      if (!state.players) return null;
+      if (P1KEYS[code]) return [state.players[0].g, P1KEYS[code]];
+      if (P2KEYS[code]) return [state.players[1].g, P2KEYS[code]];
+      return null;
+    }
+    return KEYMAP[code] && state.ghost ? [state.ghost, KEYMAP[code]] : null;
+  }
   addEventListener('keydown', (ev) => {
     if (state.mode === 'card') {
       if (ev.code === 'Enter' || ev.code === 'Space' || ev.code === 'Escape') { ev.preventDefault(); closeCard(); }
       return;
     }
-    const d = KEYMAP[ev.code];
-    if (d) {
+    const hit = keyTarget(ev.code);
+    if (hit) {
       if (state.mode !== 'play') return;
       ev.preventDefault();
-      held.add(d); queued = d; queuedAt = now; mouseActive = false;
+      const [g, d] = hit;
+      g.inp.held.add(d); g.inp.queued = d; g.inp.queuedAt = now; mouseActive = false;
       audio.unlock();
-      if (!state.ghost.started) state.ghost.started = true;
+      if (!state.versus && !g.started) g.started = true;
       return;
     }
     if ((ev.code === 'KeyP' || ev.code === 'Escape') && (state.mode === 'play' || state.mode === 'pause')) togglePause();
     if (ev.code === 'KeyM') ui.setMuted(audio.toggleMute());
   });
-  addEventListener('keyup', (ev) => { const d = KEYMAP[ev.code]; if (d) held.delete(d); });
-  addEventListener('blur', () => { held.clear(); if (state.mode === 'play') togglePause(); });
+  addEventListener('keyup', (ev) => { const hit = keyTarget(ev.code); if (hit) hit[0].inp.held.delete(hit[1]); });
+  addEventListener('blur', () => {
+    clearInput(state.ghost);
+    if (state.players) state.players.forEach((p) => clearInput(p.g));
+    if (state.mode === 'play') togglePause();
+  });
   const onPointer = (ev) => {
     mouse = [ev.clientX, ev.clientY];
-    if (state.mode === 'play') mouseActive = true;
+    if (state.mode === 'play' && !state.versus) mouseActive = true;
   };
   canvas.addEventListener('pointermove', onPointer);
-  canvas.addEventListener('pointerdown', (ev) => { onPointer(ev); if (state.mode === 'play' && !state.ghost.started) { state.ghost.started = true; audio.unlock(); } });
+  canvas.addEventListener('pointerdown', (ev) => { onPointer(ev); if (state.mode === 'play' && !state.versus && !state.ghost.started) { state.ghost.started = true; audio.unlock(); } });
 
-  function wanted() {
+  function wanted(g) {
+    const { held, queued, queuedAt } = g.inp;
     for (const d of ['up', 'down', 'left', 'right']) if (held.has(d)) return { v: DIRS[d], key: d };
     if (queued && now - queuedAt < 1.6) return { v: DIRS[queued], key: queued };
-    if (mouseActive && mouse && state.ghost) {
+    if (mouseActive && mouse && g === state.ghost && !state.versus) {
       const p = B.world.groundAt(mouse[0], mouse[1]);
       if (p) {
         const g = posXY(state.ghost);
@@ -161,12 +187,13 @@
 
   function moveGhost(g, dist) {
     const graph = B.graph;
-    const want = wanted();
+    const inp = g.inp;
+    const want = wanted(g);
     const wv = want && want.v;
     const turnDot = want && want.cursor ? 0.25 : 0.62;
     if (wv && g.moving) {
       const h = graph.headingAt(g.e, g.s, g.dir);
-      if (dot(h, wv) < (want.cursor ? -0.35 : -0.6)) { g.dir = -g.dir; if (!want.cursor) queued = null; }
+      if (dot(h, wv) < (want.cursor ? -0.35 : -0.6)) { g.dir = -g.dir; if (!want.cursor) inp.queued = null; }
     }
     let guard = 0;
     while (dist > 1e-6 && guard++ < 20) {
@@ -175,7 +202,7 @@
         const pick = chooseEdge(g.node, null, wv, turnDot);
         if (!pick) return;
         enterEdge(g, pick, g.node);
-        g.moving = true; if (!want.cursor) queued = null;
+        g.moving = true; if (!want.cursor) inp.queued = null;
         continue;
       }
       const remain = g.dir > 0 ? g.e.len - g.s : g.s;
@@ -185,7 +212,7 @@
       g.s = g.dir > 0 ? g.e.len : 0;
       const heading = graph.headingAt(g.e, g.s, g.dir);
       let pick = wv ? chooseEdge(node, g.e, wv, turnDot) : null;
-      if (pick && want.key && want.key === queued && !held.has(want.key)) queued = null;
+      if (pick && want.key && want.key === inp.queued && !inp.held.has(want.key)) inp.queued = null;
       if (!pick) pick = chooseEdge(node, g.e, heading, 0.5);
       if (!pick) { g.moving = false; g.node = node; return; }
       enterEdge(g, pick, node);
@@ -278,7 +305,7 @@
   function startRun() {
     const start = startPlace();
     Object.assign(state, {
-      mode: 'play', time: 0, score: 0, tasksDone: 0, taskTime: 0,
+      mode: 'play', versus: false, players: null, time: 0, score: 0, tasksDone: 0, taskTime: 0,
       visited: new Set([start.name]), used: new Set(), recentCats: [], route: null, route_pts: [], routeTimer: 0,
       hint: null, fog: new Set(), cursorWorld: null, chompers: [], passport: [], routeAt: -9, afterCard: null,
     });
@@ -286,9 +313,9 @@
     B.world.resetMarkers();
     B.world.setVisited(start.name);
     B.trail.reset();
-    const g = (state.ghost = { e: start.pos.e, s: start.pos.s, dir: 1, moving: false, started: false, anim: 0 });
-    if (g.s < g.e.len / 2) { g.node = g.e.a; g.s = 0; } else { g.node = g.e.b; g.s = g.e.len; }
-    queued = null; mouseActive = false; camPos = null;
+    const g = (state.ghost = newGhost(start));
+    mouseActive = false; camPos = null;
+    showSoloModels(true);
     newTask(true);
     addChomper();
     ui.showHUD(B.meta);
@@ -318,10 +345,14 @@
     ui.setHints([]);
   }
 
-  // pick far-away spawn points: not near the ghost, the target, or each other
-  function spawnPoints(count) {
+  // pick far-away spawn points: not near the ghost(s), the target, or each other
+  function spawnPoints(count, from = [state.ghost]) {
     const graph = B.graph;
-    const dist = graph.distancesFrom(state.ghost, CFG.spawnMax * 1.6);
+    let dist = graph.distancesFrom(from[0], CFG.spawnMax * 1.6);
+    for (const f of from.slice(1)) {
+      const d2 = graph.distancesFrom(f, CFG.spawnMax * 1.6);
+      dist = dist.map((v, i) => Math.min(v, d2[i]));
+    }
     const t = state.task;
     const picks = [];
     for (let relax = 0; relax < 4 && picks.length < count; relax++) {
@@ -349,16 +380,16 @@
     Object.assign(c, { e, s: e.a === n ? 0 : e.len, dir: 1, path: [], repath: 0, spawnFx: CFG.spawnGrace, mode: 'roam', roam: null, roamT: 0 });
   }
 
-  function addChomper() {
+  function addChomper(from) {
     const k = KINDS[state.chompers.length];
     const c = { ...k, mouth: 0 };
-    placeChomper(c, spawnPoints(1)[0]);
+    placeChomper(c, spawnPoints(1, from)[0]);
     state.chompers.push(c);
     return c;
   }
 
-  function respawnAll() {
-    const pts = spawnPoints(state.chompers.length);
+  function respawnAll(from) {
+    const pts = spawnPoints(state.chompers.length, from);
     state.chompers.forEach((c, i) => placeChomper(c, pts[i]));
   }
 
@@ -377,7 +408,7 @@
 
   function openCard(info) {
     state.mode = 'card';
-    held.clear(); queued = null;
+    clearInput(state.ghost);
     audio.pause(true);
     ui.showCard(info);
   }
@@ -431,6 +462,307 @@
       time: state.time, target: state.task, route: state.route_pts || [],
       map: B.map, graph: B.graph, landmarks: B.LANDMARKS, visited: state.visited,
     });
+  }
+
+  // ---------- two-player race (split screen) ----------
+  // Both ghosts start at the same place and race to the same target. One chomper chases whoever is closer.
+  // Caught means out. Most targets wins; a tie goes to whoever survived longer.
+  const VS = [
+    { name: 'Player 1', keys: 'W A S D', color: '#8f74ff' },
+    { name: 'Player 2', keys: 'Arrow keys', color: '#12b3c4' },
+  ];
+  const VS_COUNTDOWN = 3;
+
+  // the single-player models and the two-player models share one scene; show one set at a time
+  function showSoloModels(on) {
+    B.ghost3d.group.visible = on;
+    B.bubble.setVisible(on);
+    B.trail.mesh.visible = on;
+    if (!on) B.arrow.update(0, 0, 0, 0, now);
+    if (B.vs) for (const o of B.vs) { o.ghost3d.group.visible = !on; o.bubble.setVisible(!on); o.trail.mesh.visible = !on; if (on) o.arrow.update(0, 0, 0, 0, now); }
+  }
+
+  function startVersus() {
+    const start = startPlace();
+    Object.assign(state, {
+      mode: 'play', versus: true, ghost: null, time: 0, score: 0, tasksDone: 0, taskTime: 0,
+      used: new Set(), recentCats: [], chompers: [], countdown: VS_COUNTDOWN, result: null, danger: Infinity,
+    });
+    B.world.resetMarkers();
+    B.world.setVisited(start.name);
+    if (!B.vs) {
+      const sc = B.world.scene;
+      B.vs = VS.map((v) => ({
+        ghost3d: new PM.Ghost3D(sc, v.color), bubble: new PM.Bubble3D(sc, v.color),
+        trail: new PM.Trail3D(sc, v.color, CFG.trailSecs), arrow: new PM.HintArrow3D(sc), cam: B.world.camera.clone(),
+      }));
+      sizeVersusCams();
+    }
+    showSoloModels(false);
+    state.players = VS.map((v, i) => {
+      const o = B.vs[i];
+      o.trail.reset();
+      o.ghost3d.group.visible = true; o.bubble.setVisible(true);
+      return { ...v, i, o, g: newGhost(start), found: 0, alive: true, diedAt: 0, visited: new Set([start.name]),
+        hint: null, hintLog: [], camPos: null, danger: Infinity };
+    });
+    newVersusTask(true);
+    addChomper(alivePos());
+    ui.showVersusHUD(B.meta, state.players);
+    ui.setHere('');
+    ui.showStartHint(false);
+    audio.start();
+  }
+
+  function sizeVersusCams() {
+    if (!B || !B.vs) return;
+    for (const o of B.vs) { o.cam.aspect = innerWidth / 2 / innerHeight; o.cam.updateProjectionMatrix(); }
+  }
+
+  const alive = () => state.players.filter((p) => p.alive);
+  const alivePos = () => alive().map((p) => p.g);
+
+  // the next target: in range for every player still running, and about as far from each of them
+  function newVersusTask(first) {
+    const ps = alive().map((p) => posXY(p.g));
+    const m = B.meta;
+    const dists = (t) => ps.map((p) => Math.hypot(t.sx - p[0], t.sy - p[1]));
+    const within = (t, lo, hi) => dists(t).every((d) => d >= lo && d <= hi);
+    const pool = B.TARGETS.filter((t) => !state.used.has(t.name) && !state.recentCats.includes(t.cat));
+    let cands = pool.filter((t) => within(t, m.task_min, first ? m.first_max : m.task_max));
+    if (!cands.length) cands = pool.filter((t) => within(t, m.task_min * 0.6, Infinity));
+    if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && within(t, 300, Infinity));
+    if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => within(t, 300, Infinity)); }
+    if (!cands.length) cands = B.TARGETS.slice();
+    const spread = (t) => { const d = dists(t); return Math.max(...d) - Math.min(...d); };
+    cands.sort((a, b) => spread(a) - spread(b));
+    const t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
+    state.task = t;
+    state.used.add(t.name);
+    state.recentCats.push(t.cat);
+    if (state.recentCats.length > 2) state.recentCats.shift();
+    state.taskTime = 0;
+    for (const p of state.players) { p.hint = null; p.hintLog = []; ui.setVersusHints(p.i, []); }
+    B.world.setTarget(t);
+    ui.setVersusTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1);
+  }
+
+  function versusHint(p, landmark) {
+    const t = state.task;
+    const path = B.graph.path(p.g, t.pos);
+    const miles = (path ? path.dist : Math.hypot(t.sx - landmark.sx, t.sy - landmark.sy)) / 1609.34;
+    const txt = `${t.name} is ${miles < 0.1 ? 'under 0.1' : miles.toFixed(1)} mi away, ${describeDir(t.sx - landmark.sx, t.sy - landmark.sy)}.`;
+    p.hint = { until: state.time + CFG.hintArrowSecs };
+    p.hintLog.unshift({ from: landmark.name, text: txt });
+    ui.setVersusHints(p.i, p.hintLog);
+  }
+
+  // end the match as soon as the winner is certain
+  function versusCheckEnd() {
+    const [a, b] = state.players;
+    const run = alive();
+    if (run.length === 2) return false;
+    let winner = null, reason;
+    if (run.length === 1) {
+      const s = run[0], d = s === a ? b : a;
+      if (s.found < d.found) return false; // the survivor can still catch up
+      winner = s;
+      reason = s.found > d.found ? `${d.name} got chomped while behind.` : `${d.name} got chomped. Same number of targets, but ${s.name} survived longer.`;
+    } else {
+      if (a.found !== b.found) { winner = a.found > b.found ? a : b; reason = 'Both got chomped. Most targets wins.'; }
+      else if (a.diedAt !== b.diedAt) { winner = a.diedAt > b.diedAt ? a : b; reason = `Same number of targets, but ${winner.name} survived longer.`; }
+      else reason = 'Both got chomped at the same moment with the same number of targets.';
+    }
+    state.mode = 'over';
+    state.result = { winner, reason };
+    audio.stop();
+    if (winner) audio.fanfare();
+    ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
+    return true;
+  }
+
+  function updateVersus(dt) {
+    state.time += dt;
+    if (state.countdown > 0) {
+      state.countdown -= dt;
+      if (state.countdown <= 0) {
+        for (const p of state.players) p.g.started = true;
+        audio.ding();
+      }
+      return;
+    }
+    state.taskTime += dt;
+    const c = state.chompers[0];
+    const pos = [];
+    for (const p of state.players) {
+      const g = p.g;
+      if (!p.alive) { pos.push(posXY(g)); continue; }
+      g.anim += dt;
+      moveGhost(g, CFG.ghostSpeed * dt);
+      const gp = posXY(g);
+      pos.push(gp);
+      p.o.trail.add(gp[0], gp[1], state.time);
+    }
+
+    // the chomper goes after whichever running player is closer
+    c.spawnFx = Math.max(0, c.spawnFx - dt);
+    let cp = posXY(c);
+    let prey = null, pd = Infinity;
+    for (const p of alive()) { const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]); if (d < pd) { pd = d; prey = p; } }
+    c.repath -= dt;
+    if (c.repath <= 0 || c.prey !== prey) {
+      const path = B.graph.path(c, prey.g);
+      c.path = path ? path.nodes : [];
+      c.goal = prey.g; c.prey = prey; c.mode = 'chase'; c.repath = 0.3;
+    }
+    if (c.spawnFx <= 0) moveChomper(c, CFG.ghostSpeed * chomperFactor(c) * dt, c.goal);
+    c.mouth += dt * 10;
+    cp = posXY(c);
+    c.dist = Infinity;
+    let caught = false;
+    for (const p of alive()) {
+      const d = Math.hypot(pos[p.i][0] - cp[0], pos[p.i][1] - cp[1]);
+      p.danger = d;
+      c.dist = Math.min(c.dist, d);
+      if (d < CFG.catchDist && c.spawnFx <= 0) {
+        p.alive = false; p.diedAt = state.time; p.danger = Infinity; caught = true;
+        clearInput(p.g);
+        audio.chomp();
+        ui.setVersusPlayer(p);
+      }
+    }
+    if (caught) {
+      if (versusCheckEnd()) return;
+      const s = alive()[0], n = state.players[1 - s.i].found - s.found;
+      ui.toast({ title: `${state.players[1 - s.i].name} got chomped!`, body: `Find ${n} more target${n === 1 ? '' : 's'} to win. Don't get caught first.`, kind: 'warn', secs: 6, side: s.i });
+      respawnAll(alivePos());
+    }
+    audio.proximity(Math.min(...alive().map((p) => p.danger)));
+
+    for (const p of alive()) {
+      const gp = pos[p.i];
+      for (const l of B.LANDMARKS) {
+        if (p.visited.has(l.name) || Math.hypot(l.sx - gp[0], l.sy - gp[1]) >= CFG.arriveDist) continue;
+        p.visited.add(l.name);
+        versusHint(p, l);
+        audio.ding();
+        ui.toast({ title: '★ ' + l.name, body: 'Hint: ' + p.hintLog[0].text, kind: 'info', secs: 6, side: p.i });
+      }
+    }
+
+    const t = state.task;
+    for (const p of alive()) {
+      const gp = pos[p.i];
+      if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) >= CFG.arriveDist) continue;
+      p.found++;
+      state.tasksDone++;
+      ui.setVersusPlayer(p);
+      if (versusCheckEnd()) return;
+      audio.fanfare();
+      const other = state.players[1 - p.i];
+      newVersusTask(false);
+      respawnAll(alivePos());
+      ui.toast({ title: `You got ${t.name}!`, body: `Next: ${state.task.name}. The chomper lost your trail, for now.`, kind: 'found', secs: 5, side: p.i });
+      if (other.alive) ui.toast({ title: `${p.name} got ${t.name} first`, body: `Next: ${state.task.name}. Race you there!`, kind: 'warn', secs: 5, side: other.i });
+      return;
+    }
+  }
+
+  // project a ground point through a player's camera, in CSS px within that player's half
+  function toView(cam, x, y, h, vw, vh) {
+    const v = new THREE.Vector3(x, h, y).project(cam);
+    return [(v.x * 0.5 + 0.5) * vw, (-v.y * 0.5 + 0.5) * vh, v.z];
+  }
+
+  function drawVersus(dt) {
+    const world = B.world;
+    const halfW = innerWidth / 2, vh = innerHeight;
+    const ps = state.players;
+    const pos = ps.map((p) => posXY(p.g));
+    const k = 1 - Math.pow(0.0005, dt);
+    for (const p of ps) {
+      const gp = pos[p.i];
+      if (!p.camPos || Math.hypot(gp[0] - p.camPos[0], gp[1] - p.camPos[1]) > 600) p.camPos = gp.slice();
+      p.camPos[0] += (gp[0] - p.camPos[0]) * k; p.camPos[1] += (gp[1] - p.camPos[1]) * k;
+    }
+    // stream the city around both players; each call keeps the other player's tiles
+    for (const p of ps) {
+      const o = ps[1 - p.i].camPos;
+      world.updateGround(p.camPos[0], p.camPos[1], 1, [o]);
+      world.updateBuildings(p.camPos[0], p.camPos[1], 3);
+    }
+
+    const playing = state.mode === 'play' && state.countdown <= 0;
+    for (const p of ps) {
+      const g = p.g, gp = pos[p.i], o = p.o;
+      o.ghost3d.group.visible = p.alive;
+      o.bubble.setVisible(p.alive);
+      if (p.alive) {
+        const gh = g.moving ? B.graph.headingAt(g.e, g.s, g.dir) : null;
+        o.ghost3d.update(gp[0], gp[1], gh, g.anim + now, p.danger < 220 && playing, g.moving && g.started);
+        o.bubble.update(gp[0], gp[1], now, p.danger);
+      }
+      o.trail.update(state.time, p.alive ? gp[0] : undefined, gp[1]);
+    }
+    B.chompers3d.forEach((m, i) => {
+      const c = state.chompers[i];
+      m.setVisible(!!c);
+      if (!c) return;
+      const cp = posXY(c);
+      m.update(cp[0], cp[1], B.graph.headingAt(c.e, c.s, c.dir), Math.abs(Math.sin(c.mouth)), now + i, c.spawnFx, c.dist < 400);
+    });
+
+    const t = state.task;
+    fctx.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      const gp = pos[p.i];
+      // each half shows only its own hint arrow and its own unvisited landmarks
+      for (const q of ps) {
+        if (q === p && q.alive && q.hint && state.time < q.hint.until) {
+          q.o.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (q.hint.until - state.time) / 2), now);
+        } else q.o.arrow.update(0, 0, 0, 0, now);
+      }
+      for (const [name, m] of world.markers) {
+        const seen = p.visited.has(name);
+        m.g.visible = !seen;
+        m.sprite.visible = !seen && Math.hypot(m.g.position.x - gp[0], m.g.position.z - gp[1]) < 1100;
+      }
+      world.render(p.camPos, now, p.alive ? gp : null, { camera: p.o.cam, x: p.i * halfW, y: 0, w: halfW, h: vh });
+
+      // 2D overlay for this half: chomper pointer, danger glow, "chomped" veil
+      fctx.save();
+      fctx.translate(p.i * halfW * DPR, 0);
+      fctx.beginPath(); fctx.rect(0, 0, halfW * DPR, H); fctx.clip();
+      const hw = halfW * DPR;
+      for (const c of state.chompers) {
+        const cp = posXY(c);
+        const [csx, csy, cz] = toView(p.o.cam, cp[0], cp[1], 14, halfW, vh);
+        const off = cz > 1 || csx < 0 || csy < 0 || csx > halfW || csy > vh;
+        const d = Math.hypot(cp[0] - gp[0], cp[1] - gp[1]);
+        if (off && p.alive) PM.Sprites.edgeArrow(fctx, hw, H, cz > 1 ? hw - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, d, c.color);
+      }
+      if (p.alive && p.danger < 320 && playing) {
+        const a = (1 - p.danger / 320) * 0.45;
+        const grd = fctx.createRadialGradient(hw / 2, H / 2, Math.min(hw, H) * 0.3, hw / 2, H / 2, Math.max(hw, H) * 0.7);
+        grd.addColorStop(0, 'rgba(255,60,90,0)'); grd.addColorStop(1, `rgba(255,60,90,${a})`);
+        fctx.fillStyle = grd; fctx.fillRect(0, 0, hw, H);
+      }
+      if (!p.alive) {
+        fctx.fillStyle = 'rgba(36,31,61,0.55)'; fctx.fillRect(0, 0, hw, H);
+        fctx.fillStyle = '#fff'; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+        fctx.font = `${40 * DPR}px Bungee, "DM Sans", sans-serif`;
+        fctx.fillText('CHOMPED', hw / 2, H / 2);
+        fctx.font = `700 ${16 * DPR}px "DM Sans", sans-serif`;
+        fctx.fillText(`${p.found} target${p.found === 1 ? '' : 's'} · out at ${Math.floor(p.diedAt / 60)}:${String(Math.floor(p.diedAt % 60)).padStart(2, '0')}`, hw / 2, H / 2 + 40 * DPR);
+      }
+      fctx.restore();
+      ui.setVersusStreet(p.i, p.alive ? streetText(p.g) : '');
+    }
+    ui.setVersusCountdown(state.mode === 'play' || state.mode === 'pause' ? state.countdown : 0);
+    if (state.mode === 'play' && !world.lowQ) {
+      perf.t += dt; perf.n++;
+      if (perf.t > 4) { if (perf.n / perf.t < 28) world.lowerQuality(); perf.t = 0; perf.n = 0; }
+    }
   }
 
   // ---------- update ----------
@@ -535,6 +867,8 @@
   let camPos = null;
   const perf = { t: 0, n: 0 };
   function draw(dt) {
+    renderer.setViewport(0, 0, innerWidth, innerHeight);
+    if (state.versus && B && state.players && ['play', 'pause', 'over'].includes(state.mode)) return drawVersus(dt);
     fctx.clearRect(0, 0, W, H);
     if (!B || state.mode === 'lobby' || state.mode === 'loading') {
       renderer.setClearColor('#cfe8f7'); renderer.clear();
@@ -549,7 +883,7 @@
       ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))), 'Building the city in 3D…');
       if (B.nearTotal === undefined) B.nearTotal = near;
       world.render(B.loadFocus, now, null);
-      if (near === 0) { B.nearTotal = undefined; startRun(); }
+      if (near === 0) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
       return;
     }
     const g = state.ghost;
@@ -628,15 +962,22 @@
     const dt = Math.min(0.05, (t - last) / 1000);
     last = t;
     now += dt;
-    if (state.mode === 'play') update(dt);
+    if (state.mode === 'play') (state.versus ? updateVersus : update)(dt);
     try { draw(dt); } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
 
   let lobby = [];
+  let picked = null;
+  // a map card was clicked: ask for one or two players next
   function pick(id) {
+    picked = id;
+    ui.showModePick(lobby.find((b) => b.id === id).name);
+  }
+  function chooseMode(versus) {
     audio.unlock();
-    loadBorough(id).catch((e) => {
+    state.versus = versus;
+    loadBorough(picked).catch((e) => {
       console.error(e);
       ui.showLoading('failed', 0, 'The map could not load: ' + e.message + '. Serve the folder over http (see README).');
     });
@@ -644,7 +985,8 @@
 
   ui.init({
     onPick: pick,
-    onAgain: () => { camPos = null; startRun(); },
+    onMode: chooseMode,
+    onAgain: () => { camPos = null; state.versus ? startVersus() : startRun(); },
     onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); },
     onResume: togglePause,
     onToggleMute: () => ui.setMuted(audio.toggleMute()),
@@ -660,7 +1002,10 @@
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 
-  window.PM.debug = { state, CFG, get B() { return B; }, pick, startRun, closeCard,
-    press: (d) => { queued = d; queuedAt = now; if (state.ghost) state.ghost.started = true; },
-    hold: (d, on) => (on ? held.add(d) : held.delete(d)) };
+  window.PM.debug = { state, CFG, get B() { return B; }, pick, chooseMode, startRun, startVersus, closeCard,
+    press: (d) => { const g = state.ghost; g.inp.queued = d; g.inp.queuedAt = now; g.started = true; },
+    hold: (d, on) => (on ? state.ghost.inp.held.add(d) : state.ghost.inp.held.delete(d)),
+    // two-player: i is 0 (WASD) or 1 (arrows)
+    vsPress: (i, d) => { const g = state.players[i].g; g.inp.queued = d; g.inp.queuedAt = now; },
+    vsHold: (i, d, on) => { const h = state.players[i].g.inp.held; on ? h.add(d) : h.delete(d); } };
 })();

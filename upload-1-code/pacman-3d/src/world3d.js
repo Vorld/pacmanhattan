@@ -106,7 +106,8 @@
       return m;
     }
 
-    updateGround(fx, fz, budget = 2) {
+    // keep: other focus points whose nearby tiles must stay loaded (split-screen)
+    updateGround(fx, fz, budget = 2, keep = null) {
       // coarse tiles, nearest first
       if (this.baseQueue.length) {
         this.baseQueue.sort((a, b) => Math.hypot((b[0] + 0.5) * this.baseM - fx, (b[1] + 0.5) * this.baseM - fz) - Math.hypot((a[0] + 0.5) * this.baseM - fx, (a[1] + 0.5) * this.baseM - fz));
@@ -132,7 +133,8 @@
       for (const [k, m] of this.fine) {
         if (!want.has(k)) {
           const [tx, ty] = k.split(',').map(Number);
-          if (Math.hypot((tx + 0.5) * M - fx, (ty + 0.5) * M - fz) > R + 600) {
+          const far = (px, pz) => Math.hypot((tx + 0.5) * M - px, (ty + 0.5) * M - pz) > R + 600;
+          if (far(fx, fz) && (!keep || keep.every(([px, pz]) => far(px, pz)))) {
             this.scene.remove(m); m.geometry.dispose(); m.material.map.dispose(); m.material.dispose();
             this.fine.delete(k);
           }
@@ -282,8 +284,9 @@
       this.lowQ = true;
       this.renderer.shadowMap.enabled = false;
       this.sun.castShadow = false;
+      const size = this.renderer.getSize(new T.Vector2());
       this.renderer.setPixelRatio(1);
-      this.renderer.setSize(this.w / this.dpr, this.h / this.dpr, false);
+      this.renderer.setSize(size.x, size.y, false);
       this.scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
     }
 
@@ -423,8 +426,9 @@
     }
 
     // ---------------- frame ----------------
-    render(focus, t, player) {
-      const cam = this.camera;
+    // view (optional, split-screen): { camera, x, y, w, h } with the rectangle in CSS px
+    render(focus, t, player, view) {
+      const cam = view ? view.camera : this.camera;
       const [fx, fz] = focus;
       // look slightly ahead (uptown) of the player; camera sits south and above
       cam.position.set(fx, 430, fz + 330);
@@ -435,9 +439,14 @@
       // x-ray hole around the player
       if (player) {
         const v = new T.Vector3(player[0], 10, player[1]).project(cam);
-        const px = (v.x * 0.5 + 0.5) * this.w, py = (v.y * 0.5 + 0.5) * this.h;
+        let px, py, hr;
+        if (view) {
+          const pr = this.renderer.getPixelRatio();
+          px = (view.x + (v.x * 0.5 + 0.5) * view.w) * pr; py = (view.y + (v.y * 0.5 + 0.5) * view.h) * pr;
+          hr = Math.min(view.w, view.h) * pr * 0.2;
+        } else { px = (v.x * 0.5 + 0.5) * this.w; py = (v.y * 0.5 + 0.5) * this.h; hr = Math.min(this.w, this.h) * 0.2; }
         const depth = cam.position.distanceTo(new T.Vector3(player[0], 10, player[1]));
-        this.uniforms.uHole.value.set(px, py, Math.min(this.w, this.h) * 0.2);
+        this.uniforms.uHole.value.set(px, py, hr);
         this.uniforms.uHoleDepth.value = depth;
       } else this.uniforms.uHole.value.set(-9999, -9999, 0);
       if (this.targetRing) {
@@ -447,7 +456,13 @@
         if (this.targetMat.emissiveIntensity !== undefined) this.targetMat.emissiveIntensity = 0.35 + p * 0.5;
       }
       for (const m of this.markers.values()) m.star.rotation.y = t * 1.6;
+      if (view) {
+        this.renderer.setViewport(view.x, view.y, view.w, view.h);
+        this.renderer.setScissor(view.x, view.y, view.w, view.h);
+        this.renderer.setScissorTest(true);
+      }
       this.renderer.render(this.scene, cam);
+      if (view) this.renderer.setScissorTest(false);
     }
 
     // screen position (CSS px) of a ground point

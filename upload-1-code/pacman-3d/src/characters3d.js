@@ -202,17 +202,18 @@
 
   // Always-visible "you are here" bubble around the ghost
   class Bubble3D {
-    constructor(scene) {
-      const mk = (r0, r1, op) => new T.Mesh(new T.RingGeometry(r0, r1, 56), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: op, depthTest: false, depthWrite: false, side: T.DoubleSide }));
+    constructor(scene, color = '#8f74ff') {
+      this.base = color;
+      const mk = (r0, r1, op) => new T.Mesh(new T.RingGeometry(r0, r1, 56), new T.MeshBasicMaterial({ color, transparent: true, opacity: op, depthTest: false, depthWrite: false, side: T.DoubleSide }));
       this.ring = mk(22, 27, 0.95);
       this.pulse = mk(27, 30, 0.6);
-      this.disc = new T.Mesh(new T.CircleGeometry(22, 48), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: 0.18, depthTest: false, depthWrite: false }));
+      this.disc = new T.Mesh(new T.CircleGeometry(22, 48), new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.18, depthTest: false, depthWrite: false }));
       for (const m of [this.ring, this.pulse, this.disc]) { m.rotation.x = -Math.PI / 2; m.renderOrder = 30; scene.add(m); }
       this.col = new T.Color();
     }
     update(x, z, t, danger) {
       const k = Math.max(0, Math.min(1, 1 - (danger - 120) / 380));
-      this.col.set('#8f74ff').lerp(new T.Color('#ff4d6d'), k);
+      this.col.set(this.base).lerp(new T.Color('#ff4d6d'), k);
       for (const m of [this.ring, this.pulse, this.disc]) { m.position.set(x, 1.2, z); m.material.color.copy(this.col); }
       const p = (t * (1 + k * 1.5)) % 1;
       this.pulse.scale.setScalar(1 + p * 1.4);
