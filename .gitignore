@@ -25,3 +25,4 @@ dist-ssr
 raw/
 pacman/raw/
 pacman/build/
+__pycache__/
