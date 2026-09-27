@@ -133,7 +133,7 @@ The game plays without the databases: scores fall back to the browser and the Ti
 
 **Know Your City (main track).** The board is the real city. Each task is a place you can walk to. The Passport is a stamp book of landmarks you reached. The five-borough map is the "know more than your own borough" pitch: bridges, the ferry, and places outside Midtown.
 
-**Best Use of Gemini API.** `tools/make_riddles.py` calls `gemini-3.1-flash-lite` with `GEMINI_API_KEY`. For every target it sends that place's own fact and Wikipedia summary and asks for one sentence. A checker rejects the line if it contains a word from the place name, or a number that is not in the source, and retries up to three times. The kept line is stored as `riddle` on the place. The browser never sees the key. Places that fail the check show their name, same as before.
+**Use of Gemini API.** `tools/make_riddles.py` calls `gemini-3.1-flash-lite` with `GEMINI_API_KEY`. For every target it sends that place's own fact and Wikipedia summary and asks for one sentence. A checker rejects the line if it contains a word from the place name, or a number that is not in the source, and retries up to three times. The kept line is stored as `riddle` on the place. The browser never sees the key. Places that fail the check show their name, same as before.
 
 ```sh
 cd upload-1-code/pacman-3d
@@ -141,34 +141,17 @@ GEMINI_API_KEY=... python3 tools/make_riddles.py
 python3 tools/build_bridges.py   # copy riddles onto the multi-borough maps
 ```
 
-**Best Use of ElevenLabs.** This is the voice of the game. `tools/make_voice.py` calls Multilingual v2, voice Laura, with `ELEVENLABS_API_KEY`, and writes 16 mp3s into `data/voice/`: welcome, the riddle prompt, landmark, solved, found, a new chomper, "behind you", each bridge, the ferry, and game over. `src/voice.js` plays those files. There is no second narrator. The key is not in the site.
+**Use of ElevenLabs.** This is the voice of the game. `tools/make_voice.py` calls Multilingual v2, voice Laura, with `ELEVENLABS_API_KEY`, and writes 16 mp3s into `data/voice/`: welcome, the riddle prompt, landmark, solved, found, a new chomper, "behind you", each bridge, the ferry, and game over. `src/voice.js` plays those files. There is no second narrator. The key is not in the site.
 
 ```sh
 ELEVENLABS_API_KEY=... python3 tools/make_voice.py
 ```
 
-**Best Use of MongoDB Atlas.** `api/scores.js`, `api/stamps.js`, and `api/runs.js` save high scores, landmark stamps, and each finished Passport. `src/cloud.js` sends them and keeps a copy in the browser, then retries if the save fails. The connection string is `MONGODB_URI` (optional database name `MONGODB_DB`, default `pacmanhattan`). It is read only on the server, in `api/_lib/db.js`. It is not set in this repo, so `/api/health` returns 503 until you add it in Vercel, or in `upload-1-code/pacman-3d/.env.local` for `npm run dev`. In Atlas, allow `0.0.0.0/0` so Vercel can connect.
+**Use of MongoDB Atlas.** `api/scores.js`, `api/stamps.js`, and `api/runs.js` save high scores, landmark stamps, and each finished Passport. `src/cloud.js` sends them and keeps a copy in the browser, then retries if the save fails. The connection string is `MONGODB_URI` (optional database name `MONGODB_DB`, default `pacmanhattan`). It is read only on the server, in `api/_lib/db.js`. It is not set in this repo, so `/api/health` returns 503 until you add it in Vercel, or in `upload-1-code/pacman-3d/.env.local` for `npm run dev`. In Atlas, allow `0.0.0.0/0` so Vercel can connect.
 
-**Best Use of Tiger Data.** Place cards can show a "know the block" panel: buildings within about 150 m, from a 767,563-building NYC table (`api/block.js`). Every riddle outcome is written to the `pm_events` hypertable (`api/events.js`), and `pm_riddle_hourly` is a real-time continuous aggregate of solve rate and time (`api/riddle.js`). The schema is `sql/tiger.sql`. The connection string is `TIGER_DATABASE_URL`, read only in `api/_lib/tiger.js`. It is set in the Vercel project, so the panel is live on pac-manhattan.tech. For your own copy, add it the same way as `MONGODB_URI`, then run `psql "$TIGER_DATABASE_URL" -f sql/tiger.sql`.
-
-**Best .Tech Domain Name.** The public URL is https://pac-manhattan.tech. Vercel serves the game. The backup URL is https://pacmanhattan-kappa.vercel.app. The functions in `api/` run on that same project, which is where the two URIs have to be set.
+**Use of Tiger Data.** Place cards can show a "know the block" panel: buildings within about 150 m, from a 767,563-building NYC table (`api/block.js`). Every riddle outcome is written to the `pm_events` hypertable (`api/events.js`), and `pm_riddle_hourly` is a real-time continuous aggregate of solve rate and time (`api/riddle.js`). The schema is `sql/tiger.sql`. The connection string is `TIGER_DATABASE_URL`, read only in `api/_lib/tiger.js`. It is set in the Vercel project, so the panel is live on pac-manhattan.tech. For your own copy, add it the same way as `MONGODB_URI`, then run `psql "$TIGER_DATABASE_URL" -f sql/tiger.sql`.
 
 **SpaceXAI (Cursor + Grok).** Grok writes the on-screen lesson, not the voice. After you reach one of eight places, the card adds "What you just learned." Three cards also show a picture generated in Cursor (`data/lessons/`). The prompt is `upload-1-code/pacman-3d/prompts/grok-lessons.md`. The Wikimedia photo stays. ElevenLabs is still the only voice, including on the ferry and the Brooklyn Bridge, where the lesson is a toast under the ElevenLabs line.
-
-### Other prizes, and why this game does not use them
-
-| Prize | Why it is not this project |
-|---|---|
-| Move Smarter, Live Better, Hack the City | One submission, one main track. This one is Know Your City. |
-| Best Beginner Hack | Only if everyone on the team is a first-time hacker. |
-| Most Popular Hack | A vote, not an API. |
-| Capital One Nessie | No banking or finance feature. |
-| Ripple / XRPL | No wallet, no on-chain payment, no agent moving money. |
-| Photon / Spectrum | No iMessage agent. |
-| DeepSpace | No DeepSpace SDK. The site is a static folder. |
-| Solana | No chain transactions. |
-| Backboard | No memory API. Riddles are baked into `places.json`. |
-| DigitalOcean | Hosted on Vercel, not DigitalOcean. |
 
 ## Run it locally
 
