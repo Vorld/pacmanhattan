@@ -1,8 +1,0 @@
-[out:json][timeout:300];
-area(3608398124)->.m;
-(
- way["leisure"~"^(park|garden|playground|pitch)$"](area.m);
- rel["leisure"="park"](area.m);
- way["landuse"~"^(grass|cemetery)$"](area.m);
-);
-out geom qt;

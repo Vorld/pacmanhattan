@@ -1,4 +1,0 @@
-[out:json][timeout:400];
-area(3608398124)->.m;
-way["building"](40.775,-74.03,40.82,-73.92)(area.m);
-out geom qt;

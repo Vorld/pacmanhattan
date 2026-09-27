@@ -30,9 +30,9 @@ def preview(bid):
     ax.axis('off')
     buf = io.BytesIO(); fig.savefig(buf, format='png', facecolor='#9fd3ea'); plt.close(fig)
     im = Image.open(buf).convert('RGB')
-    if bid == 'manhattan':  # lay the island on its side so the card isn't a sliver
+    if bid in ('manhattan', 'bridges'):  # lay the island on its side so the card isn't a sliver
         im = im.rotate(90, expand=True)
-    PW, PH = (1600, 560) if bid == 'manhattan' else (960, 600)   # 2x the size cards are shown at
+    PW, PH = (1600, 560) if bid in ('manhattan', 'bridges') else (960, 600)   # 2x the size cards are shown at
     im.thumbnail((PW, PH), Image.LANCZOS)
     bg = Image.new('RGB', (PW, PH), (159, 211, 234))
     bg.paste(im, ((PW - im.width) // 2, (PH - im.height) // 2))
@@ -43,7 +43,7 @@ def preview(bid):
 
 def main():
     out = []
-    for bid in ORDER:
+    for bid in ORDER + ['bridges']:  # bridges: tools/build_bridges.py
         if not os.path.exists(f'data/{bid}/map.json'):
             print('skip', bid, file=sys.stderr); continue
         m = json.load(open(f'data/{bid}/map.json'))['meta']

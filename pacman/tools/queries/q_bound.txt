@@ -1,3 +1,0 @@
-[out:json][timeout:300];
-rel(8398124);
-out geom;

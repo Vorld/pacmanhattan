@@ -1,4 +1,0 @@
-[out:json][timeout:200];
-area(3608398124)->.m;
-(way["natural"="water"](area.m); rel["natural"="water"](area.m););
-out geom qt;

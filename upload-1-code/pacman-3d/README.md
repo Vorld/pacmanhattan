@@ -2,7 +2,8 @@
 
 You're the ghost. Hungry chompers hunt you through real New York streets while you race to find famous places.
 
-- Pick a borough in the lobby: all of Manhattan, or a neighborhood-sized map of Brooklyn, Queens, the Bronx, or Staten Island. Each map loads only when you pick it.
+- Pick a borough in the lobby: all of Manhattan, a neighborhood-sized map of Brooklyn, Queens, the Bronx, or Staten Island, or **Manhattan + Brooklyn** on one map, where the Brooklyn, Manhattan and Williamsburg Bridges take you across the East River. Each map loads only when you pick it.
+- Buildings have their real colors: roofs from NYC's 2018 aerial photos, walls from each lot's year built and building class.
 - Point your cursor where you want to go (or use the arrow keys / WASD). You stay snapped to real streets and park paths. A glowing ring and a street-name label show exactly where you are, and a fading trail shows where you've been.
 - Each task names a real place, such as "Find Katz's Delicatessen." It glows gold under a beam of light once it's in view. Reach it to score, and a new task starts right away.
 - Visit the ★ landmarks to earn points and a hint with the target's walking distance and direction. The game pauses on a card with a photo, a fun fact, and a Street View link. Every place you reach goes into your Passport on the right, where you can click to see it again. Landmark stamps are kept per borough between runs.
@@ -10,7 +11,7 @@ You're the ghost. Hungry chompers hunt you through real New York streets while y
 
 - After you pick a map, choose 1 or 2 players. **2 players** is split screen on one keyboard: Player 1 steers with WASD (left half), Player 2 with the arrow keys (right half). After a 3-second countdown, both ghosts start from the same spot and race to the same target. Whoever reaches it first scores. The race then pauses and both halves show that place's photo, fun fact, and description. Each player presses one of their keys when they're done reading, and after another countdown both get the next target, picked to be about equally far from each of them. One chomper chases whoever is closer. ★ landmarks give that player a hint without pausing the game. Getting caught puts you out. The match ends as soon as the winner is certain: most targets wins, and a tie goes to whoever survived longer.
 
-In Manhattan the map is rotated about 29° to the street grid, so up is uptown and right is east. The other boroughs are north-up.
+In Manhattan and Manhattan + Brooklyn the map is rotated about 29° to the street grid, so up is uptown and right is east. The other boroughs are north-up.
 
 ## Run it
 
@@ -50,9 +51,10 @@ The data files are generated from OpenStreetMap through the Overpass API. Boroug
 1. Download the extracts. For Manhattan, run the queries in `tools/queries/` into `raw/` (`cd raw && ../tools/queries/fetch.sh ../tools/queries/q_streets.txt streets.json`, and so on), then `python3 tools/build_graph.py --land`. For the other boroughs, run `python3 tools/fetch_borough.py brooklyn queens bronx staten`.
 2. Optionally, fetch photos and summaries from Wikipedia: `python3 tools/fetch_wiki.py` for Manhattan and `python3 tools/fetch_wiki.py brooklyn` (and so on) for the others, then `python3 tools/fetch_hd.py manhattan brooklyn queens bronx staten` for HD versions (up to 1280 px). Page titles are in `tools/wiki_titles.py`. Photos are written to `data/<borough>/img/` and load only when a card opens.
 3. Build each borough: `python3 tools/build_borough.py manhattan brooklyn queens bronx staten`. This computes land from the coastline, builds the street graph, adds building heights and colors, and embeds the photos.
-4. Add real building colors: `python3 tools/color_buildings.py all <lots.csv.gz>`. Roofs get the median color of NYC's 2018 aerial photos inside each footprint (tiles cached in `raw/ortho17/`). Walls come from NYC PLUTO year built and building class, mapped to period materials (brownstone, red brick, limestone, white brick, glass). The lot file needs `bbl, lat, lon, year_built, bldgclass` columns. Buildings without a lot match keep the pastel palette on their walls. Rerun this after step 3, since that step rewrites `map.json`.
-5. Build the lobby cards: `python3 tools/build_lobby.py`.
-6. Optionally, build the single-file page for claude.ai with `python3 tools/make_artifact.py`. It writes `dist/pac-manhattan.html`, which loads `data/` from next to it.
+4. Add real building colors: `python3 tools/color_buildings.py all <lots.csv.gz>`. Roofs get the median color of NYC's 2018 aerial photos inside each footprint (tiles cached in `raw/ortho17/`). Walls come from NYC PLUTO year built and building class, mapped to period materials (brownstone, red brick, limestone, white brick, glass). The lot file needs `bbl, lat, lon, year_built, bldgclass` columns. Buildings without a lot match keep the pastel palette on their walls. Rerun this after step 3, since that step rewrites `map.json`, and before step 5.
+5. Build the Manhattan + Brooklyn map: `python3 tools/build_bridges.py`. It moves Brooklyn into Manhattan's projection, joins the two street graphs with the Brooklyn, Manhattan and Williamsburg Bridges, and writes `data/bridges/`. Runs start at City Hall, next to the Brooklyn Bridge.
+6. Build the lobby cards: `python3 tools/build_lobby.py`. This includes the Manhattan + Brooklyn card.
+7. Optionally, build the single-file page for claude.ai with `python3 tools/make_artifact.py`. It writes `dist/pac-manhattan.html`, which loads `data/` from next to it.
 
 Places are hand-curated in `tools/places.py` (Manhattan) and `tools/places_boroughs.py` (the others). The build step moves each one to the matching OpenStreetMap feature when one exists by name. The build needs Python with `shapely`, `Pillow`, and `matplotlib`.
 
@@ -73,6 +75,8 @@ These PRD features come later: the global leaderboard with server-side score che
 ## Credits and license
 
 Map data © OpenStreetMap contributors, available under the [Open Database License](https://www.openstreetmap.org/copyright). The generated files in `data/` are derived from it and must keep this attribution.
+
+Building colors come from NYC DoITT 2018 aerial imagery and NYC PLUTO lot data.
 
 Place photos come from Wikimedia Commons. Each card shows the author and license, with a link to the source file. Summaries are from Wikipedia under CC BY-SA.
 

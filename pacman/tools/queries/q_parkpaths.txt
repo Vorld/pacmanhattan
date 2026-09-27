@@ -1,6 +1,0 @@
-[out:json][timeout:240];
-area(3608398124)->.m;
-way["leisure"="park"](area.m)->.pk;
-.pk map_to_area->.pa;
-way["highway"~"^(footway|path|cycleway)$"]["footway"!~"sidewalk|crossing"](area.pa)(area.m);
-out geom qt;
