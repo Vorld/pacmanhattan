@@ -149,7 +149,7 @@
     },
 
     // ---------- landmark / target card ----------
-    showCard({ kind, place, points, hint, cat, solved }) {
+    showCard({ kind, place, points, hint, cat, solved, lesson }) {
       const p = place;
       const sv = p.lat ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}` : null;
       const img = p.img
@@ -164,6 +164,7 @@
           <h2>${esc(p.name)}</h2>
           ${cat ? `<div class="muted small">${esc(cat)}</div>` : ''}
           <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
+          ${lesson ? `<div class="lesson"><div class="eyebrow">What you just learned</div><p>${esc(lesson.text)}</p>${lesson.image ? `<img src="${esc(lesson.image)}" alt="">` : ''}</div>` : ''}
           ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
           ${hint ? `<div class="card-hint"><b>Hint:</b> ${esc(hint)}<div class="small">A green arrow points the way for a few seconds.</div></div>` : ''}
           <div id="card-live" class="card-live" hidden></div>

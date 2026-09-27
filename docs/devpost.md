@@ -5,7 +5,7 @@
 **Tagline (under 200 characters):** You're the ghost. New York is the maze. A 3D arcade chase through real NYC streets that teaches you the city one riddle at a time.
 
 **Track:** Know Your City
-**Also submit to:** Best Use of Tiger Data, Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack (and Best Use of MongoDB Atlas once the MongoDB connection string is set in Vercel)
+**Also submit to:** Best Use of Tiger Data, Best Use of MongoDB Atlas, Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack. Tiger and Mongo are in the code. The game still needs `TIGER_DATABASE_URL` and `MONGODB_URI` set in Vercel (they are not in the repo). Until then scores stay in the browser and the Tiger panel stays hidden.
 
 **Images:** `docs/media/pacmanhattan-cover-3x2.jpg` (3000x2000, Devpost thumbnail and first gallery image) and `docs/media/pacmanhattan-banner-3x1.jpg` (3840x1280, wide banner). Both are real screenshots of the game's title screen.
 
@@ -48,9 +48,10 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **All five boroughs on one map:** every borough is reprojected into Manhattan's frame (rotated 29° so avenues run up the screen), and the street graphs are joined at the real landing points of each bridge. The ferry is its own kind of edge, which pathfinding lets you use and never lets chompers use.
 - **Real building colors:** about 3,000 NYC aerial photo tiles, sampled at up to 10 points inside each footprint for the roof color. NYC PLUTO lots are matched to footprints with a spatial index for wall materials.
 - **Gemini API** (Gemini 3.1 Flash-Lite) writes a riddle for every place from that place's own fact and Wikipedia summary. Every riddle goes through a checker before we keep it: it can't use any word of the place's name, and every number in it has to appear in the source text, so Gemini can't invent a year. Failed riddles get up to three retries with the reason.
-- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We load 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by coordinate. Every riddle outcome (solved before the reveal, found after, revealed, caught) is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
-- **MongoDB Atlas** stores each player's high scores, Passport stamps and finished runs through Vercel functions, so the leaderboard is global, with a browser fallback when the database is unreachable.
+- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We load 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by coordinate. Every riddle outcome (solved before the reveal, found after, revealed, caught) is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time. The connection string (`TIGER_DATABASE_URL`) is not set yet, so the panel is hidden until it is.
+- **MongoDB Atlas** stores each player's high scores, Passport stamps and finished runs through Vercel functions, so the leaderboard is global, with a browser fallback when the database is unreachable. `MONGODB_URI` is not set yet, so saves stay in the browser until it is.
 - **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, so the game ships plain audio files and no API key ever reaches the browser.
+- **Grok in Cursor** writes the on-screen lesson after you find one of eight places (the High Line, Inwood Hill Park, the ferry terminal, the Brooklyn Bridge, Little Island, the Battery, Katz's, Sheep Meadow), plus a toast on the ferry and the Brooklyn Bridge. Three lesson pictures were generated in Cursor. The prompt is `upload-1-code/pacman-3d/prompts/grok-lessons.md`. Gemini still writes the riddle. ElevenLabs is the only voice.
 - **Photos:** 189 Wikimedia Commons photos with the author and license on every card.
 - **Hosting:** a static site on Vercel at **pac-manhattan.tech**.
 
