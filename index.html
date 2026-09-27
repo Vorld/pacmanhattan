@@ -30,7 +30,7 @@
         </section>
 
         <section class="panel clue-panel" id="clue-panel">
-          <div class="eyebrow">Secret target</div>
+          <div class="eyebrow" id="target-label">Target 1</div>
           <p id="clue" class="clue"></p>
           <ol id="hints" class="hints"></ol>
           <p id="no-hints" class="muted">Reach a ★ landmark to earn a hint.</p>
@@ -62,7 +62,7 @@
           </div>
           <h3 id="fact-name"></h3>
           <p id="fact-text"></p>
-          <p class="fact-hint"><span class="eyebrow">New hint</span><span id="fact-hint"></span></p>
+          <p class="fact-hint"><span class="eyebrow" id="fact-foot-label">New hint</span><span id="fact-hint"></span></p>
         </article>
 
         <div id="countdown" class="countdown" hidden></div>
@@ -71,11 +71,11 @@
       <div id="start-screen" class="screen">
         <div class="screen-card">
           <h1 class="title">PAC-<br />MANHATTAN</h1>
-          <p class="tagline">You're the ghost. Pac-Man is hungry. Somewhere in Manhattan is a secret place. Find it before he finds you.</p>
+          <p class="tagline">You're the ghost. Pac-Man is hungry. Race across Manhattan to one secret place after another, and find as many as you can before he finds you.</p>
           <ul class="howto">
             <li><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>WASD</kbd> to turn at the next corner (swipe on phones)</li>
             <li>Visit <span class="star">★</span> landmarks for points and a hint about the target</li>
-            <li>Fewer hints used = bigger bonus when you find it</li>
+            <li>Find the target, then the next one appears. Chain as many as you can before Pac-Man gets you</li>
           </ul>
           <button id="start" class="btn primary" disabled>Loading Manhattan…</button>
           <div id="load-error" class="error" hidden></div>
@@ -107,9 +107,11 @@
               <table class="breakdown">
                 <tr><td>Landmarks</td><td id="bd-landmarks"></td></tr>
                 <tr><td id="bd-survival-label">Time survived</td><td id="bd-survival"></td></tr>
-                <tr><td>Target bonus</td><td id="bd-target"></td></tr>
+                <tr><td id="bd-target-label">Targets found</td><td id="bd-target"></td></tr>
                 <tr class="total"><td>Total</td><td id="bd-total"></td></tr>
               </table>
+              <h3 class="eyebrow">Targets found</h3>
+              <ul id="end-targets" class="chips targets"></ul>
               <h3 class="eyebrow">Landmarks visited</h3>
               <ul id="end-landmarks" class="chips"></ul>
               <h3 class="eyebrow">High scores</h3>

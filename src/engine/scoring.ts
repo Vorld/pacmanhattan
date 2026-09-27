@@ -7,31 +7,34 @@ export interface ScoreBreakdown {
   total: number;
 }
 
+/** Bonus for finding one target: fewer hints used and harder targets pay more. */
+export function targetBonus(cfg: GameConfig['scoring'], hintsUsed: number, difficulty: number): number {
+  const mult = cfg.difficultyMultiplier[String(difficulty)] ?? 1;
+  return Math.round(Math.max(cfg.targetMinBonus, cfg.targetBaseBonus - cfg.hintPenalty * hintsUsed) * mult);
+}
+
 export function computeScore(
   cfg: GameConfig['scoring'],
   landmarkPoints: number,
   secondsSurvived: number,
-  found: boolean,
-  hintsUsed: number,
-  difficulty: number,
+  targetPoints: number,
 ): ScoreBreakdown {
   const survival = Math.floor(secondsSurvived * cfg.pointsPerSecond);
-  let target = 0;
-  if (found) {
-    const mult = cfg.difficultyMultiplier[String(difficulty)] ?? 1;
-    target = Math.round(Math.max(cfg.targetMinBonus, cfg.targetBaseBonus - cfg.hintPenalty * hintsUsed) * mult);
-  }
-  return { landmarks: landmarkPoints, survival, target, total: landmarkPoints + survival + target };
+  return { landmarks: landmarkPoints, survival, target: targetPoints, total: landmarkPoints + survival + targetPoints };
 }
 
 export interface HighScore {
   score: number;
   date: string;
-  found: boolean;
-  target: string;
+  /** Targets found in the run. Older saves only have `found`. */
+  targets?: number;
+  found?: boolean;
+  target?: string;
   landmarks: number;
   seconds: number;
 }
+
+export const targetsInEntry = (s: HighScore) => s.targets ?? (s.found ? 1 : 0);
 
 const MAX_SCORES = 10;
 const key = (city: string) => `pacmanhattan.highscores.${city}`;

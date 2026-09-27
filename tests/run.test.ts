@@ -36,7 +36,7 @@ describe('run', () => {
     expect(run.status).toBe('playing');
   });
 
-  it('awards points and a hint for each landmark, and wins at the target', () => {
+  it('awards points and a hint for each landmark, then moves on to a new target when one is found', () => {
     const ts = places.landmarks.find((l) => l.id === 'times-square')!;
     const cfg = mergeConfig({ pacman: { startGraceMs: 10_000_000 } });
     const run = new Run(graph, places, cfg, { targetId: 'nypl', ghostNode: ts.node });
@@ -47,13 +47,35 @@ describe('run', () => {
     expect(run.hints[0].text).toMatch(/Midtown/);
     expect(events).toEqual(['landmark']);
 
-    // Walk the shortest route to the library.
-    (run as any).ghost.edge = graph.exits[run.target.node][0].edge;
-    const e = graph.edges[(run as any).ghost.edge];
-    (run as any).ghost.s = e.a === run.target.node ? 0 : e.length;
+    // Teleport onto the library's node.
+    const exit = graph.exits[run.target.node][0];
+    Object.assign(run.ghost, { edge: exit.edge, s: exit.forward ? 0 : graph.edges[exit.edge].length });
     run.update(DT);
-    expect(run.status).toBe('found');
+
+    expect(events).toEqual(['landmark', 'found']);
+    expect(run.status).toBe('playing');
+    expect(run.found.map((f) => f.target.id)).toEqual(['nypl']);
+    expect(run.found[0].hintsUsed).toBe(1);
     expect(run.score.target).toBe(DEFAULT_CONFIG.scoring.targetBaseBonus - DEFAULT_CONFIG.scoring.hintPenalty);
+
+    // The next target is a different place at a sensible distance, with fresh hints.
+    expect(run.target.id).not.toBe('nypl');
+    expect(run.hints).toEqual([]);
+    const away = dist(run.ghostPos, graph.nodePos(run.target.node));
+    expect(away).toBeGreaterThan(DEFAULT_CONFIG.arrivalRadius * 4);
+  });
+
+  it('never repeats a target until every target has been found', () => {
+    const cfg = mergeConfig({ pacman: { startGraceMs: 10_000_000 } });
+    const run = new Run(graph, places, cfg, { rng: seeded(5) });
+    for (let i = 0; i < places.targets.length + 2; i++) {
+      const exit = graph.exits[run.target.node][0];
+      Object.assign(run.ghost, { edge: exit.edge, s: exit.forward ? 0 : graph.edges[exit.edge].length });
+      run.update(DT);
+    }
+    const ids = run.found.map((f) => f.target.id);
+    expect(new Set(ids.slice(0, places.targets.length)).size).toBe(places.targets.length);
+    expect(ids.length).toBe(places.targets.length + 2);
   });
 
   it('keeps both movers on the street graph through long random play (guardrail)', () => {

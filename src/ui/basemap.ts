@@ -1,5 +1,5 @@
 import * as maplibregl from 'maplibre-gl';
-import type { StyleSpecification } from 'maplibre-gl';
+import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre builds its worker URL at runtime, which bundlers can't follow.
 // Bundle the worker ourselves and point MapLibre at it.
@@ -27,7 +27,7 @@ const PAINT: [string, string, unknown][] = [
 const HIDDEN = ['road_oneway', 'road_oneway_opposite'];
 
 /** Walkable-street colors, shared with the overview map so both read the same. */
-export const ROAD_COLORS = { road: '#3d6bff', deadEnd: '#ff6a3d' };
+export const ROAD_COLORS = { road: '#4f86ff', deadEnd: '#ff6a3d' };
 
 /**
  * The visual map layer. It never affects movement: the street graph is the
@@ -92,17 +92,34 @@ export class BaseMap {
     const layers = this.map.getStyle().layers;
     const lastShape = layers.findLastIndex((l) => l.type !== 'symbol');
     const beforeLabels = layers.slice(lastShape + 1).find((l) => l.type === 'symbol')?.id;
+    const roadColor: ExpressionSpecification = ['case', ['get', 'deadEnd'], ROAD_COLORS.deadEnd, ROAD_COLORS.road];
+    const width = (at15: number, at18: number): ExpressionSpecification => [
+      'interpolate',
+      ['exponential', 2],
+      ['zoom'],
+      15,
+      at15,
+      18,
+      at18,
+    ];
+    // Soft neon glow under a bright core line, so streets read clearly against the dark blocks.
+    this.map.addLayer(
+      {
+        id: 'walkable-glow',
+        type: 'line',
+        source: 'walkable',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': roadColor, 'line-opacity': 0.35, 'line-width': width(10, 34), 'line-blur': width(6, 18) },
+      },
+      beforeLabels,
+    );
     this.map.addLayer(
       {
         id: 'walkable',
         type: 'line',
         source: 'walkable',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: {
-          'line-color': ['case', ['get', 'deadEnd'], ROAD_COLORS.deadEnd, ROAD_COLORS.road],
-          'line-opacity': 0.5,
-          'line-width': ['interpolate', ['exponential', 2], ['zoom'], 15, 3, 18, 14],
-        },
+        paint: { 'line-color': roadColor, 'line-opacity': 0.95, 'line-width': width(3, 10) },
       },
       beforeLabels,
     );

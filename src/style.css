@@ -9,7 +9,7 @@
   --gold: #ffb347;
   --mint: #3fd6a0;
   --danger: #ff3b5c;
-  --road: #3d6bff;
+  --road: #4f86ff;
   --dead-end: #ff6a3d;
   --target: #ff4fd8;
   --arcade: 'Press Start 2P', ui-monospace, monospace;
@@ -549,6 +549,11 @@ kbd {
   font-size: 12px;
   border: 1px solid var(--mint);
   color: var(--mint);
+}
+
+.chips.targets li {
+  border-color: var(--target);
+  color: var(--target);
 }
 
 .end-actions {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/engine/config';
 import { distanceBand, gridDirection, hintForVisit, zoneOf } from '../src/engine/hints';
 import { toXY } from '../src/engine/geo';
-import { computeScore } from '../src/engine/scoring';
+import { computeScore, targetBonus } from '../src/engine/scoring';
 import { loadManhattan } from './helpers';
 
 const { graph, places } = loadManhattan();
@@ -30,12 +30,15 @@ describe('hints', () => {
 });
 
 describe('scoring', () => {
-  it('rewards finding the target with fewer hints', () => {
+  it('pays more for targets found with fewer hints, with a floor', () => {
     const s = DEFAULT_CONFIG.scoring;
-    const few = computeScore(s, 300, 60, true, 1, 1);
-    const many = computeScore(s, 300, 60, true, 6, 1);
-    expect(few.total).toBeGreaterThan(many.total);
-    expect(computeScore(s, 0, 0, true, 50, 1).target).toBe(s.targetMinBonus);
-    expect(computeScore(s, 100, 10, false, 0, 3)).toEqual({ landmarks: 100, survival: 20, target: 0, total: 120 });
+    expect(targetBonus(s, 1, 1)).toBeGreaterThan(targetBonus(s, 6, 1));
+    expect(targetBonus(s, 50, 1)).toBe(s.targetMinBonus);
+    expect(targetBonus(s, 0, 3)).toBeGreaterThan(targetBonus(s, 0, 1));
+  });
+
+  it('adds landmarks, survival time and target bonuses', () => {
+    const s = { ...DEFAULT_CONFIG.scoring, pointsPerSecond: 1 };
+    expect(computeScore(s, 100, 10.9, 1500)).toEqual({ landmarks: 100, survival: 10, target: 1500, total: 1610 });
   });
 });

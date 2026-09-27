@@ -34,7 +34,7 @@ export class Overview {
     const r = island.ctx;
     r.lineCap = 'round';
     r.lineJoin = 'round';
-    r.lineWidth = 1.6;
+    r.lineWidth = 2.4;
     for (const [color, isDead] of [[ROAD_COLORS.road, 0], [ROAD_COLORS.deadEnd, 1]] as const) {
       r.strokeStyle = color;
       for (const e of graph.edges) if (dead[e.id] === isDead) strokeEdge(r, graph, this.frame, e.id);

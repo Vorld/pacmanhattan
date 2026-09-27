@@ -5,14 +5,22 @@ import { hintForVisit, type Hint } from './hints';
 import { positionOf, stepAlongPath, stepGhost, type Mover } from './movement';
 import { PathFinder, type GraphPoint } from './pathfinding';
 import type { Landmark, PlacesData, Target } from './places';
-import { computeScore, type ScoreBreakdown } from './scoring';
+import { computeScore, targetBonus, type ScoreBreakdown } from './scoring';
 
-export type RunStatus = 'playing' | 'caught' | 'found' | 'quit';
+/** A run only ends when Pac-Man catches the ghost (or the player quits). */
+export type RunStatus = 'playing' | 'caught' | 'quit';
+
+export interface FoundTarget {
+  target: Target;
+  bonus: number;
+  hintsUsed: number;
+  time: number;
+}
 
 export type RunEvent =
   | { type: 'landmark'; landmark: Landmark; hint: Hint }
   | { type: 'caught' }
-  | { type: 'found' };
+  | { type: 'found'; found: FoundTarget; next: Target };
 
 export interface RunOptions {
   rng?: () => number;
@@ -30,11 +38,14 @@ const DISCOVERY_STEP_M = 25;
 export class Run {
   status: RunStatus = 'playing';
   time = 0;
-  readonly target: Target;
+  /** The target currently being hunted; changes each time one is found. */
+  target: Target;
+  readonly found: FoundTarget[] = [];
   readonly ghost: Mover;
   readonly pacman: Mover;
   readonly visited: Landmark[] = [];
-  readonly hints: Hint[] = [];
+  /** Hints earned for the current target (reset when it changes). */
+  hints: Hint[] = [];
   landmarkPoints = 0;
   /** Path distance from Pac-Man to the ghost, meters (Infinity before the first route). */
   pacmanDistance = Infinity;
@@ -99,17 +110,11 @@ export class Run {
     return this.time * 1000 >= this.config.pacman.startGraceMs;
   }
   get score(): ScoreBreakdown {
-    return computeScore(
-      this.config.scoring,
-      this.landmarkPoints,
-      this.time,
-      this.status === 'found',
-      this.hints.length,
-      this.target.difficulty,
-    );
+    const targetPoints = this.found.reduce((sum, f) => sum + f.bonus, 0);
+    return computeScore(this.config.scoring, this.landmarkPoints, this.time, targetPoints);
   }
 
-  /** Player gave up; no target bonus. */
+  /** Player gave up. */
   quit() {
     if (this.status === 'playing') this.status = 'quit';
   }
@@ -171,10 +176,34 @@ export class Run {
       this.emit({ type: 'landmark', landmark: lm, hint });
     }
     if (reached(this.target.node)) {
-      this.status = 'found';
-      this.recordRoute();
-      this.emit({ type: 'found' });
+      const { difficulty } = this.target;
+      const found: FoundTarget = {
+        target: this.target,
+        bonus: targetBonus(this.config.scoring, this.hints.length, difficulty),
+        hintsUsed: this.hints.length,
+        time: this.time,
+      };
+      this.found.push(found);
+      this.target = this.pickNextTarget();
+      this.hints = [];
+      this.emit({ type: 'found', found, next: this.target });
     }
+  }
+
+  /** A target not yet found this run, preferably at the usual spawn distance from the ghost. */
+  private pickNextTarget(): Target {
+    const ghost = this.ghostPos;
+    const { targetSpawnMinDistance: lo, targetSpawnMaxDistance: hi } = this.config;
+    const done = new Set(this.found.map((f) => f.target));
+    let pool = this.places.targets.filter((t) => !done.has(t));
+    if (!pool.length) pool = this.places.targets.filter((t) => t !== this.target); // found them all: go again
+    const away = (t: Target) => dist(ghost, this.graph.nodePos(t.node));
+    const inRange = pool.filter((t) => away(t) >= lo && away(t) <= hi);
+    if (inRange.length) return this.pick(inRange)!;
+    // Otherwise the one closest to the preferred range (but never right here).
+    const far = pool.filter((t) => away(t) > this.config.arrivalRadius * 4);
+    const miss = (t: Target) => (away(t) < lo ? lo - away(t) : away(t) - hi);
+    return (far.length ? far : pool).sort((a, b) => miss(a) - miss(b))[0];
   }
 
   private discover(force: boolean) {

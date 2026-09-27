@@ -55,7 +55,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   zoom: { min: 15, max: 17.5, initial: 16.3 },
   overview: { showTarget: true, viewMeters: 3000 },
   scoring: {
-    pointsPerSecond: 2,
+    pointsPerSecond: 1,
     targetBaseBonus: 1500,
     hintPenalty: 150,
     targetMinBonus: 300,

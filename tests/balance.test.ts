@@ -1,6 +1,7 @@
 // Balance simulation, skipped by default. Run with `npm run simulate`.
 // Two bots bracket real play: one only flees Pac-Man (how long can you
-// survive?), one runs the shortest route to the target (can you just race there?).
+// survive?), one runs the shortest route to each target in turn, ignoring
+// Pac-Man (how many targets can you chain by racing?).
 import { describe, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/engine/config';
 import { nodeAhead } from '../src/engine/movement';
@@ -41,31 +42,34 @@ describe.skipIf(!process.env.SIM)('balance simulation', () => {
     console.log(`fleeing bot survival (s): min ${q(0)} p25 ${q(0.25)} median ${q(0.5)} p75 ${q(0.75)} max ${q(1)}`);
   }, 120_000);
 
-  it('reports how often a bot racing straight to the target wins', () => {
+  it('reports how many targets a bot racing straight to each one finds', () => {
     const finder = new PathFinder(graph);
-    let found = 0;
+    const counts: number[] = [];
     const times: number[] = [];
     const runs = 40;
     for (let seed = 1; seed <= runs; seed++) {
       const run = new Run(graph, places, DEFAULT_CONFIG, { rng: seeded(seed) });
-      const t = run.target.node;
-      const goal = { edge: graph.exits[t][0].edge, s: graph.exits[t][0].forward ? 0 : graph.edges[graph.exits[t][0].edge].length };
+      const goalFor = (t: number) => ({ edge: graph.exits[t][0].edge, s: graph.exits[t][0].forward ? 0 : graph.edges[graph.exits[t][0].edge].length });
       let lastNode = -1;
       while (run.status === 'playing' && run.time < 600) {
         const node = nodeAhead(graph, run.ghost);
         if (node !== lastNode || !run.ghost.moving) {
           lastNode = node;
-          const path = finder.find({ edge: run.ghost.edge, s: run.ghost.s }, goal);
+          const path = finder.find({ edge: run.ghost.edge, s: run.ghost.s }, goalFor(run.target.node));
           const next = path?.nodes.find((n) => n !== node);
           const exit = next === undefined ? undefined : graph.exits[node].find((x) => graph.otherEnd(x.edge, node) === next);
           if (exit) run.queueTurn(graph.exitDirection(exit));
         }
         run.update(1 / 30);
       }
-      if (run.status === 'found') found++;
+      counts.push(run.found.length);
       times.push(run.time);
     }
     times.sort((a, b) => a - b);
-    console.log(`racing bot: found target in ${found}/${runs} runs, median run ${times[runs >> 1].toFixed(0)} s`);
+    counts.sort((a, b) => a - b);
+    const withOne = counts.filter((c) => c > 0).length;
+    console.log(
+      `racing bot: found ≥1 target in ${withOne}/${runs} runs, median ${counts[runs >> 1]} found (max ${counts[runs - 1]}), median run ${times[runs >> 1].toFixed(0)} s`,
+    );
   }, 120_000);
 });

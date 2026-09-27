@@ -5,7 +5,7 @@ import { SCREEN_DIRS, toLonLat } from './engine/geo';
 import { StreetGraph, type GraphData } from './engine/graph';
 import type { PlacesData } from './engine/places';
 import { Run, type RunEvent } from './engine/run';
-import { loadHighScores, saveHighScore, type HighScore } from './engine/scoring';
+import { loadHighScores, saveHighScore, targetsInEntry, type HighScore } from './engine/scoring';
 import { Sfx } from './ui/audio';
 import { BaseMap } from './ui/basemap';
 import { bindDirectionInput } from './ui/input';
@@ -90,9 +90,7 @@ function startRun() {
 
   for (const id of ['start-screen', 'end-screen', 'pause-screen', 'fact-card']) $(id).hidden = true;
   $('hud').hidden = false;
-  $('clue').textContent = run.target.clue;
-  $('hints').replaceChildren();
-  $('no-hints').hidden = false;
+  showTarget(run);
   game.minimap.reset(run);
   flashBanner('RUN!', 1200);
 
@@ -104,11 +102,47 @@ function startRun() {
   });
 }
 
+/** Clue panel for the current target, with its (fresh) hint list. */
+function showTarget(r: Run) {
+  $('target-label').textContent = `Target ${r.found.length + 1}`;
+  $('clue').textContent = r.target.clue;
+  $('hints').replaceChildren();
+  $('no-hints').hidden = false;
+}
+
 function onRunEvent(e: RunEvent) {
   if (!run) return;
-  if (e.type === 'landmark') {
+  if (e.type === 'found') {
+    sfx.win();
+    const { target, bonus, hintsUsed } = e.found;
+    showFactCard({
+      eyebrow: `Target ${run.found.length} found`,
+      name: target.name,
+      text: target.facts[0],
+      points: bonus,
+      footLabel: `Target ${run.found.length + 1}`,
+      footText: e.next.clue,
+    });
+    showTarget(run);
+    flashBanner(`TARGET ${run.found.length + 1}!`, 1400);
+    track('target_found', {
+      target: target.id,
+      targetIndex: run.found.length,
+      hints: hintsUsed,
+      bonus,
+      t: Math.round(run.time),
+      next: e.next.id,
+    });
+  } else if (e.type === 'landmark') {
     sfx.landmark();
-    showFactCard(e.landmark.name, e.landmark.neighborhood, e.landmark.fact, e.landmark.points, e.hint.text);
+    showFactCard({
+      eyebrow: e.landmark.neighborhood,
+      name: e.landmark.name,
+      text: e.landmark.fact,
+      points: e.landmark.points,
+      footLabel: 'New hint',
+      footText: e.hint.text,
+    });
     const li = document.createElement('li');
     li.textContent = e.hint.text;
     li.className = 'fresh';
@@ -122,27 +156,25 @@ function onRunEvent(e: RunEvent) {
   }
 }
 
-function endRun(outcome: 'caught' | 'found' | 'quit') {
+function endRun(outcome: 'caught' | 'quit') {
   if (!run || !game) return;
   const r = run;
   const score = r.score;
-  if (outcome === 'caught') sfx.caught();
-  if (outcome === 'found') sfx.win();
-  const summary = {
-    target: r.target.id,
-    t: Math.round(r.time),
-    landmarks: r.visited.length,
-    hints: r.hints.length,
-    score: score.total,
-  };
-  if (outcome === 'caught') track('caught', summary);
-  if (outcome === 'found') track('target_found', summary);
+  if (outcome === 'caught') {
+    sfx.caught();
+    track('caught', {
+      target: r.target.id,
+      targetsFound: r.found.length,
+      t: Math.round(r.time),
+      landmarks: r.visited.length,
+      score: score.total,
+    });
+  }
 
   const entry: HighScore = {
     score: score.total,
     date: new Date().toISOString(),
-    found: outcome === 'found',
-    target: r.target.name,
+    targets: r.found.length,
     landmarks: r.visited.length,
     seconds: Math.round(r.time),
   };
@@ -153,14 +185,18 @@ function endRun(outcome: 'caught' | 'found' | 'quit') {
     $('hud').hidden = true;
     $('pause-screen').hidden = true;
     $('end-screen').hidden = false;
-    $('end-title').textContent = outcome === 'found' ? 'YOU FOUND IT!' : outcome === 'caught' ? 'CHOMPED!' : 'RUN ENDED';
+    $('end-title').textContent = outcome === 'caught' ? 'CHOMPED!' : 'RUN ENDED';
     $('end-sub').textContent =
-      `The target was ${r.target.name} in ${r.target.neighborhood}: "${r.target.clue}"` +
-      (outcome === 'found' ? ` Found with ${plural(r.hints.length, 'hint')}.` : '');
+      `You found ${plural(r.found.length, 'target')}. ` +
+      `You were hunting ${r.target.name} in ${r.target.neighborhood}: "${r.target.clue}"`;
     $('bd-landmarks').textContent = `${score.landmarks}`;
     $('bd-survival-label').textContent = `Time survived (${formatTime(r.time)})`;
     $('bd-survival').textContent = `${score.survival}`;
-    $('bd-target').textContent = outcome === 'found' ? `${score.target}` : '—';
+    $('bd-target-label').textContent = `Targets found (${r.found.length})`;
+    $('bd-target').textContent = r.found.length ? `${score.target}` : '—';
+    $('end-targets').replaceChildren(
+      ...(r.found.length ? r.found.map((f) => chip(`${f.target.name} +${f.bonus}`)) : [chip('None this time')]),
+    );
     $('bd-total').textContent = `${score.total}`;
     $('end-landmarks').replaceChildren(
       ...(r.visited.length ? r.visited.map((l) => chip(l.name)) : [chip('None this time')]),
@@ -217,20 +253,30 @@ function formatDistance(m: number) {
 
 // --- HUD helpers -------------------------------------------------------------
 
-function showFactCard(name: string, hood: string, fact: string, points: number, hint: string) {
-  $('fact-name').textContent = name;
-  $('fact-hood').textContent = hood;
-  $('fact-text').textContent = fact;
-  $('fact-points').textContent = `+${points}`;
-  $('fact-hint').textContent = ` ${hint}`;
-  const card = $('fact-card');
-  card.hidden = false;
+interface FactCard {
+  eyebrow: string;
+  name: string;
+  text: string;
+  points: number;
+  footLabel: string;
+  footText: string;
+}
+
+function showFactCard(card: FactCard) {
+  $('fact-hood').textContent = card.eyebrow;
+  $('fact-name').textContent = card.name;
+  $('fact-text').textContent = card.text;
+  $('fact-points').textContent = `+${card.points}`;
+  $('fact-foot-label').textContent = card.footLabel;
+  $('fact-hint').textContent = card.footText;
+  const el = $('fact-card');
+  el.hidden = false;
   // Restart the entrance animation.
-  card.style.animation = 'none';
-  void card.offsetWidth;
-  card.style.animation = '';
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
   clearTimeout(factTimer);
-  factTimer = window.setTimeout(() => (card.hidden = true), FACT_CARD_MS);
+  factTimer = window.setTimeout(() => (el.hidden = true), FACT_CARD_MS);
 }
 
 function flashBanner(text: string, ms: number) {
@@ -253,7 +299,7 @@ function renderScores(list: HTMLElement, scores: HighScore[], highlight = -1) {
       const li = document.createElement('li');
       if (i === highlight) li.className = 'new';
       const label = document.createElement('span');
-      label.textContent = `${s.found ? '★ ' : ''}${s.target} · ${formatTime(s.seconds)}`;
+      label.textContent = `${plural(targetsInEntry(s), 'target')} · ${formatTime(s.seconds)}`;
       const b = document.createElement('b');
       b.textContent = String(s.score);
       li.append(label, b);

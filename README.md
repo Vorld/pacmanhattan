@@ -1,6 +1,6 @@
 # Pac-Manhattan
 
-A browser game where you play a ghost fleeing Pac-Man through the real streets of Manhattan. Each run gives you one vague clue about a secret place ("Find the station where the ceiling shows the stars"). Visiting landmarks earns points and hints that narrow the target down. Getting caught ends the run.
+A browser game where you play a ghost fleeing Pac-Man through the real streets of Manhattan. You get a vague clue about a secret place ("Find the station where the ceiling shows the stars"). Find it and the next target appears, with a new clue. Chain as many as you can. Visiting landmarks earns points and hints that narrow the current target down. Getting caught ends the run.
 
 ## Running it
 
@@ -38,13 +38,15 @@ To refresh the data: `npm run data:fetch && npm run data:build`. To edit places,
 
 **Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (52 vs 48 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (62 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
 
-**Map highlighting.** Every walkable street is drawn in blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, Pac-Man and the target, in a 3 km window around you, with the straight-line distance to the target. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
+**Map highlighting.** Every walkable street is drawn in glowing blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, Pac-Man and the target, in a 3 km window around you, with the straight-line distance to the target. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
+
+**Targets chain.** Finding a target banks its bonus, shows a fact about it, and picks the next target: one not yet found this run, 1.5–3.5 km from where you are. Hints reset for each new target. The run only ends when Pac-Man catches you (or you quit).
 
 **Hints** are revealed one per landmark visit in this order: zone → bearing and distance from that landmark (in Manhattan terms: uptown, crosstown east, and so on) → neighborhood → hand-written fact → another bearing → street name → second fact. After that, each visit gives a new bearing.
 
-**Score** = landmark points + 2/s survived + target bonus (1500 − 150 per hint, minimum 300, times 1.0/1.3/1.6 by difficulty).
+**Score** = landmark points + 1 per second survived + a bonus for each target found (1500 − 150 per hint used on that target, minimum 300, times 1.0/1.3/1.6 by difficulty).
 
-**Balance check:** `npm run simulate` runs two bots over 40 seeded runs each. One only flees Pac-Man and survives a median of about 2.5 min. The other races the shortest route to the target, ignoring Pac-Man, and wins 20 of 40 runs (50%), with a median run of about 1 min.
+**Balance check:** `npm run simulate` runs two bots over 40 seeded runs each. One only flees Pac-Man and survives a median of about 2.5 min. The other races the shortest route to each target in turn, ignoring Pac-Man. It finds at least one target in 20 of 40 runs and at most 2 in a run, with a median run of about 70 s. A player who dodges should chain more.
 
 ## Status against the PRD
 
