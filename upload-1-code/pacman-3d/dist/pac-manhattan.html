@@ -1,0 +1,2602 @@
+<title>Pac-Manhattan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;600;800&display=swap">
+<style>
+:root {
+  --ink: #241f3d;
+  --muted: #6e6886;
+  --panel: rgba(255, 255, 255, 0.95);
+  --ghost: #8f74ff;
+  --ghost-deep: #6c4ff0;
+  --chomp: #ffd21f;
+  --star: #ff6b4a;
+  --good: #19a463;
+  --paper: #fbf8f3;
+  --radius: 16px;
+  --shadow: 0 8px 28px rgba(40, 28, 90, 0.18);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #cfe8f7; color: var(--ink);
+  font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+canvas#game, canvas#fx { position: fixed; inset: 0; display: block; width: 100vw; height: 100vh; }
+canvas#fx { pointer-events: none; }
+canvas#game { cursor: crosshair; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.panel { position: fixed; background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); }
+button { font: inherit; border-radius: 12px; border: 1px solid #ddd8ec; background: #fff; color: var(--ink); padding: 10px 16px; cursor: pointer; font-weight: 700; }
+button.primary { background: var(--ghost); border-color: var(--ghost); color: #fff; font-size: 17px; padding: 12px 20px; width: 100%; margin-top: 8px; box-shadow: 0 4px 0 var(--ghost-deep); }
+button.primary:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--ghost-deep); }
+button:hover { filter: brightness(1.04); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--ghost); outline-offset: 2px; }
+button.linkish { background: none; border: 0; color: var(--ghost-deep); padding: 6px 4px; text-decoration: underline; text-underline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- HUD ---------- */
+#task { top: 16px; left: 16px; width: 320px; padding: 14px 16px; }
+.task-top { display: flex; justify-content: space-between; gap: 8px; }
+#borough-label { color: var(--ghost-deep); }
+#task .find { font-size: 13px; color: var(--muted); margin-top: 6px; }
+#task-name { font-size: 22px; font-weight: 800; line-height: 1.15; text-wrap: balance; }
+#task-cat { font-size: 13px; margin-top: 2px; }
+#task.pop { animation: pop .5s ease; }
+@keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+#hints { margin-top: 10px; border-top: 1px solid #eee9f6; padding-top: 8px; display: grid; gap: 6px; }
+.hint { font-size: 13px; line-height: 1.35; }
+.hint.old { color: var(--muted); }
+.hint b { color: var(--good); }
+
+#rightcol { position: fixed; top: 16px; right: 16px; width: 232px; display: grid; gap: 10px;
+  max-height: calc(100vh - 16px - 260px - 16px - 16px); grid-template-rows: auto minmax(0, 1fr); }
+#rightcol .panel { position: relative; }
+#scorebox { padding: 10px 16px; text-align: right; }
+#score { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+button.icon { position: absolute; left: 8px; top: 8px; border: 0; background: none; font-size: 16px; cursor: pointer; padding: 4px; }
+
+#passport { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+#passport.bump { animation: pop .45s ease; }
+.pp-head { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "t c" "n c"; text-align: left; border: 0; background: none; padding: 10px 14px 8px; border-radius: var(--radius) var(--radius) 0 0; }
+.pp-title { grid-area: t; font-family: Bungee, "DM Sans", system-ui, sans-serif; font-weight: 400; font-size: 15px; color: var(--ghost-deep); }
+#passport-count { grid-area: n; font-weight: 600; }
+.pp-caret { grid-area: c; align-self: center; font-size: 14px; color: var(--muted); transition: transform .2s; }
+#passport.collapsed .pp-caret { transform: rotate(-90deg); }
+#passport.collapsed #passport-list { display: none; }
+#passport-list { overflow-y: auto; padding: 0 8px 8px; display: grid; gap: 4px; align-content: start; }
+.pp-empty { padding: 4px 6px 6px; line-height: 1.4; }
+.pp-item { display: grid; grid-template-columns: 38px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 5px 6px; border: 0; border-radius: 10px; background: transparent; font-weight: 600; font-size: 13px; }
+.pp-item:hover { background: #f3efff; }
+.pp-item img, .pp-noimg { grid-row: span 2; width: 38px; height: 38px; border-radius: 9px; object-fit: cover; display: grid; place-items: center; background: #efeaff; color: var(--ghost-deep); font-size: 16px; }
+.pp-name { line-height: 1.2; }
+.pp-tag { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--star); }
+.pp-tag.found { color: var(--good); }
+
+#minimap { right: 16px; bottom: 16px; width: 232px; height: 260px; }
+#here { position: fixed; left: 0; top: 0; pointer-events: none; display: flex; align-items: center; gap: 6px;
+  background: rgba(36, 31, 61, 0.88); color: #fff; padding: 6px 12px 6px 8px; border-radius: 999px; font-weight: 700; font-size: 13px;
+  white-space: nowrap; box-shadow: 0 4px 14px rgba(36, 31, 61, 0.25); will-change: transform; }
+#here::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); border: 6px solid transparent; border-bottom: 0; border-top-color: rgba(36, 31, 61, 0.88); }
+.here-pin { width: 10px; height: 10px; border-radius: 50%; background: var(--ghost); box-shadow: 0 0 0 3px rgba(143, 116, 255, 0.35); }
+#toasts { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: min(440px, calc(100vw - 640px)); min-width: 280px; display: grid; gap: 8px; pointer-events: none; }
+.toast { background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); padding: 10px 14px; border-left: 5px solid var(--ghost); animation: slidein .3s ease; transition: opacity .4s, transform .4s; }
+.toast.found { border-left-color: var(--good); }
+.toast.warn { border-left-color: #ff8fb1; }
+.toast.out { opacity: 0; transform: translateY(-8px); }
+.t-title { font-weight: 800; font-size: 15px; }
+.t-body { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.t-hint { font-size: 13px; margin-top: 4px; color: var(--good); font-weight: 600; }
+@keyframes slidein { from { opacity: 0; transform: translateY(-10px); } }
+#start-hint { position: fixed; left: 50%; top: 62%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 700; animation: pulse 1.4s infinite; max-width: calc(100vw - 32px); text-align: center; }
+@keyframes pulse { 50% { opacity: .6; } }
+
+/* ---------- screens ---------- */
+.screen { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(40, 28, 90, 0.42); backdrop-filter: blur(3px); padding: 16px; overflow: auto; }
+.card { background: #fff; border-radius: 22px; box-shadow: var(--shadow); padding: 28px 32px; width: min(520px, 100%); }
+.card.narrow { width: min(340px, 100%); display: grid; gap: 10px; text-align: center; }
+.card.wide { width: min(880px, 100%); }
+h1 { margin: 0 0 6px; font-family: Bungee, "DM Sans", system-ui, sans-serif; font-size: clamp(34px, 6vw, 56px); font-weight: 400; line-height: 1.02; text-wrap: balance; }
+h1 span { color: var(--ghost); }
+h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; font-weight: 400; font-size: 28px; }
+.tag { margin: 0; font-size: 17px; color: var(--muted); max-width: 60ch; }
+.how { padding-left: 20px; margin: 0 0 10px; line-height: 1.55; font-size: 15px; }
+
+/* lobby */
+#lobby { background:
+  radial-gradient(circle at 12% 18%, rgba(255, 210, 31, 0.35) 0 120px, transparent 121px),
+  radial-gradient(circle at 88% 82%, rgba(255, 143, 177, 0.35) 0 150px, transparent 151px),
+  radial-gradient(circle at 80% 12%, rgba(111, 214, 192, 0.35) 0 90px, transparent 91px),
+  linear-gradient(160deg, #e9e2ff, #d5ecfa 60%, #fdeede);
+  backdrop-filter: none; place-items: start center; }
+.lobby { width: min(1120px, 100%); padding-block: 28px 40px; display: grid; gap: 22px; }
+.lobby-head { display: grid; gap: 6px; }
+.borough-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.borough:first-child { grid-column: span 2; }
+@media (max-width: 900px) { .borough-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .borough-grid { grid-template-columns: 1fr; } .borough:first-child { grid-column: auto; } }
+.borough { display: grid; grid-template-rows: auto 1fr; padding: 0; overflow: hidden; text-align: left; border: 0; border-radius: 20px; background: #fff;
+  box-shadow: 0 6px 0 #d8cff5, var(--shadow); transition: transform .15s ease, box-shadow .15s ease; }
+.borough:hover { transform: translateY(-4px); box-shadow: 0 10px 0 #cbbff5, var(--shadow); filter: none; }
+.borough img { width: 100%; height: 200px; object-fit: cover; display: block; background: #9fd3ea; max-width: 100%; }
+.b-body { padding: 14px 16px 16px; display: grid; gap: 6px; align-content: start; }
+.b-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.b-name { font-family: Bungee, "DM Sans", system-ui, sans-serif; font-weight: 400; font-size: 20px; color: var(--ink); }
+.b-area { font-size: 14px; color: var(--muted); line-height: 1.35; }
+.b-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.b-stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.chip { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; }
+.chip.easy { background: #dff6ea; color: #137a49; }
+.chip.medium { background: #fff1c9; color: #8a6200; }
+.chip.hard { background: #ffe0e7; color: #b3264a; }
+.lobby-foot { display: grid; justify-items: start; gap: 6px; }
+.howto { background: rgba(255, 255, 255, 0.85); border-radius: 16px; padding: 14px 18px; max-width: 70ch; }
+
+/* loading */
+.bar { height: 12px; border-radius: 999px; background: #eee9fb; overflow: hidden; }
+#load-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--ghost), #ff8fb1); border-radius: 999px; transition: width .3s ease; }
+
+/* place card */
+.place-card { width: min(760px, 100%); padding: 0; overflow: hidden; }
+#card-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+#card-body figure { margin: 0; background: var(--ink); display: flex; flex-direction: column; }
+#card-body figure img { width: 100%; height: 100%; max-height: 420px; object-fit: cover; display: block; flex: 1; }
+#card-body figcaption { font-size: 11px; color: #d6d1ea; padding: 6px 10px; }
+#card-body figcaption a { color: inherit; }
+.noimg { display: grid; place-items: center; background: linear-gradient(135deg, var(--ghost), #ff8fb1); color: #fff; font-size: 26px; font-weight: 800; padding: 24px; text-align: center; min-height: 240px; }
+.card-text { padding: 22px 24px 8px; display: grid; gap: 10px; align-content: start; }
+.card-text h2 { margin: 0; font-size: 26px; line-height: 1.1; text-wrap: balance; }
+.eyebrow.landmark { color: var(--star); }
+.eyebrow.found { color: var(--good); }
+.eyebrow.revisit { color: var(--ghost-deep); }
+.fact { font-size: 15px; line-height: 1.45; }
+.about { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.card-hint { background: #e6f7ee; border-radius: 12px; padding: 10px 12px; color: #0d5e33; font-size: 14px; line-height: 1.4; }
+.links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; font-weight: 700; }
+.links a { color: var(--ghost-deep); }
+.place-card > button.primary { width: calc(100% - 48px); margin: 8px 24px 22px; }
+
+/* game over */
+.scores-title { margin-top: 18px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.scores table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 4px; }
+.scores td { padding: 3px 4px; border-bottom: 1px solid #f0edf7; }
+.scores td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scores tr.me td { background: #efeaff; font-weight: 800; }
+.over-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 24px; }
+.over-btns { display: grid; gap: 8px; margin-top: 8px; }
+.big { font-size: 48px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 16px; margin: 6px 0 8px; }
+#over-borough { color: var(--ghost-deep); }
+#route { width: 100%; height: 420px; border-radius: 14px; background: #9fd3ea; }
+#save-row { display: flex; gap: 8px; margin: 10px 0; }
+#initials { width: 90px; font: inherit; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: .2em; padding: 8px; border: 2px solid var(--ghost); border-radius: 12px; text-align: center; }
+#credits { position: fixed; left: 8px; bottom: 4px; font-size: 11px; color: #3c3a50; opacity: .8; }
+#credits a { color: inherit; }
+
+@media (max-width: 760px) {
+  .over-grid, #card-body { grid-template-columns: 1fr; }
+  #route { height: 260px; }
+  #card-body figure img { max-height: 220px; }
+  #task { width: calc(100vw - 180px); }
+  #rightcol { width: 140px; }
+  #toasts { top: auto; bottom: 90px; width: calc(100vw - 32px); min-width: 0; }
+  #minimap { width: 140px; height: 170px; }
+}
+</style>
+
+<canvas id="game"></canvas>
+<canvas id="fx"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="task" class="panel">
+    <div class="task-top"><span id="task-num" class="eyebrow">Task 1</span><span id="borough-label" class="eyebrow"></span></div>
+    <div class="find">Find</div>
+    <div id="task-name">…</div>
+    <div id="task-cat" class="muted"></div>
+    <div id="hints"></div>
+  </div>
+  <div id="rightcol">
+    <div id="scorebox" class="panel">
+      <button id="btn-mute" class="icon" title="Mute (M)">🔊</button>
+      <div>
+        <div class="eyebrow">Score</div>
+        <div id="score">0</div>
+        <div id="chomper-count" class="small muted">1 chomper</div>
+      </div>
+    </div>
+    <div id="passport" class="panel">
+      <button id="passport-toggle" class="pp-head" title="Show or hide your Passport">
+        <span class="pp-title">Passport</span>
+        <span id="passport-count" class="small muted"></span>
+        <span class="pp-caret">▾</span>
+      </button>
+      <div id="passport-list"></div>
+    </div>
+  </div>
+  <canvas id="minimap" class="panel"></canvas>
+  <div id="toasts"></div>
+  <div id="here" class="hidden"><span class="here-pin"></span><span id="here-text"></span></div>
+  <div id="start-hint" class="hidden">Point your cursor where you want to go and click, or press an arrow key</div>
+</div>
+
+<div id="lobby" class="screen">
+  <div class="lobby">
+    <header class="lobby-head">
+      <h1>Pac-<span>Manhattan</span></h1>
+      <p class="tag">You're the ghost now. Pick a borough, find famous places, and stay away from the chompers.</p>
+    </header>
+    <div id="boroughs" class="borough-grid"></div>
+    <div class="lobby-foot">
+      <button id="btn-howto" class="linkish">How to play</button>
+      <div id="howto" class="howto hidden">
+        <ol class="how">
+          <li><b>Move</b> by pointing your cursor where you want to go, or use the arrow keys / WASD. You stay on real streets.</li>
+          <li><b>Find the place</b> named in your task. It glows gold under a beam of light once it's in view.</li>
+          <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint. Each one goes in your Passport so you can look at it again.</li>
+          <li><b>Don't get chomped.</b> A new chomper joins after every task, up to three, and each has its own way of hunting.</li>
+        </ol>
+        <p class="muted small">P to pause, M to mute. In Manhattan, up is uptown.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loadscreen" class="screen hidden">
+  <div class="card narrow">
+    <h2 id="load-title">Loading</h2>
+    <div class="bar"><div id="load-bar"></div></div>
+    <div id="load-msg" class="small muted"></div>
+  </div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <div class="card narrow">
+    <h2>Paused</h2>
+    <button id="btn-resume" class="primary">Resume</button>
+    <button id="btn-menu">Back to the lobby</button>
+  </div>
+</div>
+
+<div id="card" class="screen hidden">
+  <div class="card place-card">
+    <div id="card-body"></div>
+    <button id="btn-card" class="primary">Keep running (Space)</button>
+  </div>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="card wide">
+    <h2>Chomped!</h2>
+    <div class="over-grid">
+      <div>
+        <div class="eyebrow" id="over-borough"></div>
+        <div class="eyebrow">Final score</div>
+        <div id="over-score" class="big">0</div>
+        <div id="over-stats" class="stats"></div>
+        <p id="over-target" class="muted small"></p>
+        <div id="save-row" class="hidden">
+          <input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false">
+          <button id="btn-save">Save score</button>
+        </div>
+        <div class="scores-title">High scores</div>
+        <div id="over-scores" class="scores"></div>
+        <div class="over-btns">
+          <button id="btn-again" class="primary">Run again</button>
+          <button id="btn-lobby">Pick another borough</button>
+        </div>
+      </div>
+      <canvas id="route"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="credits">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+// Street graph: movement, nearest-point lookup, and pathfinding.
+(function () {
+  const PM = (window.PM = window.PM || {});
+
+  class Graph {
+    constructor(data) {
+      const n = data.nodes.length;
+      this.nx = new Float32Array(n);
+      this.ny = new Float32Array(n);
+      this.adj = Array.from({ length: n }, () => []);
+      data.nodes.forEach((p, i) => { this.nx[i] = p[0]; this.ny[i] = p[1]; });
+      this.edges = data.edges.map((e, id) => {
+        const pts = [[this.nx[e.a], this.ny[e.a]], ...e.p, [this.nx[e.b], this.ny[e.b]]];
+        const cum = [0];
+        for (let i = 1; i < pts.length; i++) {
+          cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+        }
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+        const edge = { id, a: e.a, b: e.b, pts, cum, len: cum[cum.length - 1], name: e.n || '', cls: e.c || 0, bbox: [x0, y0, x1, y1] };
+        this.adj[e.a].push(edge);
+        if (e.b !== e.a) this.adj[e.b].push(edge);
+        return edge;
+      });
+      // spatial index of edges
+      this.cell = 150;
+      this.grid = new Map();
+      for (const e of this.edges) {
+        const [x0, y0, x1, y1] = e.bbox;
+        for (let gx = Math.floor(x0 / this.cell); gx <= Math.floor(x1 / this.cell); gx++)
+          for (let gy = Math.floor(y0 / this.cell); gy <= Math.floor(y1 / this.cell); gy++) {
+            const k = gx + ',' + gy;
+            if (!this.grid.has(k)) this.grid.set(k, []);
+            this.grid.get(k).push(e);
+          }
+      }
+    }
+
+    edgesIn(x0, y0, x1, y1) {
+      const out = new Set();
+      for (let gx = Math.floor(x0 / this.cell); gx <= Math.floor(x1 / this.cell); gx++)
+        for (let gy = Math.floor(y0 / this.cell); gy <= Math.floor(y1 / this.cell); gy++) {
+          const l = this.grid.get(gx + ',' + gy);
+          if (l) for (const e of l) out.add(e);
+        }
+      return out;
+    }
+
+    // point on edge at distance s from node a
+    pointAt(e, s) {
+      const { pts, cum } = e;
+      s = Math.max(0, Math.min(e.len, s));
+      let i = 1;
+      while (i < cum.length - 1 && cum[i] < s) i++;
+      const seg = cum[i] - cum[i - 1] || 1;
+      const t = (s - cum[i - 1]) / seg;
+      return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
+    }
+
+    // unit heading when moving along e at s in direction dir (+1 toward b, -1 toward a)
+    headingAt(e, s, dir) {
+      const d = 6;
+      const p = this.pointAt(e, s - d * dir * 0.5);
+      const q = this.pointAt(e, s + d * dir * 0.5);
+      const L = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+      return [(q[0] - p[0]) / L, (q[1] - p[1]) / L];
+    }
+
+    // heading leaving node n along edge e (looks ~18 m in)
+    outHeading(e, n) {
+      const fromA = e.a === n;
+      const s0 = fromA ? 0 : e.len;
+      const look = Math.min(18, e.len);
+      const p = this.pointAt(e, s0);
+      const q = this.pointAt(e, fromA ? look : e.len - look);
+      const L = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+      return [(q[0] - p[0]) / L, (q[1] - p[1]) / L];
+    }
+
+    nearest(x, y, maxR = 400) {
+      let best = null, bd = Infinity;
+      for (let r = 50; r <= maxR && !best; r *= 2) {
+        for (const e of this.edgesIn(x - r, y - r, x + r, y + r)) {
+          const { pts, cum } = e;
+          for (let i = 1; i < pts.length; i++) {
+            const [ax, ay] = pts[i - 1], [bx, by] = pts[i];
+            const dx = bx - ax, dy = by - ay;
+            const L2 = dx * dx + dy * dy || 1;
+            let t = ((x - ax) * dx + (y - ay) * dy) / L2;
+            t = Math.max(0, Math.min(1, t));
+            const px = ax + dx * t, py = ay + dy * t;
+            const d = Math.hypot(x - px, y - py);
+            if (d < bd) { bd = d; best = { e, s: cum[i - 1] + t * (cum[i] - cum[i - 1]), x: px, y: py, d }; }
+          }
+        }
+      }
+      return best;
+    }
+
+    other(e, n) { return e.a === n ? e.b : e.a; }
+
+    // Dijkstra from a position; returns Float32Array of distances (to maxD)
+    distancesFrom(pos, maxD = Infinity) {
+      const n = this.nx.length;
+      const dist = new Float64Array(n).fill(Infinity);
+      const heap = new Heap();
+      const push = (node, d) => { if (d < dist[node]) { dist[node] = d; heap.push(d, node); } };
+      push(pos.e.a, pos.s);
+      push(pos.e.b, pos.e.len - pos.s);
+      while (heap.size) {
+        const [d, u] = heap.pop();
+        if (d > dist[u] || d > maxD) continue;
+        for (const e of this.adj[u]) push(this.other(e, u), d + e.len);
+      }
+      return dist;
+    }
+
+    // A* between two positions; returns {dist, nodes:[...]} path of nodes to walk through (from start)
+    path(from, to) {
+      if (from.e === to.e) return { dist: Math.abs(from.s - to.s), nodes: [] };
+      const n = this.nx.length;
+      const g = new Map(), prev = new Map();
+      const tx = this.pointAt(to.e, to.s);
+      const h = (u) => Math.hypot(this.nx[u] - tx[0], this.ny[u] - tx[1]);
+      const goal = new Map([[to.e.a, to.s], [to.e.b, to.e.len - to.s]]);
+      const heap = new Heap();
+      const start = [[from.e.a, from.s], [from.e.b, from.e.len - from.s]];
+      for (const [u, d] of start) { if (!g.has(u) || d < g.get(u)) { g.set(u, d); prev.set(u, -1); heap.push(d + h(u), u); } }
+      let bestEnd = -1, bestCost = Infinity;
+      const closed = new Set();
+      let iter = 0;
+      while (heap.size && iter++ < 60000) {
+        const [f, u] = heap.pop();
+        if (closed.has(u)) continue;
+        closed.add(u);
+        const gu = g.get(u);
+        if (f >= bestCost) break;
+        if (goal.has(u)) {
+          const c = gu + goal.get(u);
+          if (c < bestCost) { bestCost = c; bestEnd = u; }
+        }
+        for (const e of this.adj[u]) {
+          const v = this.other(e, u);
+          const nd = gu + e.len;
+          if (!g.has(v) || nd < g.get(v)) { g.set(v, nd); prev.set(v, u); heap.push(nd + h(v), v); }
+        }
+      }
+      if (bestEnd < 0) return null;
+      const nodes = [];
+      for (let u = bestEnd; u !== -1; u = prev.get(u)) nodes.push(u);
+      nodes.reverse();
+      return { dist: bestCost, nodes };
+    }
+
+    edgeBetween(u, v) {
+      let best = null;
+      for (const e of this.adj[u]) if (this.other(e, u) === v && (!best || e.len < best.len)) best = e;
+      return best;
+    }
+  }
+
+  class Heap {
+    constructor() { this.k = []; this.v = []; }
+    get size() { return this.k.length; }
+    push(k, v) {
+      const K = this.k, V = this.v; let i = K.length; K.push(k); V.push(v);
+      while (i > 0) { const p = (i - 1) >> 1; if (K[p] <= k) break; K[i] = K[p]; V[i] = V[p]; i = p; }
+      K[i] = k; V[i] = v;
+    }
+    pop() {
+      const K = this.k, V = this.v; const rk = K[0], rv = V[0];
+      const lk = K.pop(), lv = V.pop();
+      if (K.length) {
+        let i = 0; const n = K.length;
+        while (true) {
+          let c = 2 * i + 1; if (c >= n) break;
+          if (c + 1 < n && K[c + 1] < K[c]) c++;
+          if (K[c] >= lk) break;
+          K[i] = K[c]; V[i] = V[c]; i = c;
+        }
+        K[i] = lk; V[i] = lv;
+      }
+      return [rk, rv];
+    }
+  }
+
+  PM.Graph = Graph;
+})();
+
+</script>
+<script>
+// 2D map painter used for ground textures (land, parks, water, streets) and the minimap.
+(function () {
+  const PM = (window.PM = window.PM || {});
+
+  const COLORS = {
+    water: '#9fd3ea',
+    land: '#f4efe6',
+    shore: '#e2dbd0',
+    park: '#bfe6b0',
+    parkEdge: '#a8d898',
+    plaza: '#e2dccf',
+    streetCase: '#c9c1b3',
+    street: '#fbf9f4',
+    major: '#fff6dc',
+    path: '#efe7d2',
+    pathCase: '#a8c795',
+  };
+  // street widths (m) by class: 0 park path, 1 pedestrian, 2 local, 3 major
+  const WIDTH = [4, 7, 11, 16];
+
+  class TilePainter {
+    constructor(data, graph) {
+      this.data = data;
+      this.graph = graph;
+      this.C = 250;
+      this.gGrid = this.index(data.green);
+      this.wGrid = this.index(data.water);
+    }
+
+    index(polys) {
+      const grid = new Map(), C = this.C;
+      polys.forEach((p, i) => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (let j = 0; j < p.length; j += 2) {
+          x0 = Math.min(x0, p[j]); x1 = Math.max(x1, p[j]); y0 = Math.min(y0, p[j + 1]); y1 = Math.max(y1, p[j + 1]);
+        }
+        for (let gx = Math.floor(x0 / C); gx <= Math.floor(x1 / C); gx++)
+          for (let gy = Math.floor(y0 / C); gy <= Math.floor(y1 / C); gy++) {
+            const k = gx + ',' + gy;
+            if (!grid.has(k)) grid.set(k, []);
+            grid.get(k).push(i);
+          }
+      });
+      return grid;
+    }
+
+    query(grid, x0, y0, x1, y1) {
+      const out = new Set(), C = this.C;
+      for (let gx = Math.floor(x0 / C); gx <= Math.floor(x1 / C); gx++)
+        for (let gy = Math.floor(y0 / C); gy <= Math.floor(y1 / C); gy++)
+          for (const i of grid.get(gx + ',' + gy) || []) out.add(i);
+      return out;
+    }
+
+    // paint the square [ox, ox+M] x [oy, oy+M] (metres) onto a new canvas of px x px
+    paint(ox, oy, M, px, detail = true) {
+      const S = px / M;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = px;
+      const g = cv.getContext('2d');
+      g.setTransform(S, 0, 0, S, -ox * S, -oy * S);
+      g.lineJoin = 'round'; g.lineCap = 'round';
+      g.fillStyle = COLORS.water;
+      g.fillRect(ox, oy, M, M);
+      g.fillStyle = COLORS.shore;
+      for (const r of this.data.mainland) { this.poly(g, r); g.fill(); }
+      g.fillStyle = COLORS.land;
+      for (const r of this.data.islands) { this.poly(g, r); g.fill(); }
+      const x1 = ox + M, y1 = oy + M;
+      g.fillStyle = COLORS.park; g.strokeStyle = COLORS.parkEdge; g.lineWidth = Math.max(1 / S, 1);
+      for (const i of this.query(this.gGrid, ox, oy, x1, y1)) { this.flat(g, this.data.green[i]); g.fill(); if (detail) g.stroke(); }
+      g.fillStyle = COLORS.water;
+      for (const i of this.query(this.wGrid, ox, oy, x1, y1)) { this.flat(g, this.data.water[i]); g.fill(); }
+      const edges = [...this.graph.edgesIn(ox - 20, oy - 20, x1 + 20, y1 + 20)].sort((a, b) => a.cls - b.cls);
+      const minW = 1.2 / S;
+      for (const pass of detail ? [0, 1] : [1]) {
+        for (const e of edges) {
+          if (!detail && e.cls === 0) continue;
+          const w = Math.max(minW, WIDTH[e.cls]);
+          g.lineWidth = pass === 0 ? w + 3 : w;
+          g.strokeStyle = pass === 0 ? (e.cls === 0 ? COLORS.pathCase : COLORS.streetCase)
+            : (e.cls === 0 ? COLORS.path : e.cls === 3 ? COLORS.major : COLORS.street);
+          g.beginPath();
+          g.moveTo(e.pts[0][0], e.pts[0][1]);
+          for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]);
+          g.stroke();
+        }
+      }
+      return cv;
+    }
+
+    poly(g, r) {
+      g.beginPath();
+      g.moveTo(r[0][0], r[0][1]);
+      for (let i = 1; i < r.length; i++) g.lineTo(r[i][0], r[i][1]);
+      g.closePath();
+    }
+
+    flat(g, p) {
+      g.beginPath();
+      g.moveTo(p[0], p[1]);
+      for (let j = 2; j < p.length; j += 2) g.lineTo(p[j], p[j + 1]);
+      g.closePath();
+    }
+  }
+
+  PM.TilePainter = TilePainter;
+  PM.COLORS = COLORS;
+})();
+
+</script>
+<script>
+// 3D characters in a soft toon style: the player's ghost, the chompers (original designs), and helpers.
+(function () {
+  const PM = (window.PM = window.PM || {});
+  const T = window.THREE;
+
+  // 3-step toon ramp shared by every toon material
+  let RAMP = null;
+  function ramp() {
+    if (RAMP) return RAMP;
+    const d = new Uint8Array([90, 90, 90, 255, 175, 175, 175, 255, 255, 255, 255, 255]);
+    RAMP = new T.DataTexture(d, 3, 1, T.RGBAFormat);
+    RAMP.minFilter = RAMP.magFilter = T.NearestFilter;
+    RAMP.needsUpdate = true;
+    return RAMP;
+  }
+  PM.toonRamp = ramp;
+  const toon = (color, extra = {}) => new T.MeshToonMaterial({ color, gradientMap: ramp(), ...extra });
+  const OUTLINE = new T.MeshBasicMaterial({ color: '#2a2140', side: T.BackSide });
+
+  // inverted-hull outline for a mesh
+  function outline(mesh, k = 1.07) {
+    const o = new T.Mesh(mesh.geometry, OUTLINE);
+    o.scale.setScalar(k);
+    mesh.add(o);
+    return o;
+  }
+
+  function eye(r, pupilColor) {
+    const g = new T.Group();
+    const white = new T.Mesh(new T.SphereGeometry(r, 24, 16), toon('#ffffff'));
+    white.scale.set(1, 1.18, 0.7);
+    const pupil = new T.Mesh(new T.SphereGeometry(r * 0.58, 20, 12), toon(pupilColor));
+    pupil.scale.set(1, 1.18, 0.6);
+    pupil.position.z = r * 0.45;
+    const shine = new T.Mesh(new T.SphereGeometry(r * 0.2, 10, 8), new T.MeshBasicMaterial({ color: '#ffffff' }));
+    shine.position.set(r * 0.22, r * 0.3, r * 0.82);
+    const shine2 = new T.Mesh(new T.SphereGeometry(r * 0.1, 8, 6), new T.MeshBasicMaterial({ color: '#ffffff' }));
+    shine2.position.set(-r * 0.2, -r * 0.18, r * 0.84);
+    g.add(white, pupil, shine, shine2);
+    outline(white, 1.1);
+    g.userData = { pupil, white };
+    return g;
+  }
+
+  function blush(r) {
+    const m = new T.Mesh(new T.CircleGeometry(r, 20), new T.MeshBasicMaterial({ color: '#ff8fae', transparent: true, opacity: 0.75, depthWrite: false }));
+    return m;
+  }
+
+  class Ghost3D {
+    constructor(scene, color = '#8f74ff') {
+      const root = (this.group = new T.Group());
+      const body = (this.body = new T.Group());
+      root.add(body);
+      const R = 12;
+      this.baseColor = new T.Color(color);
+      this.mat = toon(color);
+      const head = new T.Mesh(new T.SphereGeometry(R, 32, 20), this.mat);
+      head.position.y = 14; head.scale.set(1, 0.95, 1);
+      const trunk = new T.Mesh(new T.CylinderGeometry(R, R * 1.05, 12, 32, 1, true), this.mat);
+      trunk.position.y = 8;
+      outline(head); outline(trunk, 1.06);
+      body.add(head, trunk);
+      // scalloped hem: a ring of soft bumps
+      this.bumps = [];
+      const bumpGeo = new T.SphereGeometry(R * 0.36, 16, 10);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const b = new T.Mesh(bumpGeo, this.mat);
+        b.position.set(Math.cos(a) * R * 0.8, 2.2, Math.sin(a) * R * 0.8);
+        outline(b, 1.12);
+        body.add(b); this.bumps.push(b);
+      }
+      // face
+      const face = (this.face = new T.Group());
+      face.position.set(0, 14, R * 0.8);
+      this.eyes = [eye(3.6, '#2b2a6e'), eye(3.6, '#2b2a6e')];
+      this.eyes[0].position.set(-4.4, 1.5, 0); this.eyes[1].position.set(4.4, 1.5, 0);
+      const bl = blush(2.1), br = blush(2.1);
+      bl.position.set(-7.6, -2.6, 1.4); br.position.set(7.6, -2.6, 1.4);
+      bl.rotation.y = -0.45; br.rotation.y = 0.45;
+      // smile (half torus) and scared "o" mouth
+      this.smile = new T.Mesh(new T.TorusGeometry(1.8, 0.5, 8, 16, Math.PI), toon('#2a2140'));
+      this.smile.rotation.z = Math.PI; this.smile.position.set(0, -3.2, 1.6);
+      this.oMouth = new T.Mesh(new T.SphereGeometry(1.6, 12, 10), toon('#5a1030'));
+      this.oMouth.scale.set(1, 1.3, 0.5); this.oMouth.position.set(0, -3.8, 1.2); this.oMouth.visible = false;
+      face.add(...this.eyes, bl, br, this.smile, this.oMouth);
+      body.add(face);
+      root.traverse((o) => { if (o.isMesh && o.material !== OUTLINE) o.castShadow = true; });
+      scene.add(root);
+      this.yaw = 0; this.lean = 0;
+    }
+    setColor(c) { this.baseColor.set(c); }
+    update(x, z, heading, t, scared, moving) {
+      const g = this.group;
+      g.position.set(x, 5 + Math.sin(t * 5) * 1.6, z);
+      // face the camera like a classic ghost; turn a little toward sideways moves; eyes look where we go
+      const hx = heading ? heading[0] : 0, hz = heading ? heading[1] : 0;
+      const targetYaw = Math.max(-0.7, Math.min(0.7, hx * 0.7));
+      this.yaw += (targetYaw - this.yaw) * 0.15;
+      this.lean += ((moving ? -hx * 0.18 : 0) - this.lean) * 0.15;
+      this.look = this.look || [0, 0];
+      this.look[0] += (hx * 1.3 - this.look[0]) * 0.25;
+      this.look[1] += (-hz * 1.2 - this.look[1]) * 0.25;
+      g.rotation.y = this.yaw;
+      this.body.rotation.z = this.lean;
+      this.body.rotation.x = moving ? hz * 0.12 : 0;
+      // squash & stretch
+      const s = Math.sin(t * 10) * (moving ? 0.06 : 0.03);
+      this.body.scale.set(1 - s * 0.6, 1 + s, 1 - s * 0.6);
+      this.bumps.forEach((b, i) => { b.position.y = 2.2 + Math.sin(t * 12 + i * 0.9) * 1.1; });
+      const flash = scared && Math.floor(t * 7) % 2;
+      this.mat.color.copy(scared ? new T.Color(flash ? '#ffffff' : '#6f8cff') : this.baseColor);
+      this.smile.visible = !scared; this.oMouth.visible = scared;
+      const blink = (t % 3.7) < 0.12 ? 0.15 : 1;
+      this.eyes.forEach((e) => { e.scale.y = blink; e.userData.pupil.position.x = this.look[0]; e.userData.pupil.position.y = this.look[1]; });
+    }
+  }
+
+  class Chomper3D {
+    constructor(scene, color = '#ffd21f', label = '') {
+      const g = (this.group = new T.Group());
+      const R = 13;
+      this.R = R;
+      this.mat = toon(color);
+      const mouthMat = toon('#7a1f35', { side: T.DoubleSide });
+      const jaw = (up) => {
+        const j = new T.Group();
+        const shell = new T.Mesh(new T.SphereGeometry(R, 36, 18, 0, Math.PI * 2, up ? 0 : Math.PI / 2, Math.PI / 2), this.mat);
+        const ol = new T.Mesh(shell.geometry, new T.MeshBasicMaterial({ color: '#2a2140', side: T.BackSide }));
+        ol.scale.setScalar(1.07); shell.add(ol);
+        const inner = new T.Mesh(new T.CircleGeometry(R * 0.99, 36), mouthMat);
+        inner.rotation.x = up ? Math.PI / 2 : -Math.PI / 2;
+        j.add(shell, inner);
+        const toothGeo = new T.ConeGeometry(1.6, 3, 6);
+        if (up) toothGeo.rotateX(Math.PI);
+        for (const a of [-0.35, 0.35]) {
+          const tt = new T.Mesh(toothGeo, toon('#ffffff'));
+          tt.position.set(Math.sin(a) * R * 0.82, up ? -1.3 : 1.3, Math.cos(a) * R * 0.82);
+          j.add(tt);
+        }
+        if (!up) {
+          const tongue = new T.Mesh(new T.SphereGeometry(R * 0.45, 16, 10), toon('#ff7a9a'));
+          tongue.scale.set(1, 0.25, 1.1); tongue.position.set(0, 0.6, R * 0.25);
+          j.add(tongue);
+        }
+        return j;
+      };
+      this.upper = jaw(true); this.lower = jaw(false);
+      const bodyG = (this.bodyG = new T.Group());
+      bodyG.add(this.upper, this.lower);
+      g.add(bodyG);
+      // big cute eyes with a cross little brow
+      this.eyes = [];
+      for (const s of [-1, 1]) {
+        const e = eye(3.4, '#1a1a2e');
+        e.position.set(s * 5.2, R * 0.55, R * 0.74);
+        e.rotation.y = s * 0.3;
+        this.upper.add(e); this.eyes.push(e);
+        const brow = new T.Mesh(new T.CapsuleGeometry(0.8, 4.2, 4, 8), toon('#2a2140'));
+        brow.position.set(s * 5, R * 0.86, R * 0.52);
+        brow.rotation.z = Math.PI / 2 + s * 0.4;
+        brow.rotation.x = -0.5;
+        this.upper.add(brow);
+        const b = blush(2.2);
+        b.position.set(s * 9, R * 0.28, R * 0.8);
+        b.rotation.y = s * 0.7;
+        this.upper.add(b);
+      }
+      g.traverse((o) => { if (o.isMesh && o.material.side !== T.BackSide) o.castShadow = true; });
+      this.ring = new T.Mesh(new T.RingGeometry(R * 1.2, R * 1.6, 40), new T.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false }));
+      this.ring.rotation.x = -Math.PI / 2;
+      scene.add(this.ring);
+      scene.add(g);
+      this.yaw = 0;
+    }
+    setVisible(v) { this.group.visible = v; this.ring.visible = v; }
+    update(x, z, heading, open, t, spawnFx, excited) {
+      const g = this.group;
+      const hop = Math.abs(Math.sin(t * 7)) * 3;
+      g.position.set(x, this.R + 1 + hop, z);
+      if (heading && (heading[0] || heading[1])) {
+        const target = Math.atan2(heading[0], heading[1]);
+        let d = target - this.yaw;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        this.yaw += d * 0.3;
+      }
+      g.rotation.y = this.yaw;
+      const a = 0.06 + open * (excited ? 0.7 : 0.5);
+      this.upper.rotation.x = -a; this.lower.rotation.x = a;
+      const sq = 1 - hop * 0.012;
+      this.bodyG.scale.set(1 / sq, sq, 1 / sq);
+      g.scale.setScalar(spawnFx > 0 ? Math.max(0.05, 1 - spawnFx * 0.9) : 1);
+      this.ring.position.set(x, 0.8, z);
+      this.ring.material.opacity = spawnFx > 0 ? Math.min(1, spawnFx) : 0;
+      this.ring.scale.setScalar(1 + spawnFx * 3);
+      const blink = (t % 4.3) < 0.1 ? 0.15 : 1;
+      this.eyes.forEach((e) => { e.scale.y = blink; });
+    }
+  }
+
+  // Always-visible "you are here" bubble around the ghost
+  class Bubble3D {
+    constructor(scene) {
+      const mk = (r0, r1, op) => new T.Mesh(new T.RingGeometry(r0, r1, 56), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: op, depthTest: false, depthWrite: false, side: T.DoubleSide }));
+      this.ring = mk(22, 27, 0.95);
+      this.pulse = mk(27, 30, 0.6);
+      this.disc = new T.Mesh(new T.CircleGeometry(22, 48), new T.MeshBasicMaterial({ color: '#8f74ff', transparent: true, opacity: 0.18, depthTest: false, depthWrite: false }));
+      for (const m of [this.ring, this.pulse, this.disc]) { m.rotation.x = -Math.PI / 2; m.renderOrder = 30; scene.add(m); }
+      this.col = new T.Color();
+    }
+    update(x, z, t, danger) {
+      const k = Math.max(0, Math.min(1, 1 - (danger - 120) / 380));
+      this.col.set('#8f74ff').lerp(new T.Color('#ff4d6d'), k);
+      for (const m of [this.ring, this.pulse, this.disc]) { m.position.set(x, 1.2, z); m.material.color.copy(this.col); }
+      const p = (t * (1 + k * 1.5)) % 1;
+      this.pulse.scale.setScalar(1 + p * 1.4);
+      this.pulse.material.opacity = 0.7 * (1 - p);
+    }
+    setVisible(v) { this.ring.visible = this.pulse.visible = this.disc.visible = v; }
+  }
+
+  // Translucent fading ribbon behind the ghost
+  class Trail3D {
+    constructor(scene, color = '#8f74ff', life = 45) {
+      this.max = 1400; this.life = life; this.pts = [];
+      const g = (this.geo = new T.BufferGeometry());
+      this.pos = new Float32Array(this.max * 2 * 3);
+      this.col = new Float32Array(this.max * 2 * 4);
+      g.setAttribute('position', new T.BufferAttribute(this.pos, 3));
+      g.setAttribute('color', new T.BufferAttribute(this.col, 4));
+      const idx = new Uint16Array((this.max - 1) * 6);
+      for (let i = 0; i < this.max - 1; i++) {
+        const a = i * 2;
+        idx.set([a, a + 1, a + 2, a + 1, a + 3, a + 2], i * 6);
+      }
+      g.setIndex(new T.BufferAttribute(idx, 1));
+      this.mat = new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: T.DoubleSide });
+      this.mesh = new T.Mesh(g, this.mat);
+      this.mesh.frustumCulled = false;
+      this.mesh.renderOrder = 6;
+      this.c = new T.Color(color);
+      scene.add(this.mesh);
+    }
+    reset() { this.pts = []; this.geo.setDrawRange(0, 0); }
+    add(x, z, t) {
+      const l = this.pts[this.pts.length - 1];
+      if (l && Math.hypot(l.x - x, l.z - z) < 5) { l.t = t; return; }
+      this.pts.push({ x, z, t });
+      if (this.pts.length > this.max) this.pts.shift();
+    }
+    update(t, headX, headZ) {
+      while (this.pts.length && t - this.pts[0].t > this.life) this.pts.shift();
+      const P = this.pts.concat(headX !== undefined ? [{ x: headX, z: headZ, t }] : []);
+      const n = P.length;
+      if (n < 2) { this.geo.setDrawRange(0, 0); return; }
+      for (let i = 0; i < n; i++) {
+        const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)];
+        let dx = b.x - a.x, dz = b.z - a.z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
+        const age = (t - P[i].t) / this.life;
+        const w = 6.5 * (1 - age * 0.6);
+        const nx = -dz * w, nz = dx * w;
+        this.pos.set([P[i].x + nx, 0.9, P[i].z + nz, P[i].x - nx, 0.9, P[i].z - nz], i * 6);
+        const al = Math.max(0, 0.42 * (1 - age)) * Math.min(1, i / 4);
+        this.col.set([this.c.r, this.c.g, this.c.b, al, this.c.r, this.c.g, this.c.b, al], i * 8);
+      }
+      this.geo.attributes.position.needsUpdate = true;
+      this.geo.attributes.color.needsUpdate = true;
+      this.geo.setDrawRange(0, (n - 1) * 6);
+    }
+  }
+
+  class HintArrow3D {
+    constructor(scene) {
+      const s = new T.Shape();
+      s.moveTo(0, 18); s.lineTo(-11, 4); s.lineTo(-4.5, 4); s.lineTo(-4.5, -14); s.lineTo(4.5, -14); s.lineTo(4.5, 4); s.lineTo(11, 4); s.closePath();
+      const geo = new T.ExtrudeGeometry(s, { depth: 2.5, bevelEnabled: false });
+      geo.rotateX(-Math.PI / 2);
+      this.mat = new T.MeshBasicMaterial({ color: '#19b86a', transparent: true, opacity: 1, depthTest: false });
+      this.mesh = new T.Mesh(geo, this.mat);
+      this.mesh.renderOrder = 31;
+      this.mesh.visible = false;
+      scene.add(this.mesh);
+    }
+    update(x, z, ang, alpha, t) {
+      if (alpha <= 0) { this.mesh.visible = false; return; }
+      this.mesh.visible = true;
+      const d = 44 + Math.sin(t * 6) * 4;
+      this.mesh.position.set(x + Math.cos(ang) * d, 2, z + Math.sin(ang) * d);
+      this.mesh.rotation.y = -ang - Math.PI / 2;
+      this.mat.opacity = alpha;
+    }
+  }
+
+  PM.Ghost3D = Ghost3D;
+  PM.Chomper3D = Chomper3D;
+  PM.Bubble3D = Bubble3D;
+  PM.Trail3D = Trail3D;
+  PM.HintArrow3D = HintArrow3D;
+})();
+
+</script>
+<script>
+// 3D world: Three.js scene with textured ground, extruded buildings, characters and markers.
+(function () {
+  const PM = (window.PM = window.PM || {});
+  const T = window.THREE;
+
+  // building palette: 0-4 brick/brownstone, 5-8 limestone, 9-12 glass towers, 13 civic, 14 industrial
+  const PALETTE = [
+    '#f2a488', '#f7c59f', '#e8907a', '#f4d0a8', '#dea08c',
+    '#f6ead3', '#efe0c3', '#e9dcc9', '#f3e6d6',
+    '#a9d2ef', '#b9dcf2', '#9ac4e6', '#c6cff5',
+    '#f3dc9b',
+    '#cdc6db',
+].map((c) => new T.Color(c));
+
+  const HOLE_GLSL_DECL = `
+    uniform vec3 uHole;       // screen x, y (device px), radius (device px)
+    uniform float uHoleDepth; // view-space distance of the player
+    varying vec3 vWorldPos;
+    float bayer4(vec2 p) {
+      vec2 q = mod(floor(p), 4.0);
+      float i = q.x + q.y * 4.0;
+      return fract(sin(i * 12.9898) * 43758.5453);
+    }
+  `;
+
+  class World3D {
+    static makeRenderer(canvas) {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const r = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      r.setPixelRatio(dpr);
+      r.shadowMap.enabled = true;
+      r.shadowMap.type = T.PCFSoftShadowMap;
+      r.outputColorSpace = T.SRGBColorSpace;
+      return r;
+    }
+
+    constructor(renderer, data, graph) {
+      this.data = data;
+      this.graph = graph;
+      this.painter = new PM.TilePainter(data, graph);
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      this.dpr = dpr;
+      this.renderer = renderer;
+      this.lowQ = !renderer.shadowMap.enabled;
+
+      const scene = (this.scene = new T.Scene());
+      scene.background = new T.Color('#cfe8f7');
+      scene.fog = new T.Fog('#dcedf7', 1400, 3600);
+      this.camera = new T.PerspectiveCamera(46, 1, 5, 5000);
+
+      scene.add(new T.HemisphereLight('#ffffff', '#c7b9d6', 1.45));
+      const sun = (this.sun = new T.DirectionalLight('#fff4e0', 1.5));
+      sun.castShadow = !this.lowQ;
+      sun.shadow.mapSize.set(2048, 2048);
+      const sc = sun.shadow.camera;
+      sc.left = -700; sc.right = 700; sc.top = 700; sc.bottom = -700; sc.near = 10; sc.far = 2400;
+      sun.shadow.bias = -0.0008;
+      scene.add(sun, sun.target);
+
+      this.uniforms = { uHole: { value: new T.Vector3(-9999, -9999, 0) }, uHoleDepth: { value: 0 }, uTime: { value: 0 } };
+      this.buildGround();
+      this.buildBuildingsSetup();
+      this.markers = new Map();
+      this.labels = [];
+    }
+
+    resize(w, h) {
+      this.renderer.setSize(w, h, false);
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
+      this.w = w; this.h = h;
+    }
+
+    // ---------------- ground ----------------
+    buildGround() {
+      const water = new T.Mesh(new T.PlaneGeometry(60000, 60000), new T.MeshLambertMaterial({ color: '#9fd3ea' }));
+      water.rotation.x = -Math.PI / 2;
+      water.position.y = -0.6;
+      water.receiveShadow = true;
+      this.scene.add(water);
+      // coarse base tiles (whole island) and fine tiles near the camera
+      this.baseM = 2000; this.basePx = 512;
+      this.fineM = 400; this.finePx = 704;
+      this.base = new Map(); this.fine = new Map();
+      this.groundMat = (tex) => new T.MeshLambertMaterial({ map: tex });
+      const [x0, y0, x1, y1] = this.data.meta.bounds;
+      this.islandBox = [x0 - 1500, y0 - 1500, x1 + 1500, y1 + 1500];
+      this.baseQueue = [];
+      for (let tx = Math.floor(this.islandBox[0] / this.baseM); tx <= Math.floor(this.islandBox[2] / this.baseM); tx++)
+        for (let ty = Math.floor(this.islandBox[1] / this.baseM); ty <= Math.floor(this.islandBox[3] / this.baseM); ty++)
+          this.baseQueue.push([tx, ty]);
+    }
+
+    tileMesh(tx, ty, M, px, y, detail) {
+      const cv = this.painter.paint(tx * M, ty * M, M, px, detail);
+      const tex = new T.CanvasTexture(cv);
+      tex.colorSpace = T.SRGBColorSpace;
+      tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+      tex.generateMipmaps = true;
+      const m = new T.Mesh(new T.PlaneGeometry(M, M), this.groundMat(tex));
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(tx * M + M / 2, y, ty * M + M / 2);
+      m.receiveShadow = true;
+      if (y > 0) { m.material.polygonOffset = true; m.material.polygonOffsetFactor = -1; }
+      this.scene.add(m);
+      return m;
+    }
+
+    updateGround(fx, fz, budget = 2) {
+      // coarse tiles, nearest first
+      if (this.baseQueue.length) {
+        this.baseQueue.sort((a, b) => Math.hypot((b[0] + 0.5) * this.baseM - fx, (b[1] + 0.5) * this.baseM - fz) - Math.hypot((a[0] + 0.5) * this.baseM - fx, (a[1] + 0.5) * this.baseM - fz));
+        const [tx, ty] = this.baseQueue.pop();
+        this.base.set(tx + ',' + ty, this.tileMesh(tx, ty, this.baseM, this.basePx, 0, false));
+      }
+      const M = this.fineM, R = 1300;
+      const want = new Set();
+      const cands = [];
+      for (let tx = Math.floor((fx - R) / M); tx <= Math.floor((fx + R) / M); tx++)
+        for (let ty = Math.floor((fz - R) / M); ty <= Math.floor((fz + R) / M); ty++) {
+          const d = Math.hypot((tx + 0.5) * M - fx, (ty + 0.5) * M - fz);
+          if (d > R) continue;
+          const k = tx + ',' + ty;
+          want.add(k);
+          if (!this.fine.has(k)) cands.push([d, tx, ty, k]);
+        }
+      cands.sort((a, b) => a[0] - b[0]);
+      for (let i = 0; i < Math.min(budget, cands.length); i++) {
+        const [, tx, ty, k] = cands[i];
+        this.fine.set(k, this.tileMesh(tx, ty, M, this.finePx, 0.15, true));
+      }
+      for (const [k, m] of this.fine) {
+        if (!want.has(k)) {
+          const [tx, ty] = k.split(',').map(Number);
+          if (Math.hypot((tx + 0.5) * M - fx, (ty + 0.5) * M - fz) > R + 600) {
+            this.scene.remove(m); m.geometry.dispose(); m.material.map.dispose(); m.material.dispose();
+            this.fine.delete(k);
+          }
+        }
+      }
+    }
+
+    // ---------------- buildings ----------------
+    buildBuildingsSetup() {
+      const D = this.data;
+      this.chunkM = 500;
+      this.chunks = new Map();
+      D.buildings.forEach((p, i) => {
+        let cx = 0, cy = 0; const n = p.length / 2;
+        for (let j = 0; j < p.length; j += 2) { cx += p[j]; cy += p[j + 1]; }
+        const k = Math.floor(cx / n / this.chunkM) + ',' + Math.floor(cy / n / this.chunkM);
+        if (!this.chunks.has(k)) this.chunks.set(k, { ids: [], mesh: null });
+        this.chunks.get(k).ids.push(i);
+      });
+      this.buildingMat = new T.MeshToonMaterial({ vertexColors: true, gradientMap: PM.toonRamp() });
+      this.patchHole(this.buildingMat, true);
+      this.pendingChunks = [...this.chunks.keys()];
+      this.builtCount = 0;
+    }
+
+    patchHole(mat, windows) {
+      const U = this.uniforms;
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uHole = U.uHole;
+        sh.uniforms.uHoleDepth = U.uHoleDepth;
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vWorldPos;')
+          .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\n' + HOLE_GLSL_DECL)
+          .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+            {
+              float dd = length(gl_FragCoord.xy - uHole.xy);
+              if (dd < uHole.z && -vViewPosition.z < uHoleDepth - 4.0) {
+                float t = smoothstep(uHole.z, uHole.z * 0.55, dd);
+                if (bayer4(gl_FragCoord.xy) < t * 0.92) discard;
+              }
+            }`)
+          .replace('#include <color_fragment>', windows ? `#include <color_fragment>
+            {
+              vec3 nW = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
+              if (abs(nW.y) < 0.5 && vWorldPos.y > 3.0) {
+                float fl = fract(vWorldPos.y / 3.6);
+                float col = fract((vWorldPos.x + vWorldPos.z) / 3.2);
+                float win = step(0.3, fl) * step(fl, 0.78) * step(0.22, col) * step(col, 0.78);
+                diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.78, 0.88, 0.98), win * 0.5);
+              } else if (nW.y > 0.5) {
+                diffuseColor.rgb *= 1.08;
+              }
+            }` : '#include <color_fragment>');
+      };
+    }
+
+    buildChunk(k) {
+      const ch = this.chunks.get(k);
+      if (!ch || ch.mesh) return;
+      const D = this.data;
+      let nv = 0, ni = 0;
+      const polys = ch.ids.map((i) => {
+        const p = D.buildings[i];
+        const n = p.length / 2;
+        const pts = [];
+        for (let j = 0; j < n; j++) pts.push(new T.Vector2(p[2 * j], p[2 * j + 1]));
+        let area = 0;
+        for (let j = 0; j < n; j++) { const a = pts[j], b = pts[(j + 1) % n]; area += a.x * b.y - b.x * a.y; }
+        if (area < 0) pts.reverse();
+        let tris = [];
+        try { tris = T.ShapeUtils.triangulateShape(pts, []); } catch (e) { tris = []; }
+        nv += n * 4 + n; ni += n * 6 + tris.length * 3;
+        return { pts, tris, h: D.bh[i], c: D.bc[i], id: i };
+      });
+      const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), col = new Uint8Array(nv * 3);
+      const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+      let v = 0, q = 0;
+      const tmp = new T.Color();
+      const put = (x, y, z, nx, ny, nz, c, shade) => {
+        pos[v * 3] = x; pos[v * 3 + 1] = y; pos[v * 3 + 2] = z;
+        nor[v * 3] = nx; nor[v * 3 + 1] = ny; nor[v * 3 + 2] = nz;
+        tmp.copy(c).multiplyScalar(shade);
+        col[v * 3] = Math.min(255, tmp.r * 255); col[v * 3 + 1] = Math.min(255, tmp.g * 255); col[v * 3 + 2] = Math.min(255, tmp.b * 255);
+        return v++;
+      };
+      for (const b of polys) {
+        const c = PALETTE[b.c] || PALETTE[0];
+        const n = b.pts.length, h = b.h;
+        for (let j = 0; j < n; j++) {
+          const a = b.pts[j], bb = b.pts[(j + 1) % n];
+          const dx = bb.x - a.x, dz = bb.y - a.y, L = Math.hypot(dx, dz) || 1;
+          // outward normal for a CCW ring in (x, z)
+          const nx = dz / L, nz = -dx / L;
+          const a0 = put(a.x, 0, a.y, nx, 0, nz, c, 0.72);
+          const b0 = put(bb.x, 0, bb.y, nx, 0, nz, c, 0.72);
+          const a1 = put(a.x, h, a.y, nx, 0, nz, c, 1.0);
+          const b1 = put(bb.x, h, bb.y, nx, 0, nz, c, 1.0);
+          idx[q++] = a0; idx[q++] = b1; idx[q++] = b0;
+          idx[q++] = a0; idx[q++] = a1; idx[q++] = b1;
+        }
+        const base = v;
+        for (let j = 0; j < n; j++) put(b.pts[j].x, h, b.pts[j].y, 0, 1, 0, c, 1.06);
+        for (const [i0, i1, i2] of b.tris) {
+          const p0 = b.pts[i0], p1 = b.pts[i1], p2 = b.pts[i2];
+          const cy = (p1.y - p0.y) * (p2.x - p0.x) - (p1.x - p0.x) * (p2.y - p0.y);
+          if (cy >= 0) { idx[q++] = base + i0; idx[q++] = base + i1; idx[q++] = base + i2; }
+          else { idx[q++] = base + i0; idx[q++] = base + i2; idx[q++] = base + i1; }
+        }
+      }
+      const g = new T.BufferGeometry();
+      g.setAttribute('position', new T.BufferAttribute(pos.subarray(0, v * 3), 3));
+      g.setAttribute('normal', new T.BufferAttribute(nor.subarray(0, v * 3), 3));
+      g.setAttribute('color', new T.BufferAttribute(col.subarray(0, v * 3), 3, true));
+      g.setIndex(new T.BufferAttribute(idx.subarray(0, q), 1));
+      g.computeBoundingSphere();
+      const m = new T.Mesh(g, this.buildingMat);
+      m.castShadow = true; m.receiveShadow = true;
+      this.scene.add(m);
+      ch.mesh = m;
+      this.builtCount++;
+    }
+
+    updateBuildings(fx, fz, budgetMs = 6) {
+      if (!this.pendingChunks.length) return;
+      const t0 = performance.now();
+      const C = this.chunkM;
+      this.pendingChunks.sort((a, b) => {
+        const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number);
+        return Math.hypot((bx + 0.5) * C - fx, (by + 0.5) * C - fz) - Math.hypot((ax + 0.5) * C - fx, (ay + 0.5) * C - fz);
+      });
+      while (this.pendingChunks.length && performance.now() - t0 < budgetMs) this.buildChunk(this.pendingChunks.pop());
+    }
+
+    dispose() {
+      this.scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+        const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+        for (const m of ms) { if (m.map) m.map.dispose(); m.dispose(); }
+      });
+      this.scene.clear();
+    }
+
+    lowerQuality() {
+      if (this.lowQ) return;
+      this.lowQ = true;
+      this.renderer.shadowMap.enabled = false;
+      this.sun.castShadow = false;
+      this.renderer.setPixelRatio(1);
+      this.renderer.setSize(this.w / this.dpr, this.h / this.dpr, false);
+      this.scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
+    }
+
+    pendingNear(fx, fz, R) {
+      const C = this.chunkM;
+      let n = 0;
+      for (const k of this.pendingChunks) {
+        const [x, y] = k.split(',').map(Number);
+        if (Math.hypot((x + 0.5) * C - fx, (y + 0.5) * C - fz) < R) n++;
+      }
+      return n;
+    }
+
+    get buildProgress() { return this.builtCount / this.chunks.size; }
+
+    // footprint polygon of the building containing (x, y), or nearest within maxD
+    buildingAt(x, y, maxD = 45) {
+      const D = this.data;
+      const k = Math.floor(x / this.chunkM), l = Math.floor(y / this.chunkM);
+      let best = -1, bd = maxD;
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        const ch = this.chunks.get((k + i) + ',' + (l + j));
+        if (!ch) continue;
+        for (const id of ch.ids) {
+          const p = D.buildings[id];
+          if (pointInFlat(x, y, p)) return id;
+          const d = distToFlat(x, y, p);
+          if (d < bd) { bd = d; best = id; }
+        }
+      }
+      return best;
+    }
+
+    // ---------------- target highlight ----------------
+    setTarget(t) {
+      if (this.targetGroup) { this.scene.remove(this.targetGroup); this.targetGroup.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
+      const grp = (this.targetGroup = new T.Group());
+      const gold = new T.MeshLambertMaterial({ color: '#ffb300', emissive: '#ff8a00', emissiveIntensity: 0.55 });
+      this.targetMat = gold;
+      let footprint = null, h = 20;
+      const bid = t.cat === 'P' ? -1 : this.buildingAt(t.x, t.y, 45);
+      if (bid >= 0) { footprint = this.data.buildings[bid]; h = this.data.bh[bid] + 1.5; }
+      else {
+        const gi = this.greenAt(t.x, t.y);
+        if (gi >= 0) { footprint = this.data.green[gi]; h = 1.2; }
+      }
+      if (footprint) {
+        const pts = [];
+        for (let j = 0; j < footprint.length; j += 2) pts.push(new T.Vector2(footprint[j], -footprint[j + 1]));
+        const shape = new T.Shape(pts);
+        const geo = new T.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
+        geo.rotateX(-Math.PI / 2); // extrude along +y, shape y -> -z (we negated y above)
+        const mat = h < 3 ? new T.MeshLambertMaterial({ color: '#ffb300', emissive: '#ff8a00', emissiveIntensity: 0.5, transparent: true, opacity: 0.55 }) : gold;
+        const m = new T.Mesh(geo, mat);
+        m.scale.set(1.01, 1, 1.01);
+        const cx = t.x, cz = t.y;
+        m.position.set(-cx * 0.01, 0, -cz * 0.01); // compensate scale about origin
+        grp.add(m);
+        this.targetMat = mat;
+      }
+      // beacon ring + light beam
+      const ring = new T.Mesh(new T.RingGeometry(34, 44, 48), new T.MeshBasicMaterial({ color: '#ffb300', transparent: true, opacity: 0.8, side: T.DoubleSide, depthWrite: false }));
+      ring.rotation.x = -Math.PI / 2; ring.position.set(t.sx, 0.6, t.sy);
+      grp.add(ring);
+      const beam = new T.Mesh(new T.CylinderGeometry(9, 16, 900, 20, 1, true), new T.MeshBasicMaterial({ color: '#ffd24d', transparent: true, opacity: 0.22, depthWrite: false, side: T.DoubleSide }));
+      beam.position.set(t.sx, 450, t.sy);
+      grp.add(beam);
+      this.targetRing = ring; this.targetBeam = beam;
+      this.scene.add(grp);
+    }
+
+    greenAt(x, y) {
+      const ids = this.painter.query(this.painter.gGrid, x - 1, y - 1, x + 1, y + 1);
+      let best = -1, ba = Infinity;
+      for (const i of ids) {
+        const p = this.data.green[i];
+        if (pointInFlat(x, y, p)) { const a = flatArea(p); if (a < ba) { ba = a; best = i; } }
+      }
+      return best;
+    }
+
+    // ---------------- landmark markers ----------------
+    addLandmarks(list) {
+      const shape = new T.Shape();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 7 : 16;
+        const x = Math.cos(a) * r, y = -Math.sin(a) * r;
+        i ? shape.lineTo(x, y) : shape.moveTo(x, y);
+      }
+      const geo = new T.ExtrudeGeometry(shape, { depth: 5, bevelEnabled: true, bevelSize: 1.2, bevelThickness: 1.2, bevelSegments: 1 });
+      geo.center();
+      this.starOn = new T.MeshToonMaterial({ color: '#ff6b4a', emissive: '#c7361c', emissiveIntensity: 0.35, gradientMap: PM.toonRamp() });
+      this.starOff = new T.MeshLambertMaterial({ color: '#9aa0a6' });
+      const poleGeo = new T.CylinderGeometry(0.8, 0.8, 40, 6);
+      const poleMat = new T.MeshLambertMaterial({ color: '#ffffff' });
+      for (const l of list) {
+        const g = new T.Group();
+        const star = new T.Mesh(geo, this.starOn);
+        star.position.y = 48; star.castShadow = true;
+        const pole = new T.Mesh(poleGeo, poleMat); pole.position.y = 20;
+        const sprite = this.label(l.name);
+        sprite.position.y = 70;
+        g.add(star, pole, sprite);
+        g.position.set(l.sx, 0, l.sy);
+        this.scene.add(g);
+        this.markers.set(l.name, { g, star, sprite });
+      }
+    }
+
+    label(text) {
+      const cv = document.createElement('canvas');
+      const g = cv.getContext('2d');
+      const fs = 34;
+      g.font = `700 ${fs}px "DM Sans", system-ui, sans-serif`;
+      const w = Math.ceil(g.measureText(text).width) + 28;
+      cv.width = w; cv.height = fs + 20;
+      g.font = `700 ${fs}px "DM Sans", system-ui, sans-serif`;
+      g.fillStyle = 'rgba(255,255,255,0.92)';
+      roundRect(g, 0, 0, w, cv.height, 12); g.fill();
+      g.fillStyle = '#b3261e'; g.textBaseline = 'middle';
+      g.fillText(text, 14, cv.height / 2 + 1);
+      const tex = new T.CanvasTexture(cv);
+      tex.colorSpace = T.SRGBColorSpace;
+      const s = new T.Sprite(new T.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+      const k = 0.2;
+      s.scale.set(w * k, cv.height * k, 1);
+      s.renderOrder = 10;
+      return s;
+    }
+
+    setVisited(name) {
+      const m = this.markers.get(name);
+      if (m) { m.star.material = this.starOff; m.visited = true; m.g.visible = false; }
+    }
+    resetMarkers() {
+      for (const m of this.markers.values()) { m.star.material = this.starOn; m.visited = false; m.g.visible = true; }
+    }
+
+    // ---------------- frame ----------------
+    render(focus, t, player) {
+      const cam = this.camera;
+      const [fx, fz] = focus;
+      // look slightly ahead (uptown) of the player; camera sits south and above
+      cam.position.set(fx, 430, fz + 330);
+      cam.lookAt(fx, 0, fz - 40);
+      this.sun.position.set(fx - 500, 900, fz + 250);
+      this.sun.target.position.set(fx, 0, fz);
+      this.uniforms.uTime.value = t;
+      // x-ray hole around the player
+      if (player) {
+        const v = new T.Vector3(player[0], 10, player[1]).project(cam);
+        const px = (v.x * 0.5 + 0.5) * this.w, py = (v.y * 0.5 + 0.5) * this.h;
+        const depth = cam.position.distanceTo(new T.Vector3(player[0], 10, player[1]));
+        this.uniforms.uHole.value.set(px, py, Math.min(this.w, this.h) * 0.2);
+        this.uniforms.uHoleDepth.value = depth;
+      } else this.uniforms.uHole.value.set(-9999, -9999, 0);
+      if (this.targetRing) {
+        const p = 0.5 + 0.5 * Math.sin(t * 4);
+        this.targetRing.scale.setScalar(1 + p * 0.25);
+        this.targetRing.material.opacity = 0.9 - p * 0.5;
+        if (this.targetMat.emissiveIntensity !== undefined) this.targetMat.emissiveIntensity = 0.35 + p * 0.5;
+      }
+      for (const m of this.markers.values()) m.star.rotation.y = t * 1.6;
+      this.renderer.render(this.scene, cam);
+    }
+
+    // screen position (CSS px) of a ground point
+    toScreen(x, y, h = 0) {
+      const v = new T.Vector3(x, h, y).project(this.camera);
+      return [(v.x * 0.5 + 0.5) * this.w / this.dpr, (-v.y * 0.5 + 0.5) * this.h / this.dpr, v.z];
+    }
+
+    // ground point under a screen position (CSS px)
+    groundAt(sx, sy) {
+      const ndc = new T.Vector2((sx / (this.w / this.dpr)) * 2 - 1, -(sy / (this.h / this.dpr)) * 2 + 1);
+      const ray = new T.Raycaster();
+      ray.setFromCamera(ndc, this.camera);
+      const o = ray.ray.origin, d = ray.ray.direction;
+      if (Math.abs(d.y) < 1e-6) return null;
+      const k = -o.y / d.y;
+      if (k < 0) return null;
+      return [o.x + d.x * k, o.z + d.z * k];
+    }
+  }
+
+  function pointInFlat(x, y, p) {
+    let inside = false;
+    const n = p.length / 2;
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+      const xi = p[2 * i], yi = p[2 * i + 1], xj = p[2 * j], yj = p[2 * j + 1];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  function distToFlat(x, y, p) {
+    let bd = Infinity; const n = p.length / 2;
+    for (let i = 0; i < n; i++) {
+      const ax = p[2 * i], ay = p[2 * i + 1], bx = p[(2 * i + 2) % p.length], by = p[(2 * i + 3) % p.length];
+      const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      bd = Math.min(bd, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+    }
+    return bd;
+  }
+  function flatArea(p) {
+    let a = 0; const n = p.length / 2;
+    for (let i = 0; i < n; i++) { const j = (i + 1) % n; a += p[2 * i] * p[2 * j + 1] - p[2 * j] * p[2 * i + 1]; }
+    return Math.abs(a) / 2;
+  }
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+
+  PM.World3D = World3D;
+})();
+
+</script>
+<script>
+// Canvas sprites: ghost, chomper, landmark markers, arrows.
+(function () {
+  const PM = (window.PM = window.PM || {});
+
+  const Sprites = {
+    ghostColor: '#7b5cff',
+
+    ghost(ctx, x, y, heading, t, s, scared) {
+      const r = 13 * s;
+      const bob = Math.sin(t * 8) * 1.2 * s;
+      ctx.save();
+      ctx.translate(x, y + bob);
+      // shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.beginPath(); ctx.ellipse(0, r * 1.25 - bob, r * 0.9, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = scared ? (Math.floor(t * 8) % 2 ? '#2f5bff' : '#ffffff') : this.ghostColor;
+      ctx.strokeStyle = 'rgba(20,10,60,0.55)'; ctx.lineWidth = 1.5 * s;
+      ctx.beginPath();
+      ctx.arc(0, -r * 0.1, r, Math.PI, 0);
+      const base = r * 0.95, waves = 4, ww = (2 * r) / waves;
+      ctx.lineTo(r, base);
+      for (let i = 0; i < waves; i++) {
+        const x0 = r - i * ww;
+        const off = Math.sin(t * 14 + i) * 2 * s;
+        ctx.quadraticCurveTo(x0 - ww / 2, base - 5 * s + off, x0 - ww, base);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // eyes look where we're heading
+      const lx = heading[0] * 3 * s, ly = heading[1] * 3 * s;
+      for (const ex of [-r * 0.38, r * 0.38]) {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.ellipse(ex, -r * 0.2, r * 0.27, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = scared ? '#ff3b3b' : '#1b2a8a';
+        ctx.beginPath(); ctx.arc(ex + lx, -r * 0.2 + ly, r * 0.14, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    },
+
+    // Original round yellow chomper with a cap-like brow ridge (not Pac-Man).
+    chomper(ctx, x, y, ang, open, s, spawnFx) {
+      const r = 16 * s;
+      ctx.save();
+      ctx.translate(x, y);
+      if (spawnFx > 0) {
+        ctx.globalAlpha = 1 - spawnFx;
+        ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 3 * s;
+        ctx.beginPath(); ctx.arc(0, 0, r * (1 + spawnFx * 3), 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath(); ctx.ellipse(0, r * 1.05, r * 0.9, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.rotate(ang);
+      const m = 0.08 + open * 0.55;
+      ctx.fillStyle = '#ffd21f';
+      ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 2 * s;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, r, m, Math.PI * 2 - m);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // teeth
+      ctx.fillStyle = '#fff';
+      for (const side of [1, -1]) {
+        for (let i = 0; i < 3; i++) {
+          const a = side * (m - 0.02);
+          const d = r * (0.45 + i * 0.18);
+          const px = Math.cos(a) * d, py = Math.sin(a) * d;
+          ctx.beginPath();
+          ctx.moveTo(px - 2.5 * s, py);
+          ctx.lineTo(px + 2.5 * s, py);
+          ctx.lineTo(px, py - side * 4 * s);
+          ctx.closePath(); ctx.fill();
+        }
+      }
+      // angry brow + eye
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(r * 0.18, -r * 0.5, r * 0.13, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 3 * s; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-r * 0.15, -r * 0.82); ctx.lineTo(r * 0.45, -r * 0.62); ctx.stroke();
+      ctx.restore();
+    },
+
+    landmark(ctx, x, y, s, name, visited) {
+      ctx.save();
+      ctx.translate(x, y);
+      const r = 11 * s;
+      ctx.fillStyle = visited ? '#9aa0a6' : '#ff5a36';
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5 * s;
+      star(ctx, 0, 0, r, r * 0.45);
+      ctx.fill(); ctx.stroke();
+      ctx.font = `600 ${11 * s}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3.5 * s; ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.fillStyle = visited ? '#70757a' : '#b3261e';
+      ctx.strokeText(name, 0, r + 13 * s);
+      ctx.fillText(name, 0, r + 13 * s);
+      ctx.restore();
+    },
+
+    hintArrow(ctx, cx, cy, ang, s, alpha) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(cx, cy);
+      ctx.rotate(ang);
+      const d = 58 * s;
+      ctx.fillStyle = '#12a150';
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5 * s;
+      ctx.beginPath();
+      ctx.moveTo(d + 22 * s, 0);
+      ctx.lineTo(d, -12 * s);
+      ctx.lineTo(d + 4 * s, -4 * s);
+      ctx.lineTo(d - 16 * s, -4 * s);
+      ctx.lineTo(d - 16 * s, 4 * s);
+      ctx.lineTo(d + 4 * s, 4 * s);
+      ctx.lineTo(d, 12 * s);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    },
+
+    edgeArrow(ctx, W, H, tx, ty, s, dist, color = '#ffd21f') {
+      const cx = W / 2, cy = H / 2;
+      const ang = Math.atan2(ty - cy, tx - cx);
+      const m = 34 * s;
+      // intersect ray with inset screen rect
+      const dx = Math.cos(ang), dy = Math.sin(ang);
+      const kx = dx ? ((dx > 0 ? W - m : m) - cx) / dx : Infinity;
+      const ky = dy ? ((dy > 0 ? H - m : m) - cy) / dy : Infinity;
+      const k = Math.min(kx, ky);
+      const x = cx + dx * k, y = cy + dy * k;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(ang);
+      const pulse = dist < 400 ? 1 + 0.15 * Math.sin(performance.now() / 90) : 1;
+      ctx.scale(pulse, pulse);
+      ctx.fillStyle = color; ctx.strokeStyle = '#2a2140'; ctx.lineWidth = 2 * s;
+      ctx.beginPath(); ctx.moveTo(16 * s, 0); ctx.lineTo(-10 * s, -12 * s); ctx.lineTo(-4 * s, 0); ctx.lineTo(-10 * s, 12 * s); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.rotate(-ang);
+      ctx.font = `700 ${11 * s}px system-ui, sans-serif`;
+      ctx.textAlign = 'center'; ctx.fillStyle = '#3b2f00';
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3 * s;
+      const label = Math.round(dist) + ' m';
+      ctx.strokeText(label, -dx * 26 * s, -dy * 26 * s + 4 * s);
+      ctx.fillText(label, -dx * 26 * s, -dy * 26 * s + 4 * s);
+      ctx.restore();
+    },
+  };
+
+  function star(ctx, x, y, R, r) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rr = i % 2 ? r : R;
+      ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    ctx.closePath();
+  }
+
+  PM.Sprites = Sprites;
+})();
+
+</script>
+<script>
+// Tiny WebAudio sound kit (no asset files).
+(function () {
+  const PM = (window.PM = window.PM || {});
+
+  class Audio {
+    constructor() {
+      this.ctx = null;
+      this.muted = false;
+      this.beatTimer = 0;
+      this.dist = Infinity;
+      this.running = false;
+    }
+    unlock() {
+      if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = this.muted ? 0 : 0.35;
+        this.master.connect(this.ctx.destination);
+      } catch (e) { this.ctx = null; }
+    }
+    toggleMute() {
+      this.muted = !this.muted;
+      if (this.master) this.master.gain.value = this.muted ? 0 : 0.35;
+      return this.muted;
+    }
+    tone(freq, dur, type = 'square', vol = 0.3, when = 0, slideTo) {
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime + when;
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+    start() { this.unlock(); this.running = true; this.loop(); }
+    stop() { this.running = false; clearTimeout(this.timer); }
+    pause(p) { if (p) this.stop(); else this.start(); }
+    proximity(d) { this.dist = d; }
+    loop() {
+      if (!this.running) return;
+      // heartbeat speeds up as the chomper closes in
+      const d = this.dist;
+      let gap = 1.1;
+      if (d < 600) {
+        gap = 0.18 + (d / 600) * 0.8;
+        const v = 0.08 + (1 - d / 600) * 0.25;
+        this.tone(70, 0.12, 'sine', v);
+        this.tone(58, 0.14, 'sine', v * 0.8, 0.12);
+      }
+      this.timer = setTimeout(() => this.loop(), gap * 1000);
+    }
+    ding() { this.tone(880, 0.12, 'triangle', 0.25); this.tone(1320, 0.2, 'triangle', 0.22, 0.09); }
+    fanfare() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.18, 'square', 0.14, i * 0.1)); }
+    chomp() { this.tone(500, 0.6, 'sawtooth', 0.25, 0, 60); this.tone(300, 0.5, 'square', 0.12, 0.1, 40); }
+  }
+
+  PM.Audio = Audio;
+})();
+
+</script>
+<script>
+// DOM overlays: lobby, loading, HUD, Passport, toasts, minimap, pause, place cards, game over, local scores.
+(function () {
+  const PM = (window.PM = window.PM || {});
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // ---------- per-viewer storage (all wrapped: storage can be missing) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* unavailable */ } },
+  };
+  const scoresKey = (b) => 'pacmanhattan.scores.v2.' + b;
+  const stampsKey = (b) => 'pacmanhattan.stamps.v1.' + b;
+  PM.store = store;
+  PM.loadStamps = (b) => new Set(store.get(stampsKey(b), []));
+  PM.saveStamps = (b, set) => store.set(stampsKey(b), [...set]);
+
+  const DIFF_CLASS = { Easy: 'easy', Medium: 'medium', Hard: 'hard' };
+
+  const UI = {
+    init(h) {
+      this.h = h;
+      $('btn-again').onclick = () => h.onAgain();
+      $('btn-lobby').onclick = () => h.onLobby();
+      $('btn-resume').onclick = () => h.onResume();
+      $('btn-menu').onclick = () => h.onLobby();
+      $('btn-mute').onclick = () => h.onToggleMute();
+      $('btn-save').onclick = () => this.saveInitials();
+      $('btn-card').onclick = () => h.onCloseCard();
+      $('btn-howto').onclick = () => $('howto').classList.toggle('hidden');
+      $('passport-toggle').onclick = () => { $('passport').classList.toggle('collapsed'); };
+      $('initials').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') this.saveInitials(); });
+      this.mini = $('minimap');
+      this.miniCtx = this.mini.getContext('2d');
+      this.toastEl = $('toasts');
+    },
+
+    show(id, on) { $(id).classList.toggle('hidden', !on); },
+    hideAllScreens() { for (const id of ['lobby', 'loadscreen', 'over', 'pause', 'card']) this.show(id, false); },
+
+    // ---------- lobby ----------
+    renderLobby(list) {
+      this.lobbyList = list;
+      $('boroughs').innerHTML = list.map((b) => {
+        const best = (store.get(scoresKey(b.id), [])[0] || {}).score;
+        const stamps = PM.loadStamps(b.id).size;
+        return `<button class="borough" data-id="${b.id}" id="b-${b.id}">
+          <img src="${b.preview}" alt="Map of ${esc(b.name)}">
+          <div class="b-body">
+            <div class="b-top"><span class="b-name">${esc(b.name)}</span><span class="chip ${DIFF_CLASS[b.difficulty] || ''}">${esc(b.difficulty)}</span></div>
+            <div class="b-area">${esc(b.area)}</div>
+            <div class="b-stats">
+              <span><b>${best ? best.toLocaleString() : '—'}</b> best</span>
+              <span><b>${stamps}/${b.landmarks}</b> stamps</span>
+              <span><b>${b.targets}</b> places to find</span>
+            </div>
+          </div>
+        </button>`;
+      }).join('');
+      for (const el of document.querySelectorAll('.borough')) el.onclick = () => this.h.onPick(el.dataset.id);
+    },
+    showLobby() {
+      this.hideAllScreens(); this.show('hud', false);
+      if (this.lobbyList) this.renderLobby(this.lobbyList);
+      this.show('lobby', true);
+    },
+    showLoading(name, p, msg) {
+      this.hideAllScreens(); this.show('hud', false); this.show('loadscreen', true);
+      $('load-title').textContent = 'Loading ' + name;
+      $('load-bar').style.width = Math.round((p || 0) * 100) + '%';
+      $('load-msg').textContent = msg || '';
+    },
+
+    showHUD(meta) {
+      this.hideAllScreens(); this.show('hud', true); this.toastEl.innerHTML = '';
+      $('borough-label').textContent = meta.name;
+    },
+    hideHUD() { this.show('hud', false); },
+    showPause(on) { this.show('pause', on); },
+    showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },
+    setMuted(m) { $('btn-mute').textContent = m ? '🔇' : '🔊'; },
+
+    setScore(s) { if (this._score !== s) { this._score = s; $('score').textContent = s.toLocaleString(); } },
+    setChompers(n) { if (this._cn !== n) { this._cn = n; $('chomper-count').textContent = n === 1 ? '1 chomper' : n + ' chompers'; } },
+    setTask(t, cat, icon, n) {
+      $('task-num').textContent = 'Task ' + n;
+      $('task-name').textContent = t.name;
+      $('task-cat').textContent = icon + ' ' + cat;
+      const card = $('task');
+      card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+    },
+    setHints(list) {
+      const el = $('hints');
+      if (!list.length) { el.innerHTML = '<div class="hint muted">No hints yet. Reach a ★ landmark to get one.</div>'; return; }
+      el.innerHTML = list.slice(0, 3).map((h, i) => `<div class="hint ${i ? 'old' : ''}"><b>${esc(h.from)}:</b> ${esc(h.text)}</div>`).join('');
+    },
+
+    // street label that follows the ghost
+    setHere(text, x, y) {
+      const el = $('here');
+      if (!text) { el.classList.add('hidden'); return; }
+      el.classList.remove('hidden');
+      if (this._here !== text) { this._here = text; $('here-text').textContent = text; }
+      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -100%)`;
+    },
+
+    // ---------- Passport ----------
+    setPassport(items, total, collected) {
+      $('passport-count').textContent = `${items.length} this run · ${collected}/${total} collected`;
+      const el = $('passport-list');
+      if (!items.length) { el.innerHTML = '<div class="muted small pp-empty">Places you reach show up here. Click one to see it again.</div>'; return; }
+      el.innerHTML = items.map((it, i) => `<button class="pp-item" data-i="${i}">
+        ${it.place.img ? `<img src="${it.place.img}" alt="" loading="lazy" decoding="async">` : `<span class="pp-noimg">${it.kind === 'found' ? '✓' : '★'}</span>`}
+        <span class="pp-name">${esc(it.place.name)}</span>
+        <span class="pp-tag ${it.kind}">${it.kind === 'found' ? 'Found' : 'Landmark'}</span>
+      </button>`).reverse().join('');
+      for (const b of el.querySelectorAll('.pp-item')) b.onclick = () => this.h.onRevisit(Number(b.dataset.i));
+      $('passport').classList.add('bump'); setTimeout(() => $('passport').classList.remove('bump'), 500);
+    },
+
+    toast({ title, body, hint, kind, secs }) {
+      const el = document.createElement('div');
+      el.className = 'toast ' + (kind || '');
+      el.innerHTML = `<div class="t-title">${esc(title)}</div>${body ? `<div class="t-body">${esc(body)}</div>` : ''}${hint ? `<div class="t-hint">Hint: ${esc(hint)}</div>` : ''}`;
+      this.toastEl.prepend(el);
+      while (this.toastEl.children.length > 3) this.toastEl.lastChild.remove();
+      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, (secs || 5) * 1000);
+    },
+
+    // ---------- landmark / target card ----------
+    showCard({ kind, place, points, hint, cat }) {
+      const p = place;
+      const sv = p.lat ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}` : null;
+      const img = p.img
+        ? `<figure><img src="${p.img}" alt="${esc(p.name)}" decoding="async"><figcaption>Photo: ${esc(p.credit || 'Wikimedia Commons')}${p.file ? ` · <a href="${esc(p.file)}" target="_blank" rel="noopener">source</a>` : ''}</figcaption></figure>`
+        : `<div class="noimg">${esc(p.name)}</div>`;
+      const eyebrow = kind === 'found' ? 'Found it! +' + points.toLocaleString()
+        : kind === 'revisit' ? 'From your Passport' : '★ Landmark +' + points;
+      $('card-body').innerHTML = `
+        ${img}
+        <div class="card-text">
+          <div class="eyebrow ${kind}">${eyebrow}</div>
+          <h2>${esc(p.name)}</h2>
+          ${cat ? `<div class="muted small">${esc(cat)}</div>` : ''}
+          <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
+          ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
+          ${hint ? `<div class="card-hint"><b>Hint:</b> ${esc(hint)}<div class="small">A green arrow points the way for a few seconds.</div></div>` : ''}
+          <div class="links">
+            ${sv ? `<a href="${sv}" target="_blank" rel="noopener">Open Street View ↗</a>` : ''}
+            ${p.wiki ? `<a href="${esc(p.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a>` : ''}
+          </div>
+        </div>`;
+      $('btn-card').textContent = kind === 'found' ? 'Next task (Space)' : kind === 'revisit' ? 'Back to running (Space)' : 'Keep running (Space)';
+      this.show('card', true);
+      setTimeout(() => $('btn-card').focus(), 30);
+    },
+    hideCard() { this.show('card', false); },
+
+    // ---------- minimap ----------
+    resetMini() { this.miniData = null; },
+    buildMini(graph, map) {
+      const S = 0.075;
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      let [x0, y0, x1, y1] = map.meta.bounds;
+      x0 -= 600; y0 -= 600; x1 += 600; y1 += 600;
+      const k = S * dpr;
+      const cv = document.createElement('canvas');
+      cv.width = Math.ceil((x1 - x0) * k); cv.height = Math.ceil((y1 - y0) * k);
+      const g = cv.getContext('2d');
+      g.setTransform(k, 0, 0, k, -x0 * k, -y0 * k);
+      g.fillStyle = '#9fd3ea'; g.fillRect(x0, y0, x1 - x0, y1 - y0);
+      g.fillStyle = '#e2dbd0';
+      for (const m of map.mainland) { g.beginPath(); m.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.fill(); }
+      g.fillStyle = '#f7f3ec';
+      for (const m of map.islands) { g.beginPath(); m.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.fill(); }
+      g.strokeStyle = '#9a93a8'; g.lineWidth = 9;
+      g.beginPath();
+      for (const e of graph.edges) { g.moveTo(e.pts[0][0], e.pts[0][1]); for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]); }
+      g.stroke();
+      const fog = document.createElement('canvas');
+      fog.width = cv.width; fog.height = cv.height;
+      const fg = fog.getContext('2d');
+      fg.fillStyle = 'rgba(52,44,86,0.8)'; fg.fillRect(0, 0, fog.width, fog.height);
+      this.miniData = { cv, fog, fg, x0, y0, k, dpr, revealed: new Set() };
+    },
+
+    drawMinimap({ graph, map, fog, ghost, chompers, landmarks, visited, cam, viewW, viewH, trail }) {
+      if (!this.miniData) this.buildMini(graph, map);
+      const M = this.miniData, c = this.mini, g = this.miniCtx;
+      if (fog.size < M.revealed.size) {
+        M.fg.globalCompositeOperation = 'source-over';
+        M.fg.clearRect(0, 0, M.fog.width, M.fog.height);
+        M.fg.fillStyle = 'rgba(52,44,86,0.8)'; M.fg.fillRect(0, 0, M.fog.width, M.fog.height);
+        M.revealed = new Set();
+      }
+      M.fg.globalCompositeOperation = 'destination-out';
+      for (const key of fog) {
+        if (M.revealed.has(key)) continue;
+        M.revealed.add(key);
+        const [cx, cy] = key.split(',').map(Number);
+        M.fg.fillRect((cx * 100 - M.x0) * M.k, (cy * 100 - M.y0) * M.k, 100 * M.k + 0.5, 100 * M.k + 0.5);
+      }
+      const cw = c.clientWidth * M.dpr, chh = c.clientHeight * M.dpr;
+      if (c.width !== cw || c.height !== chh) { c.width = cw; c.height = chh; }
+      const scale = c.width / 3000;
+      const s = scale / M.k;
+      const ox = c.width / 2 - (ghost[0] - M.x0) * scale, oy = c.height / 2 - (ghost[1] - M.y0) * scale;
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.fillStyle = '#9fd3ea'; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(M.cv, ox, oy, M.cv.width * s, M.cv.height * s);
+      g.drawImage(M.fog, ox, oy, M.fog.width * s, M.fog.height * s);
+      const P = (x, y) => [ox + (x - M.x0) * scale, oy + (y - M.y0) * scale];
+      if (trail && trail.length > 1) {
+        g.strokeStyle = 'rgba(143,116,255,0.9)'; g.lineWidth = 2 * M.dpr; g.lineJoin = 'round';
+        g.beginPath(); trail.forEach((p, i) => { const [x, y] = P(p.x, p.z); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+      }
+      const [vx, vy] = P(cam[0] - viewW / 2, cam[1] - viewH / 2);
+      g.strokeStyle = 'rgba(143,116,255,0.7)'; g.lineWidth = 1.5 * M.dpr;
+      g.strokeRect(vx, vy, viewW * scale, viewH * scale);
+      for (const l of landmarks) {
+        const [x, y] = P(l.sx, l.sy);
+        if (x < -10 || y < -10 || x > c.width + 10 || y > c.height + 10) continue;
+        g.fillStyle = visited.has(l.name) ? '#a7a3b5' : '#ff6b4a';
+        g.beginPath(); g.arc(x, y, 3.2 * M.dpr, 0, Math.PI * 2); g.fill();
+      }
+      for (const ch of chompers) {
+        const [cx, cy] = P(ch.p[0], ch.p[1]);
+        g.fillStyle = ch.color; g.strokeStyle = '#2a2140'; g.lineWidth = 1.5 * M.dpr;
+        g.beginPath(); g.arc(Math.max(5, Math.min(c.width - 5, cx)), Math.max(5, Math.min(c.height - 5, cy)), 4.5 * M.dpr, 0, Math.PI * 2); g.fill(); g.stroke();
+      }
+      const [gx, gy] = P(ghost[0], ghost[1]);
+      g.fillStyle = '#8f74ff'; g.strokeStyle = '#fff'; g.lineWidth = 2 * M.dpr;
+      g.beginPath(); g.arc(gx, gy, 5 * M.dpr, 0, Math.PI * 2); g.fill(); g.stroke();
+    },
+
+    // ---------- game over ----------
+    showGameOver(r) {
+      this.last = r;
+      this.show('over', true);
+      $('over-borough').textContent = r.boroughName;
+      $('over-score').textContent = r.score.toLocaleString();
+      $('over-stats').innerHTML = `<div><b>${r.tasks}</b> tasks</div><div><b>${r.landmarkCount}</b> landmarks</div><div><b>${fmtTime(r.time)}</b> survived</div>`;
+      $('over-target').textContent = `You were looking for ${r.target.name}. It's the green dot on your route map.`;
+      const scores = store.get(scoresKey(r.borough), []);
+      const qualifies = r.score > 0 && (scores.length < 10 || r.score > scores[scores.length - 1].score);
+      this.show('save-row', qualifies);
+      $('initials').value = '';
+      if (qualifies) setTimeout(() => $('initials').focus(), 50);
+      this.renderScores($('over-scores'), r.borough);
+      this.drawRoute(r);
+    },
+    saveInitials() {
+      const r = this.last; if (!r) return;
+      const ini = ($('initials').value || '???').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3) || '???';
+      const list = store.get(scoresKey(r.borough), []);
+      list.push({ ini, score: r.score, tasks: r.tasks, date: new Date().toISOString().slice(0, 10) });
+      list.sort((a, b) => b.score - a.score);
+      store.set(scoresKey(r.borough), list.slice(0, 10));
+      this.show('save-row', false);
+      this.renderScores($('over-scores'), r.borough, ini, r.score);
+    },
+    renderScores(el, borough, hiIni, hiScore) {
+      const list = store.get(scoresKey(borough), []);
+      if (!list.length) { el.innerHTML = '<div class="muted">No high scores yet.</div>'; return; }
+      el.innerHTML = '<table>' + list.map((s, i) => `<tr class="${s.ini === hiIni && s.score === hiScore ? 'me' : ''}"><td>${i + 1}</td><td>${esc(s.ini)}</td><td class="num">${s.score.toLocaleString()}</td><td class="num">${s.tasks} tasks</td></tr>`).join('') + '</table>';
+    },
+    drawRoute(r) {
+      const c = $('route'), g = c.getContext('2d');
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+      const pts = r.route.concat([[r.target.sx, r.target.sy]]);
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      const pad = 300; x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
+      const sc = Math.min(c.width / (x1 - x0), c.height / (y1 - y0));
+      const ox = (c.width - (x1 - x0) * sc) / 2 - x0 * sc, oy = (c.height - (y1 - y0) * sc) / 2 - y0 * sc;
+      g.setTransform(sc, 0, 0, sc, ox, oy);
+      g.fillStyle = '#9fd3ea'; g.fillRect(x0 - 1e4, y0 - 1e4, 3e4, 3e4);
+      g.fillStyle = '#e2dbd0';
+      for (const m of r.map.mainland) { g.beginPath(); m.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.fill(); }
+      g.fillStyle = '#f7f3ec';
+      for (const m of r.map.islands) { g.beginPath(); m.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.fill(); }
+      g.strokeStyle = '#cfc6d9'; g.lineWidth = 2 / sc * dpr;
+      g.beginPath();
+      for (const e of r.graph.edgesIn(x0, y0, x1, y1)) { g.moveTo(e.pts[0][0], e.pts[0][1]); for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]); }
+      g.stroke();
+      g.strokeStyle = '#8f74ff'; g.lineWidth = 4 / sc * dpr; g.lineJoin = 'round'; g.lineCap = 'round';
+      g.beginPath(); r.route.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke();
+      const dotAt = (x, y, col, rad) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, rad / sc * dpr, 0, Math.PI * 2); g.fill(); };
+      for (const l of r.landmarks) if (r.visited.has(l.name)) dotAt(l.sx, l.sy, '#ff6b4a', 4);
+      dotAt(r.target.sx, r.target.sy, '#19b86a', 7);
+      if (r.route.length) { const [x, y] = r.route[r.route.length - 1]; dotAt(x, y, '#ffd21f', 7); }
+    },
+  };
+
+  function fmtTime(s) { const m = Math.floor(s / 60); return m + ':' + String(Math.floor(s % 60)).padStart(2, '0'); }
+
+  PM.UI = UI;
+})();
+
+</script>
+<script>
+// Pac-Manhattan: lobby, borough loading, and the core game loop (3D).
+(function () {
+  const PM = window.PM;
+
+  // ---------- tuning ----------
+  const CFG = {
+    ghostSpeed: 82,           // metres per game-second
+    chomperBase: 0.80,        // x ghost speed at run start
+    chomperPerTask: 0.045,    // added per completed task
+    chomperPerSec: 0.0012,    // added per second within a task
+    chomperTimeCap: 0.10,
+    chomperMax: 1.2,
+    maxChompers: 3,
+    catchDist: 18,
+    arriveDist: 45,
+    spawnMin: 1000, spawnMax: 2000,  // chomper spawn path distance (m)
+    spawnGrace: 1.6,                 // seconds a new chomper waits before moving
+    hintArrowSecs: 12,
+    cursorDeadZone: 30,
+    trailSecs: 45,
+    taskBase: 1000, hintCost: 100, taskFloor: 400, streakBonus: 250, landmarkPts: 100,
+  };
+  const KINDS = [
+    { kind: 'chaser', name: 'Chomps', color: '#ffd21f', desc: 'It chases you straight down the streets.' },
+    { kind: 'ambusher', name: 'Sneaky', color: '#ff8fb1', desc: 'It cuts you off on the way to your target.' },
+    { kind: 'wanderer', name: 'Snooze', color: '#6fd6c0', desc: 'It wanders around and pounces when you get close.' },
+  ];
+  const CAT = { R: 'Famous restaurant', M: 'Museum & culture', P: 'Park & public space', L: 'Monument & landmark' };
+  const CAT_ICON = { R: '🍴', M: '🏛', P: '🌳', L: '🗽' };
+  const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+
+  const canvas = document.getElementById('game');
+  const fx = document.getElementById('fx');
+  const fctx = fx.getContext('2d');
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  const renderer = PM.World3D.makeRenderer(canvas);
+  const audio = new PM.Audio();
+  const ui = PM.UI;
+
+  let B = null; // the loaded borough: data, graph, world, 3D objects, places
+  const cache = {};
+
+  let W = 0, H = 0;
+  function resize() {
+    W = Math.floor(innerWidth * DPR); H = Math.floor(innerHeight * DPR);
+    renderer.setSize(innerWidth, innerHeight, false);
+    if (B) { B.world.camera.aspect = innerWidth / innerHeight; B.world.camera.updateProjectionMatrix(); B.world.w = W; B.world.h = H; }
+    fx.width = W; fx.height = H;
+    fx.style.width = innerWidth + 'px'; fx.style.height = innerHeight + 'px';
+  }
+  addEventListener('resize', resize);
+  resize();
+
+  // ---------- borough loading ----------
+  async function fetchJSON(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(url + ' returned ' + r.status);
+    return r.json();
+  }
+
+  async function loadBorough(id) {
+    const info = lobby.find((b) => b.id === id);
+    state.mode = 'loading';
+    ui.showLoading(info.name, 0.05, 'Downloading the map…');
+    if (B && B.id !== id) { B.world.dispose(); B = null; }
+    if (!B) {
+      let raw = cache[id];
+      if (!raw) {
+        let done = 0;
+        const step = (p) => p.then((v) => { done++; ui.showLoading(info.name, 0.05 + done * 0.15, 'Downloading the map…'); return v; });
+        const [map, gdata, places] = await Promise.all([
+          step(fetchJSON(`data/${id}/map.json`)), step(fetchJSON(`data/${id}/graph.json`)), step(fetchJSON(`data/${id}/places.json`)),
+        ]);
+        raw = cache[id] = { map, gdata, places };
+      }
+      const map = raw.map;
+      if (map.q) {
+        const k = 1 / map.q;
+        for (const key of ['green', 'water', 'buildings']) map[key] = map[key].map((p) => Float32Array.from(p, (v) => v * k));
+        map.q = 0;
+      }
+      const graph = new PM.Graph(raw.gdata);
+      const world = new PM.World3D(renderer, map, graph);
+      world.camera.aspect = innerWidth / innerHeight; world.camera.updateProjectionMatrix();
+      world.w = W; world.h = H;
+      const snap = (list) => list.map((p) => {
+        const s = graph.nearest(p.x, p.y, 800);
+        return s && s.d < 300 ? { ...p, pos: { e: s.e, s: s.s }, sx: s.x, sy: s.y } : null;
+      }).filter(Boolean);
+      const LANDMARKS = snap(raw.places.landmarks), TARGETS = snap(raw.places.targets);
+      world.addLandmarks(LANDMARKS);
+      B = {
+        id, meta: map.meta, map, graph, world, LANDMARKS, TARGETS,
+        ghost3d: new PM.Ghost3D(world.scene),
+        chompers3d: KINDS.map((k) => new PM.Chomper3D(world.scene, k.color)),
+        bubble: new PM.Bubble3D(world.scene),
+        trail: new PM.Trail3D(world.scene, '#8f74ff', CFG.trailSecs),
+        arrow: new PM.HintArrow3D(world.scene),
+      };
+      ui.resetMini();
+    }
+    // build the city around the start before the run begins
+    const start = startPlace();
+    B.loadFocus = [start.sx, start.sy];
+    state.mode = 'building';
+  }
+
+  function startPlace() {
+    return B.LANDMARKS.find((l) => l.name === B.meta.start) || B.LANDMARKS[0];
+  }
+
+  // ---------- input ----------
+  const held = new Set();
+  let queued = null, queuedAt = 0;
+  let mouse = null, mouseActive = false;
+  const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+  addEventListener('keydown', (ev) => {
+    if (state.mode === 'card') {
+      if (ev.code === 'Enter' || ev.code === 'Space' || ev.code === 'Escape') { ev.preventDefault(); closeCard(); }
+      return;
+    }
+    const d = KEYMAP[ev.code];
+    if (d) {
+      if (state.mode !== 'play') return;
+      ev.preventDefault();
+      held.add(d); queued = d; queuedAt = now; mouseActive = false;
+      audio.unlock();
+      if (!state.ghost.started) state.ghost.started = true;
+      return;
+    }
+    if ((ev.code === 'KeyP' || ev.code === 'Escape') && (state.mode === 'play' || state.mode === 'pause')) togglePause();
+    if (ev.code === 'KeyM') ui.setMuted(audio.toggleMute());
+  });
+  addEventListener('keyup', (ev) => { const d = KEYMAP[ev.code]; if (d) held.delete(d); });
+  addEventListener('blur', () => { held.clear(); if (state.mode === 'play') togglePause(); });
+  const onPointer = (ev) => {
+    mouse = [ev.clientX, ev.clientY];
+    if (state.mode === 'play') mouseActive = true;
+  };
+  canvas.addEventListener('pointermove', onPointer);
+  canvas.addEventListener('pointerdown', (ev) => { onPointer(ev); if (state.mode === 'play' && !state.ghost.started) { state.ghost.started = true; audio.unlock(); } });
+
+  function wanted() {
+    for (const d of ['up', 'down', 'left', 'right']) if (held.has(d)) return { v: DIRS[d], key: d };
+    if (queued && now - queuedAt < 1.6) return { v: DIRS[queued], key: queued };
+    if (mouseActive && mouse && state.ghost) {
+      const p = B.world.groundAt(mouse[0], mouse[1]);
+      if (p) {
+        const g = posXY(state.ghost);
+        const dx = p[0] - g[0], dy = p[1] - g[1], L = Math.hypot(dx, dy);
+        state.cursorWorld = p;
+        if (L > CFG.cursorDeadZone) return { v: [dx / L, dy / L], cursor: true };
+      }
+    }
+    return null;
+  }
+
+  // ---------- movement ----------
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+  const posXY = (m) => B.graph.pointAt(m.e, m.s);
+
+  function moveGhost(g, dist) {
+    const graph = B.graph;
+    const want = wanted();
+    const wv = want && want.v;
+    const turnDot = want && want.cursor ? 0.25 : 0.62;
+    if (wv && g.moving) {
+      const h = graph.headingAt(g.e, g.s, g.dir);
+      if (dot(h, wv) < (want.cursor ? -0.35 : -0.6)) { g.dir = -g.dir; if (!want.cursor) queued = null; }
+    }
+    let guard = 0;
+    while (dist > 1e-6 && guard++ < 20) {
+      if (!g.moving) {
+        if (!wv) return;
+        const pick = chooseEdge(g.node, null, wv, turnDot);
+        if (!pick) return;
+        enterEdge(g, pick, g.node);
+        g.moving = true; if (!want.cursor) queued = null;
+        continue;
+      }
+      const remain = g.dir > 0 ? g.e.len - g.s : g.s;
+      if (dist < remain) { g.s += dist * g.dir; return; }
+      dist -= remain;
+      const node = g.dir > 0 ? g.e.b : g.e.a;
+      g.s = g.dir > 0 ? g.e.len : 0;
+      const heading = graph.headingAt(g.e, g.s, g.dir);
+      let pick = wv ? chooseEdge(node, g.e, wv, turnDot) : null;
+      if (pick && want.key && want.key === queued && !held.has(want.key)) queued = null;
+      if (!pick) pick = chooseEdge(node, g.e, heading, 0.5);
+      if (!pick) { g.moving = false; g.node = node; return; }
+      enterEdge(g, pick, node);
+    }
+  }
+
+  function chooseEdge(node, cameFrom, vec, minDot = 0.62) {
+    const graph = B.graph;
+    let best = null, bd = minDot;
+    for (const e of graph.adj[node]) {
+      if (e === cameFrom && graph.adj[node].length > 1) continue;
+      const d = dot(graph.outHeading(e, node), vec);
+      if (d > bd) { bd = d; best = e; }
+    }
+    return best;
+  }
+
+  function enterEdge(m, e, fromNode) {
+    m.e = e;
+    if (e.a === fromNode) { m.s = 0; m.dir = 1; } else { m.s = e.len; m.dir = -1; }
+  }
+
+  function moveChomper(c, dist, target) {
+    const graph = B.graph;
+    let guard = 0;
+    while (dist > 1e-6 && guard++ < 30) {
+      if (c.e === target.e && !c.path.length) {
+        const d = target.s - c.s;
+        c.s += Math.sign(d) * Math.min(Math.abs(d), dist); c.dir = Math.sign(d) || c.dir;
+        return;
+      }
+      if (!c.path.length) return;
+      const next = c.path[0];
+      const endNode = c.dir > 0 ? c.e.b : c.e.a;
+      if (endNode !== next) {
+        if ((c.dir > 0 ? c.e.a : c.e.b) === next) c.dir = -c.dir;
+        else { c.path = []; return; }
+      }
+      const remain = c.dir > 0 ? c.e.len - c.s : c.s;
+      if (dist < remain) { c.s += dist * c.dir; return; }
+      dist -= remain;
+      c.path.shift();
+      if (c.path.length) {
+        const e = graph.edgeBetween(next, c.path[0]);
+        if (!e) { c.path = []; return; }
+        enterEdge(c, e, next);
+      } else if (target.e.a === next || target.e.b === next) {
+        enterEdge(c, target.e, next);
+      } else return;
+    }
+  }
+
+  const nodePos = (n) => { const e = B.graph.adj[n][0]; return { e, s: e.a === n ? 0 : e.len }; };
+
+  // where each chomper is heading this moment, by personality
+  function chomperGoal(c, g, gp, cp) {
+    const d = Math.hypot(cp[0] - gp[0], cp[1] - gp[1]);
+    if (c.kind === 'chaser') return { pos: g, mode: 'chase' };
+    if (c.kind === 'ambusher') {
+      if (d < 220 || !state.route || !state.route.length) return { pos: g, mode: 'chase' };
+      // a node ~350 m ahead of the ghost on its likely route to the target
+      const graph = B.graph;
+      let acc = 0, prev = gp, pick = state.route[state.route.length - 1];
+      for (const n of state.route) {
+        const q = [graph.nx[n], graph.ny[n]];
+        acc += Math.hypot(q[0] - prev[0], q[1] - prev[1]); prev = q;
+        if (acc >= 350) { pick = n; break; }
+      }
+      return { pos: nodePos(pick), mode: 'cutoff' };
+    }
+    // wanderer
+    if (c.mode === 'chase' ? d < 800 : d < 420) return { pos: g, mode: 'chase' };
+    if (c.roam == null || c.roamT > 14) {
+      const graph = B.graph, n = graph.nx.length;
+      for (let i = 0; i < 30; i++) {
+        const k = Math.floor(Math.random() * n);
+        if (Math.hypot(graph.nx[k] - gp[0], graph.ny[k] - gp[1]) < 1500) { c.roam = k; break; }
+      }
+      c.roamT = 0;
+    }
+    const rp = [B.graph.nx[c.roam], B.graph.ny[c.roam]];
+    if (Math.hypot(rp[0] - cp[0], rp[1] - cp[1]) < 30) c.roamT = 99;
+    return { pos: nodePos(c.roam), mode: 'roam' };
+  }
+
+  // ---------- run state ----------
+  let now = 0;
+  const state = { mode: 'lobby', chompers: [] };
+
+  function startRun() {
+    const start = startPlace();
+    Object.assign(state, {
+      mode: 'play', time: 0, score: 0, tasksDone: 0, taskTime: 0,
+      visited: new Set([start.name]), used: new Set(), recentCats: [], route: null, route_pts: [], routeTimer: 0,
+      hint: null, fog: new Set(), cursorWorld: null, chompers: [], passport: [], routeAt: -9, afterCard: null,
+    });
+    state.stamps = PM.loadStamps(B.id);
+    B.world.resetMarkers();
+    B.world.setVisited(start.name);
+    B.trail.reset();
+    const g = (state.ghost = { e: start.pos.e, s: start.pos.s, dir: 1, moving: false, started: false, anim: 0 });
+    if (g.s < g.e.len / 2) { g.node = g.e.a; g.s = 0; } else { g.node = g.e.b; g.s = g.e.len; }
+    queued = null; mouseActive = false; camPos = null;
+    newTask(true);
+    addChomper();
+    ui.showHUD(B.meta);
+    ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
+    ui.setChompers(1);
+    ui.toast({ title: 'You are the ghost', body: 'Find ' + state.task.name + '. It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
+    audio.start();
+  }
+
+  function newTask(first) {
+    const g = posXY(state.ghost);
+    const m = B.meta;
+    const far = (t, lo, hi) => { const d = Math.hypot(t.sx - g[0], t.sy - g[1]); return d >= lo && d <= hi; };
+    const pool = B.TARGETS.filter((t) => !state.used.has(t.name) && !state.recentCats.includes(t.cat));
+    let cands = pool.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
+    if (!cands.length) cands = pool.filter((t) => far(t, m.task_min * 0.6, Infinity));
+    if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && far(t, 300, Infinity));
+    if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => far(t, 300, Infinity)); }
+    const t = cands[Math.floor(Math.random() * cands.length)];
+    state.task = t;
+    state.used.add(t.name);
+    state.recentCats.push(t.cat);
+    if (state.recentCats.length > 2) state.recentCats.shift();
+    state.taskHints = 0; state.taskTime = 0; state.hint = null; state.hintLog = []; state.route = null; state.routeAt = -9;
+    B.world.setTarget(t);
+    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1);
+    ui.setHints([]);
+  }
+
+  // pick far-away spawn points: not near the ghost, the target, or each other
+  function spawnPoints(count) {
+    const graph = B.graph;
+    const dist = graph.distancesFrom(state.ghost, CFG.spawnMax * 1.6);
+    const t = state.task;
+    const picks = [];
+    for (let relax = 0; relax < 4 && picks.length < count; relax++) {
+      const lo = CFG.spawnMin * (1 - relax * 0.25), hi = CFG.spawnMax * (1 + relax * 0.3);
+      const cands = [];
+      for (let i = 0; i < dist.length; i++) {
+        if (dist[i] < lo || dist[i] > hi) continue;
+        if (Math.hypot(graph.nx[i] - t.sx, graph.ny[i] - t.sy) < 600 - relax * 150) continue;
+        cands.push(i);
+      }
+      for (let k = 0; k < 60 && picks.length < count && cands.length; k++) {
+        const n = cands[Math.floor(Math.random() * cands.length)];
+        if (picks.every((p) => Math.hypot(graph.nx[p] - graph.nx[n], graph.ny[p] - graph.ny[n]) > 450)) picks.push(n);
+      }
+    }
+    while (picks.length < count) {
+      let bi = 0; for (let i = 0; i < dist.length; i++) if (isFinite(dist[i]) && dist[i] > (isFinite(dist[bi]) ? dist[bi] : -1)) bi = i;
+      picks.push(bi);
+    }
+    return picks;
+  }
+
+  function placeChomper(c, n) {
+    const e = B.graph.adj[n][0];
+    Object.assign(c, { e, s: e.a === n ? 0 : e.len, dir: 1, path: [], repath: 0, spawnFx: CFG.spawnGrace, mode: 'roam', roam: null, roamT: 0 });
+  }
+
+  function addChomper() {
+    const k = KINDS[state.chompers.length];
+    const c = { ...k, mouth: 0 };
+    placeChomper(c, spawnPoints(1)[0]);
+    state.chompers.push(c);
+    return c;
+  }
+
+  function respawnAll() {
+    const pts = spawnPoints(state.chompers.length);
+    state.chompers.forEach((c, i) => placeChomper(c, pts[i]));
+  }
+
+  function chomperFactor(c) {
+    const t = Math.min(CFG.chomperTimeCap, state.taskTime * CFG.chomperPerSec);
+    let f = Math.min(CFG.chomperMax, CFG.chomperBase + CFG.chomperPerTask * state.tasksDone + t) * (B.meta.speed || 1);
+    if (c.kind === 'ambusher') f *= 0.96;
+    if (c.kind === 'wanderer') f *= c.mode === 'chase' ? 1.02 : 0.72;
+    return f;
+  }
+
+  function togglePause() {
+    if (state.mode === 'play') { state.mode = 'pause'; ui.showPause(true); audio.pause(true); }
+    else if (state.mode === 'pause') { state.mode = 'play'; ui.showPause(false); audio.pause(false); last = performance.now(); }
+  }
+
+  function openCard(info) {
+    state.mode = 'card';
+    held.clear(); queued = null;
+    audio.pause(true);
+    ui.showCard(info);
+  }
+  function closeCard() {
+    if (state.mode !== 'card') return;
+    ui.hideCard();
+    state.mode = 'play';
+    last = performance.now();
+    audio.pause(false);
+    if (state.afterCard) { const f = state.afterCard; state.afterCard = null; f(); }
+  }
+
+  function describeDir(dx, dy) {
+    const grid = B.meta.grid_words;
+    const ns = dy < 0 ? (grid ? 'uptown' : 'north') : (grid ? 'downtown' : 'south');
+    const ew = dx > 0 ? 'east' : 'west';
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if (ax < ay * 0.35) return ns;
+    if (ay < ax * 0.35) return 'to the ' + ew;
+    return grid ? ns + ' & ' + ew : ns + ew;
+  }
+
+  function giveHint(landmark) {
+    const t = state.task;
+    const p = B.graph.path(state.ghost, t.pos);
+    const miles = (p ? p.dist : Math.hypot(t.sx - landmark.sx, t.sy - landmark.sy)) / 1609.34;
+    const txt = `${t.name} is ${miles < 0.1 ? 'under 0.1' : miles.toFixed(1)} mi away, ${describeDir(t.sx - landmark.sx, t.sy - landmark.sy)}.`;
+    state.taskHints++;
+    state.hint = { until: state.time + CFG.hintArrowSecs };
+    state.hintLog.unshift({ from: landmark.name, text: txt });
+    ui.setHints(state.hintLog);
+    return txt;
+  }
+
+  const taskPoints = () => Math.max(CFG.taskFloor, CFG.taskBase - CFG.hintCost * state.taskHints) + CFG.streakBonus * state.tasksDone;
+
+  function addToPassport(kind, place) {
+    state.passport.push({ kind, place });
+    if (kind === 'landmark') { state.stamps.add(place.name); PM.saveStamps(B.id, state.stamps); }
+    ui.setPassport(state.passport, B.LANDMARKS.length, state.stamps.size);
+  }
+
+  function gameOver() {
+    state.mode = 'over';
+    audio.chomp(); audio.stop();
+    ui.hideHUD();
+    ui.setHere('');
+    ui.showGameOver({
+      borough: B.id, boroughName: B.meta.name,
+      score: state.score, tasks: state.tasksDone, landmarkCount: state.visited.size - 1,
+      time: state.time, target: state.task, route: state.route_pts || [],
+      map: B.map, graph: B.graph, landmarks: B.LANDMARKS, visited: state.visited,
+    });
+  }
+
+  // ---------- update ----------
+  function update(dt) {
+    state.time += dt;
+    const g = state.ghost;
+    if (!g.started) return;
+    state.taskTime += dt;
+    g.anim += dt;
+    moveGhost(g, CFG.ghostSpeed * dt);
+    const gp = posXY(g);
+    B.trail.add(gp[0], gp[1], state.time);
+
+    const cx = Math.floor(gp[0] / 100), cy = Math.floor(gp[1] / 100);
+    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) if (i * i + j * j <= 7) state.fog.add((cx + i) + ',' + (cy + j));
+    state.routeTimer -= dt;
+    if (state.routeTimer <= 0) { (state.route_pts = state.route_pts || []).push(gp); state.routeTimer = 0.4; }
+
+    // the ghost's likely route to the target (for the ambusher), refreshed each second
+    if (state.time - state.routeAt > 1) {
+      const p = B.graph.path(g, state.task.pos);
+      state.route = p ? p.nodes : null;
+      state.routeAt = state.time;
+    }
+
+    let danger = Infinity;
+    for (const c of state.chompers) {
+      c.spawnFx = Math.max(0, c.spawnFx - dt);
+      c.roamT = (c.roamT || 0) + dt;
+      const cp = posXY(c);
+      const goal = chomperGoal(c, g, gp, cp);
+      c.mode = goal.mode;
+      c.repath -= dt;
+      if (c.repath <= 0 || c.goalMode !== goal.mode) {
+        const p = B.graph.path(c, goal.pos);
+        c.path = p ? p.nodes : [];
+        c.goal = goal.pos; c.goalMode = goal.mode;
+        c.repath = c.kind === 'chaser' ? 0.3 : 0.5;
+      }
+      if (c.spawnFx <= 0) moveChomper(c, CFG.ghostSpeed * chomperFactor(c) * dt, c.goal || g);
+      c.mouth += dt * 10;
+      const np = posXY(c);
+      const d = Math.hypot(np[0] - gp[0], np[1] - gp[1]);
+      c.dist = d;
+      danger = Math.min(danger, d);
+      if (d < CFG.catchDist && c.spawnFx <= 0) { state.danger = d; gameOver(); return; }
+    }
+    state.danger = danger;
+    audio.proximity(danger);
+
+    // warm up HD photos for places the ghost is getting close to, so cards open sharp
+    for (const pl of [state.task, ...B.LANDMARKS]) {
+      if (pl.img && !pl._pre && Math.hypot(pl.sx - gp[0], pl.sy - gp[1]) < 450) { pl._pre = new Image(); pl._pre.src = pl.img; }
+    }
+
+    for (const l of B.LANDMARKS) {
+      if (state.visited.has(l.name)) continue;
+      if (Math.hypot(l.sx - gp[0], l.sy - gp[1]) < CFG.arriveDist) {
+        state.visited.add(l.name);
+        B.world.setVisited(l.name);
+        state.score += CFG.landmarkPts;
+        const hint = giveHint(l);
+        addToPassport('landmark', l);
+        audio.ding();
+        openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
+        return;
+      }
+    }
+
+    const t = state.task;
+    if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) < CFG.arriveDist) {
+      const pts = taskPoints();
+      state.score += pts;
+      state.tasksDone++;
+      audio.fanfare();
+      addToPassport('found', t);
+      state.afterCard = () => {
+        newTask(false);
+        let added = null;
+        respawnAll();
+        if (state.chompers.length < CFG.maxChompers) added = addChomper();
+        ui.setChompers(state.chompers.length);
+        if (added) ui.toast({ title: `${added.name} joined the hunt!`, body: added.desc + ' Everyone else lost your trail, for now.', kind: 'warn', secs: 6 });
+        else ui.toast({ title: 'New task: find ' + state.task.name, body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
+      };
+      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat] });
+      ui.setScore(state.score);
+      return;
+    }
+    ui.setScore(state.score);
+  }
+
+  function streetText(g) {
+    const a = g.e.name || (g.e.cls === 0 ? 'Park path' : '');
+    const node = g.moving ? (g.dir > 0 ? g.e.b : g.e.a) : g.node;
+    let b = '';
+    for (const e of B.graph.adj[node]) if (e.name && e.name !== g.e.name) { b = e.name; break; }
+    return a ? (b ? `${a} & ${b}` : a) : b;
+  }
+
+  // ---------- draw ----------
+  let camPos = null;
+  const perf = { t: 0, n: 0 };
+  function draw(dt) {
+    fctx.clearRect(0, 0, W, H);
+    if (!B || state.mode === 'lobby' || state.mode === 'loading') {
+      renderer.setClearColor('#cfe8f7'); renderer.clear();
+      return;
+    }
+    const world = B.world;
+    if (state.mode === 'building') {
+      const [fx0, fz0] = B.loadFocus;
+      world.updateGround(fx0, fz0, 3);
+      world.updateBuildings(fx0, fz0, 30);
+      const near = world.pendingNear(fx0, fz0, 1100);
+      ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))), 'Building the city in 3D…');
+      if (B.nearTotal === undefined) B.nearTotal = near;
+      world.render(B.loadFocus, now, null);
+      if (near === 0) { B.nearTotal = undefined; startRun(); }
+      return;
+    }
+    const g = state.ghost;
+    const gp = posXY(g);
+    if (!camPos) camPos = gp.slice();
+    const k = 1 - Math.pow(0.0005, dt);
+    camPos[0] += (gp[0] - camPos[0]) * k; camPos[1] += (gp[1] - camPos[1]) * k;
+    if (Math.hypot(gp[0] - camPos[0], gp[1] - camPos[1]) > 600) camPos = gp.slice();
+
+    world.updateGround(camPos[0], camPos[1], 2);
+    world.updateBuildings(camPos[0], camPos[1], 5);
+
+    const danger = state.danger === undefined ? Infinity : state.danger;
+    const gh = g.moving ? B.graph.headingAt(g.e, g.s, g.dir) : null;
+    B.ghost3d.update(gp[0], gp[1], gh, g.anim + now, danger < 220 && state.mode === 'play', g.moving && g.started);
+    B.bubble.update(gp[0], gp[1], now, danger);
+    B.trail.update(state.time, gp[0], gp[1]);
+    B.chompers3d.forEach((m, i) => {
+      const c = state.chompers[i];
+      m.setVisible(!!c);
+      if (!c) return;
+      const cp = posXY(c);
+      m.update(cp[0], cp[1], B.graph.headingAt(c.e, c.s, c.dir), Math.abs(Math.sin(c.mouth)), now + i, c.spawnFx, c.mode === 'chase' && c.dist < 400);
+    });
+
+    const t = state.task;
+    if (state.hint && state.time < state.hint.until) {
+      B.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (state.hint.until - state.time) / 2), now);
+    } else B.arrow.update(0, 0, 0, 0, now);
+
+    for (const m of world.markers.values()) {
+      const dd = Math.hypot(m.g.position.x - gp[0], m.g.position.z - gp[1]);
+      m.sprite.visible = dd < 1100 && !m.visited;
+    }
+
+    world.render(camPos, now, gp);
+    if ((state.mode === 'play') && !world.lowQ) {
+      perf.t += dt; perf.n++;
+      if (perf.t > 4) { if (perf.n / perf.t < 28) world.lowerQuality(); perf.t = 0; perf.n = 0; }
+    }
+
+    // 2D overlay: cursor aim line, off-screen chomper pointers, danger vignette
+    const [gsx, gsy] = world.toScreen(gp[0], gp[1], 2);
+    if (mouseActive && state.cursorWorld && state.mode === 'play' && g.started) {
+      const [mx, my] = world.toScreen(state.cursorWorld[0], state.cursorWorld[1]);
+      fctx.save();
+      fctx.strokeStyle = 'rgba(143,116,255,0.75)'; fctx.lineWidth = 2.5 * DPR; fctx.setLineDash([2 * DPR, 7 * DPR]); fctx.lineCap = 'round';
+      fctx.beginPath(); fctx.moveTo(gsx * DPR, gsy * DPR); fctx.lineTo(mx * DPR, my * DPR); fctx.stroke();
+      fctx.setLineDash([]);
+      fctx.beginPath(); fctx.arc(mx * DPR, my * DPR, 11 * DPR, 0, Math.PI * 2); fctx.stroke();
+      fctx.restore();
+    }
+    for (const c of state.chompers) {
+      const cp = posXY(c);
+      const [csx, csy, cz] = world.toScreen(cp[0], cp[1], 14);
+      const off = cz > 1 || csx < 0 || csy < 0 || csx > innerWidth || csy > innerHeight;
+      if (off) PM.Sprites.edgeArrow(fctx, W, H, cz > 1 ? W - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, c.dist, c.color);
+    }
+    if (danger < 320 && state.mode === 'play') {
+      const a = (1 - danger / 320) * 0.45;
+      const grd = fctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
+      grd.addColorStop(0, 'rgba(255,60,90,0)'); grd.addColorStop(1, `rgba(255,60,90,${a})`);
+      fctx.fillStyle = grd; fctx.fillRect(0, 0, W, H);
+    }
+
+    ui.setHere(state.mode === 'play' || state.mode === 'pause' ? streetText(g) : '', gsx, gsy - 44);
+    ui.showStartHint(!g.started && state.mode === 'play');
+    ui.drawMinimap({ graph: B.graph, map: B.map, fog: state.fog, ghost: gp, trail: B.trail.pts,
+      chompers: state.chompers.map((c) => ({ p: posXY(c), color: c.color })),
+      landmarks: B.LANDMARKS, visited: state.visited, cam: camPos, viewW: 1100, viewH: 900 });
+  }
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    now += dt;
+    if (state.mode === 'play') update(dt);
+    try { draw(dt); } catch (e) { console.error(e); }
+    requestAnimationFrame(frame);
+  }
+
+  let lobby = [];
+  function pick(id) {
+    audio.unlock();
+    loadBorough(id).catch((e) => {
+      console.error(e);
+      ui.showLoading('failed', 0, 'The map could not load: ' + e.message + '. Serve the folder over http (see README).');
+    });
+  }
+
+  ui.init({
+    onPick: pick,
+    onAgain: () => { camPos = null; startRun(); },
+    onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); },
+    onResume: togglePause,
+    onToggleMute: () => ui.setMuted(audio.toggleMute()),
+    onCloseCard: closeCard,
+    onRevisit: (i) => {
+      if (state.mode !== 'play' && state.mode !== 'pause') return;
+      if (state.mode === 'pause') ui.showPause(false);
+      const it = state.passport[i];
+      if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '' });
+    },
+  });
+  fetchJSON('data/boroughs.json').then((list) => { lobby = list; ui.renderLobby(list); ui.showLobby(); })
+    .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
+  requestAnimationFrame(frame);
+
+  window.PM.debug = { state, CFG, get B() { return B; }, pick, startRun, closeCard,
+    press: (d) => { queued = d; queuedAt = now; if (state.ghost) state.ghost.started = true; },
+    hold: (d, on) => (on ? held.add(d) : held.delete(d)) };
+})();
+
+</script>
