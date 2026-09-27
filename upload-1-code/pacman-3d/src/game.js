@@ -501,7 +501,7 @@
 
   // ---------- two-player race (split screen) ----------
   // Both ghosts start at the same place and race to the same target. One chomper chases whoever is closer.
-  // Caught means out. Most targets wins; a tie goes to whoever survived longer.
+  // The match ends the moment anyone is caught. Most targets wins; a tie goes to whoever wasn't caught.
   const VS = [
     { name: 'Player 1', keys: 'W A S D', color: '#8f74ff' },
     { name: 'Player 2', keys: 'Arrow keys', color: '#12b3c4' },
@@ -592,7 +592,7 @@
     ui.setVersusHints(p.i, p.hintLog);
   }
 
-  // end the match as soon as the winner is certain
+  // end the match the moment anyone is caught
   function versusCheckEnd() {
     const [a, b] = state.players;
     const run = alive();
@@ -600,14 +600,17 @@
     let winner = null, reason;
     if (run.length === 1) {
       const s = run[0], d = s === a ? b : a;
-      if (s.found < d.found) return false; // the survivor can still catch up
-      winner = s;
-      reason = s.found > d.found ? `${d.name} got chomped while behind.` : `${d.name} got chomped. Same number of targets, but ${s.name} survived longer.`;
-    } else {
-      if (a.found !== b.found) { winner = a.found > b.found ? a : b; reason = 'Both got chomped. Most targets wins.'; }
-      else if (a.diedAt !== b.diedAt) { winner = a.diedAt > b.diedAt ? a : b; reason = `Same number of targets, but ${winner.name} survived longer.`; }
-      else reason = 'Both got chomped at the same moment with the same number of targets.';
-    }
+      if (s.found !== d.found) {
+        winner = s.found > d.found ? s : d;
+        reason = winner === s ? `${d.name} got chomped. ${s.name} found more targets.` : `${d.name} got chomped, but found more targets.`;
+      } else {
+        winner = s;
+        reason = `${d.name} got chomped. Same number of targets, so ${s.name} wins for staying free.`;
+      }
+    } else if (a.found !== b.found) {
+      winner = a.found > b.found ? a : b;
+      reason = `Both got chomped at once. ${winner.name} found more targets.`;
+    } else reason = 'Both got chomped at once with the same number of targets.';
     state.mode = 'over';
     state.result = { winner, reason };
     audio.stop();
@@ -666,12 +669,7 @@
         ui.setVersusPlayer(p);
       }
     }
-    if (caught) {
-      if (versusCheckEnd()) return;
-      const s = alive()[0], n = state.players[1 - s.i].found - s.found;
-      ui.toast({ title: `${state.players[1 - s.i].name} got chomped!`, body: `Find ${n} more target${n === 1 ? '' : 's'} to win. Don't get caught first.`, kind: 'warn', secs: 6, side: s.i });
-      respawnAll(alivePos());
-    }
+    if (caught) { versusCheckEnd(); return; }
     audio.proximity(Math.min(...alive().map((p) => p.danger)));
 
     for (const p of alive()) {
