@@ -429,7 +429,7 @@
       this.show('over', true);
       $('over-borough').textContent = r.boroughName;
       $('over-score').textContent = r.score.toLocaleString();
-      $('over-stats').innerHTML = `<div><b>${r.tasks}</b> tasks</div><div><b>${r.landmarkCount}</b> landmarks</div><div><b>${fmtTime(r.time)}</b> survived</div>`;
+      $('over-stats').innerHTML = `<div><b>${r.tasks}</b> ${r.tasks === 1 ? 'task' : 'tasks'}</div><div><b>${r.landmarkCount}</b> ${r.landmarkCount === 1 ? 'landmark' : 'landmarks'}</div><div><b>${fmtTime(r.time)}</b> survived</div>`;
       $('over-target').textContent = `You were looking for ${r.target.name}. It's the green dot on your route map.`;
       const scores = store.get(scoresKey(r.borough), []);
       const qualifies = r.score > 0 && (scores.length < 10 || r.score > scores[scores.length - 1].score);
