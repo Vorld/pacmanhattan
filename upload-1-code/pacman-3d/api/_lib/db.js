@@ -78,7 +78,7 @@ export function int(v, max, name) {
   return n;
 }
 export function initials(v) {
-  return String(v || '???').toUpperCase().replace(/[^A-Z0-9?]/g, '').slice(0, 3) || '???';
+  return String(v || '').replace(/\D/g, '').slice(0, 20) || '???';
 }
 export function text(v, max = 120) {
   return String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, '').slice(0, max);
