@@ -373,12 +373,10 @@
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && far(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => far(t, 300, Infinity)); }
     const themed = themedLeft();
-    if (themed.length) {
-      let tc = themed.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
-      if (!tc.length) tc = themed.filter((t) => far(t, 300, Infinity));
-      if (tc.length) cands = tc.slice(0, 4); // among the best matches in range
-    }
-    const t = cands[Math.floor(Math.random() * cands.length)];
+    const hi = first ? m.first_max : m.task_max;
+    const t = themed.length
+      ? (bestThemed(themed, (x) => far(x, Math.min(m.task_min, 500), hi * 1.5)) || themed[0])
+      : cands[Math.floor(Math.random() * cands.length)];
     state.task = t;
     state.used.add(t.name);
     state.recentCats.push(t.cat);
@@ -596,14 +594,19 @@
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => within(t, 300, Infinity)); }
     if (!cands.length) cands = B.TARGETS.slice();
     const themed = themedLeft();
+    let t;
     if (themed.length) {
-      let tc = themed.filter((t) => within(t, m.task_min, first ? m.first_max : m.task_max));
-      if (!tc.length) tc = themed.filter((t) => within(t, 300, Infinity));
-      if (tc.length) cands = tc.slice(0, 6); // the fairest of the best matches in range
+      const hi = first ? m.first_max : m.task_max;
+      const band = themed.filter((x) => within(x, Math.min(m.task_min, 500), hi * 1.5)).slice(0, 6);
+      const pool = band.length ? band : themed.slice(0, 6);
+      const spread = (x) => { const d = dists(x); return Math.max(...d) - Math.min(...d); };
+      pool.sort((a, b) => spread(a) - spread(b));
+      t = pool[0];
+    } else {
+      const spread = (x) => { const d = dists(x); return Math.max(...d) - Math.min(...d); };
+      cands.sort((a, b) => spread(a) - spread(b));
+      t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
     }
-    const spread = (t) => { const d = dists(t); return Math.max(...d) - Math.min(...d); };
-    cands.sort((a, b) => spread(a) - spread(b));
-    const t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
     state.task = t;
     state.used.add(t.name);
     state.recentCats.push(t.cat);
@@ -1243,6 +1246,12 @@
   function themedLeft() {
     if (!state.theme || !state.theme.picks.length) return [];
     return state.theme.picks.map((n) => B.TARGETS.find((t) => t.name === n)).filter((t) => t && !state.used.has(t.name));
+  }
+
+  // best-ranked themed place that passes `ok`. Rank order is the theme fit, so a nearby weak match loses.
+  function bestThemed(list, ok) {
+    const best = list.slice(0, 6).find(ok);
+    return best || list.find(ok) || null;
   }
 
   function announceTheme() {
