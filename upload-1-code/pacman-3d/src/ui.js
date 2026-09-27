@@ -387,7 +387,19 @@
       this.show('save-row', qualifies);
       $('initials').value = '';
       if (qualifies) setTimeout(() => $('initials').focus(), 50);
+      this.globalTop = null; this._saved = false;
       this.renderScores($('over-scores'), r.borough);
+      // the shared top 10 from MongoDB replaces this browser's list once it arrives
+      PM.Cloud.scores(r.borough).then((g) => {
+        if (!g || this.last !== r) return;
+        this.globalTop = g.top;
+        const top = g.top;
+        if (!this._saved && r.score > 0 && (top.length < 10 || r.score > top[top.length - 1].score) && $('save-row').classList.contains('hidden')) {
+          this.show('save-row', true);
+          setTimeout(() => $('initials').focus(), 50);
+        }
+        if (!this._saved) this.renderScores($('over-scores'), r.borough);
+      });
       this.drawRoute(r);
     },
     saveInitials() {
@@ -398,10 +410,20 @@
       list.sort((a, b) => b.score - a.score);
       store.set(scoresKey(r.borough), list.slice(0, 10));
       this.show('save-row', false);
+      this._saved = true;
       this.renderScores($('over-scores'), r.borough, ini, r.score);
+      PM.Cloud.submitScore({ initials: ini, borough: r.borough, score: r.score, tasks: r.tasks, landmarks: r.landmarkCount, time: Math.round(r.time) })
+        .then((res) => {
+          if (!res || this.last !== r) return;
+          this.globalTop = res.top;
+          this.renderScores($('over-scores'), r.borough, ini, r.score);
+          $('scores-title').textContent = `High scores · everyone · you're #${res.rank}`;
+        });
     },
+    // the shared list from MongoDB when we have it, otherwise this browser's
     renderScores(el, borough, hiIni, hiScore) {
-      const list = store.get(scoresKey(borough), []);
+      const list = this.globalTop || store.get(scoresKey(borough), []);
+      $('scores-title').textContent = this.globalTop ? 'High scores · everyone' : 'High scores';
       if (!list.length) { el.innerHTML = '<div class="muted">No high scores yet.</div>'; return; }
       el.innerHTML = '<table>' + list.map((s, i) => `<tr class="${s.ini === hiIni && s.score === hiScore ? 'me' : ''}"><td>${i + 1}</td><td>${esc(s.ini)}</td><td class="num">${s.score.toLocaleString()}</td><td class="num">${s.tasks} tasks</td></tr>`).join('') + '</table>';
     },
