@@ -462,6 +462,7 @@
     state.revealed = true;
     const t = state.task;
     ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, false);
+    if (t.riddle) PM.Tiger.event(B.id, t.name, 'revealed', state.taskTime);
   }
 
   function giveHint(landmark) {
@@ -489,6 +490,7 @@
     state.mode = 'over';
     audio.chomp(); audio.stop();
     if (!state.versus) voice.play('chomped');
+    if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
     PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
       passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
     ui.hideHUD();
@@ -900,6 +902,7 @@
         addToPassport('landmark', l);
         audio.ding();
         voice.play('landmark');
+        PM.Tiger.event(B.id, l.name, 'landmark', null);
         openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
         return;
       }
@@ -924,6 +927,7 @@
         else ui.toast({ title: state.revealed ? 'New task: find ' + state.task.name : 'New riddle to solve', body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
       };
       voice.play(solved ? 'solved' : 'found');
+      if (t.riddle) PM.Tiger.event(B.id, t.name, solved ? 'solved' : 'found', state.taskTime);
       openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
       ui.setScore(state.score);
       return;

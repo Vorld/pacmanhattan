@@ -166,6 +166,7 @@
           <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
           ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
           ${hint ? `<div class="card-hint"><b>Hint:</b> ${esc(hint)}<div class="small">A green arrow points the way for a few seconds.</div></div>` : ''}
+          <div id="card-live" class="card-live" hidden></div>
           <div class="links">
             ${sv ? `<a href="${sv}" target="_blank" rel="noopener">Open Street View ↗</a>` : ''}
             ${p.wiki ? `<a href="${esc(p.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a>` : ''}
@@ -174,6 +175,33 @@
       $('btn-card').textContent = kind === 'found' ? 'Next task (Space)' : kind === 'revisit' ? 'Back to running (Space)' : 'Keep running (Space)';
       this.show('card', true);
       setTimeout(() => $('btn-card').focus(), 30);
+      this.fillLive(kind, p);
+    },
+
+    // live panel from Tiger Data: the buildings around this place, and (for riddles) how other players did
+    fillLive(kind, p) {
+      if (!PM.Tiger) return;
+      const token = (this._liveToken = (this._liveToken || 0) + 1);
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const stats = kind === 'found' && p.riddle ? wait(700).then(() => PM.Tiger.riddle(p.name)) : null; // let this find land first
+      Promise.all([PM.Tiger.block(p), stats]).then(([blk, rd]) => {
+        if (token !== this._liveToken) return;
+        const rows = [];
+        if (blk && blk.buildings > 0 && blk.typicalYear) {
+          const apts = blk.apartments > 0 ? ` Home to ${blk.apartments.toLocaleString()} apartments.` : '';
+          const old = blk.oldestYear && blk.oldestYear < blk.typicalYear ? `; the oldest dates to ${blk.oldestYear}` : '';
+          rows.push(`<div><b>Know the block${p.ntaname ? ' · ' + esc(p.ntaname) : ''}:</b> ${blk.buildings} buildings within a block or two, typically built around ${blk.typicalYear}${old}.${apts}</div>`);
+        }
+        if (rd && rd.finds > 0) {
+          rows.push(rd.finds === 1
+            ? `<div><b>Riddle stats:</b> you're the first player to find this one.</div>`
+            : `<div><b>Riddle stats:</b> ${rd.solved} of ${rd.finds} finds solved this riddle before the name appeared${rd.avgSecs ? `, in ${rd.avgSecs} s on average` : ''}.</div>`);
+        }
+        const el = $('card-live');
+        if (!el || !rows.length) return;
+        el.innerHTML = rows.join('') + '<div class="card-live-src">Live from Tiger Data: NYC PLUTO buildings and every player\'s riddle attempts</div>';
+        el.hidden = false;
+      });
     },
     hideCard() { this.show('card', false); },
 

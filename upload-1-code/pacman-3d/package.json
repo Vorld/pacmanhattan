@@ -2,7 +2,7 @@
   "name": "pacmanhattan",
   "private": true,
   "type": "module",
-  "description": "Pac-Manhattan: static game plus Vercel functions in api/ that save scores, stamps and Passports to MongoDB",
+  "description": "Pac-Manhattan: static game plus Vercel functions in api/ that save scores, stamps and Passports to MongoDB and game events to Tiger Data",
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local tools/dev-server.mjs"
   },
@@ -10,6 +10,7 @@
     "node": ">=20.19"
   },
   "dependencies": {
-    "mongodb": "^7.6.0"
+    "mongodb": "^7.6.0",
+    "pg": "^8.16.3"
   }
 }

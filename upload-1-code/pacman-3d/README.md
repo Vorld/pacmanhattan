@@ -65,6 +65,15 @@ data/<borough>/     map.json, graph.json, places.json for each borough
 tools/              data pipeline, headless tests, and dev-server.mjs for local play with the api/
 ```
 
+## Tiger Data
+
+Place cards show live data from Tiger Data (TimescaleDB), through Vercel functions in `api/` that read `TIGER_DATABASE_URL` from the environment:
+
+- **Know the block** (`api/block`): the buildings within about 150 m of the place, from a 767,563-building NYC table (PLUTO lots joined with HPD data): how many, when they were typically built, the oldest, and how many apartments.
+- **Riddle stats** (`api/riddle`): every riddle outcome is logged to the `pm_events` hypertable (`api/events`: solved before the reveal, found after it, revealed, landmark, caught). The `pm_riddle_hourly` continuous aggregate (real-time, refreshed every 10 minutes) gives each place's solve rate and average time.
+
+Set up the tables with `psql "$TIGER_DATABASE_URL" -f sql/tiger.sql`. Places are tagged with their 2020 NTA neighborhood by `tools/tag_nta.py`. The game plays the same without it; the panel just doesn't appear.
+
 ## Tuning
 
 All gameplay numbers live in the `CFG` object at the top of `src/game.js`. They include ghost speed, the chomper's speed curve, spawn distance, task distances, and scoring.

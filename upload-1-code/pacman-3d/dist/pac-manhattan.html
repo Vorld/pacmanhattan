@@ -308,6 +308,10 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   .lobby-foot { position: absolute; top: 6px; right: 0; }
   .lobby-foot .howto:not(.hidden) { position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%); width: min(720px, calc(100vw - 32px)); box-shadow: var(--shadow); z-index: 5; }
 }
+
+/* live panel on place cards (Tiger Data) */
+.card-live { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #eef7f3; border: 1px solid #cdeadc; font-size: 14px; line-height: 1.45; display: grid; gap: 6px; }
+.card-live-src { font-size: 11.5px; color: #3d7a5e; font-weight: 700; letter-spacing: .02em; }
 </style>
 
 <canvas id="game"></canvas>
@@ -480,7 +484,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
           <input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false">
           <button id="btn-save">Save score</button>
         </div>
-        <div class="scores-title">High scores</div>
+        <div class="scores-title" id="scores-title">High scores</div>
         <div id="over-scores" class="scores"></div>
         <div class="over-btns">
           <button id="btn-again" class="primary">Run again</button>
@@ -2065,6 +2069,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
           <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
           ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
           ${hint ? `<div class="card-hint"><b>Hint:</b> ${esc(hint)}<div class="small">A green arrow points the way for a few seconds.</div></div>` : ''}
+          <div id="card-live" class="card-live" hidden></div>
           <div class="links">
             ${sv ? `<a href="${sv}" target="_blank" rel="noopener">Open Street View ↗</a>` : ''}
             ${p.wiki ? `<a href="${esc(p.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a>` : ''}
@@ -2073,6 +2078,33 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       $('btn-card').textContent = kind === 'found' ? 'Next task (Space)' : kind === 'revisit' ? 'Back to running (Space)' : 'Keep running (Space)';
       this.show('card', true);
       setTimeout(() => $('btn-card').focus(), 30);
+      this.fillLive(kind, p);
+    },
+
+    // live panel from Tiger Data: the buildings around this place, and (for riddles) how other players did
+    fillLive(kind, p) {
+      if (!PM.Tiger) return;
+      const token = (this._liveToken = (this._liveToken || 0) + 1);
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const stats = kind === 'found' && p.riddle ? wait(700).then(() => PM.Tiger.riddle(p.name)) : null; // let this find land first
+      Promise.all([PM.Tiger.block(p), stats]).then(([blk, rd]) => {
+        if (token !== this._liveToken) return;
+        const rows = [];
+        if (blk && blk.buildings > 0 && blk.typicalYear) {
+          const apts = blk.apartments > 0 ? ` Home to ${blk.apartments.toLocaleString()} apartments.` : '';
+          const old = blk.oldestYear && blk.oldestYear < blk.typicalYear ? `; the oldest dates to ${blk.oldestYear}` : '';
+          rows.push(`<div><b>Know the block${p.ntaname ? ' · ' + esc(p.ntaname) : ''}:</b> ${blk.buildings} buildings within a block or two, typically built around ${blk.typicalYear}${old}.${apts}</div>`);
+        }
+        if (rd && rd.finds > 0) {
+          rows.push(rd.finds === 1
+            ? `<div><b>Riddle stats:</b> you're the first player to find this one.</div>`
+            : `<div><b>Riddle stats:</b> ${rd.solved} of ${rd.finds} finds solved this riddle before the name appeared${rd.avgSecs ? `, in ${rd.avgSecs} s on average` : ''}.</div>`);
+        }
+        const el = $('card-live');
+        if (!el || !rows.length) return;
+        el.innerHTML = rows.join('') + '<div class="card-live-src">Live from Tiger Data: NYC PLUTO buildings and every player\'s riddle attempts</div>';
+        el.hidden = false;
+      });
     },
     hideCard() { this.show('card', false); },
 
@@ -2286,7 +2318,19 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       this.show('save-row', qualifies);
       $('initials').value = '';
       if (qualifies) setTimeout(() => $('initials').focus(), 50);
+      this.globalTop = null; this._saved = false;
       this.renderScores($('over-scores'), r.borough);
+      // the shared top 10 from MongoDB replaces this browser's list once it arrives
+      PM.Cloud.scores(r.borough).then((g) => {
+        if (!g || this.last !== r) return;
+        this.globalTop = g.top;
+        const top = g.top;
+        if (!this._saved && r.score > 0 && (top.length < 10 || r.score > top[top.length - 1].score) && $('save-row').classList.contains('hidden')) {
+          this.show('save-row', true);
+          setTimeout(() => $('initials').focus(), 50);
+        }
+        if (!this._saved) this.renderScores($('over-scores'), r.borough);
+      });
       this.drawRoute(r);
     },
     saveInitials() {
@@ -2297,10 +2341,20 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       list.sort((a, b) => b.score - a.score);
       store.set(scoresKey(r.borough), list.slice(0, 10));
       this.show('save-row', false);
+      this._saved = true;
       this.renderScores($('over-scores'), r.borough, ini, r.score);
+      PM.Cloud.submitScore({ initials: ini, borough: r.borough, score: r.score, tasks: r.tasks, landmarks: r.landmarkCount, time: Math.round(r.time) })
+        .then((res) => {
+          if (!res || this.last !== r) return;
+          this.globalTop = res.top;
+          this.renderScores($('over-scores'), r.borough, ini, r.score);
+          $('scores-title').textContent = `High scores · everyone · you're #${res.rank}`;
+        });
     },
+    // the shared list from MongoDB when we have it, otherwise this browser's
     renderScores(el, borough, hiIni, hiScore) {
-      const list = store.get(scoresKey(borough), []);
+      const list = this.globalTop || store.get(scoresKey(borough), []);
+      $('scores-title').textContent = this.globalTop ? 'High scores · everyone' : 'High scores';
       if (!list.length) { el.innerHTML = '<div class="muted">No high scores yet.</div>'; return; }
       el.innerHTML = '<table>' + list.map((s, i) => `<tr class="${s.ini === hiIni && s.score === hiScore ? 'me' : ''}"><td>${i + 1}</td><td>${esc(s.ini)}</td><td class="num">${s.score.toLocaleString()}</td><td class="num">${s.tasks} tasks</td></tr>`).join('') + '</table>';
     },
@@ -2336,6 +2390,132 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   function fmtTime(s) { const m = Math.floor(s / 60); return m + ':' + String(Math.floor(s % 60)).padStart(2, '0'); }
 
   PM.UI = UI;
+})();
+
+</script>
+<script>
+// Cloud saves: high scores, landmark stamps and each run's Passport go to MongoDB through api/.
+// Everything is also kept in this browser, so the game plays the same when the server or database
+// is unreachable; anything that fails to send is queued and retried on the next visit.
+// A player is an anonymous id made once per browser (no sign-in).
+(function () {
+  const PM = (window.PM = window.PM || {});
+  const store = PM.store;
+  const ID_KEY = 'pacmanhattan.player.v1', QUEUE_KEY = 'pacmanhattan.pending.v1';
+
+  let id = store.get(ID_KEY, null);
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+    store.set(ID_KEY, id);
+  }
+  let off = false; // no api/ here (plain static hosting) or no database configured: stop trying this visit
+
+  async function call(method, path, data) {
+    if (off) return null;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 6000);
+    try {
+      const r = await fetch('api/' + path, {
+        method, signal: ctl.signal,
+        headers: data ? { 'Content-Type': 'application/json' } : undefined,
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      if (r.status === 404 || r.status === 503) { off = true; return null; }
+      if (!r.ok) return { rejected: true };
+      return await r.json();
+    } catch (e) {
+      return null; // offline or timed out
+    } finally { clearTimeout(timer); }
+  }
+
+  // a POST that must not be lost: queued if the network fails, dropped only if the server rejects it
+  async function send(path, data) {
+    const r = await call('POST', path, data);
+    if (r === null && !off) {
+      const q = store.get(QUEUE_KEY, []);
+      q.push({ path, data });
+      store.set(QUEUE_KEY, q.slice(-100));
+    }
+    return r && !r.rejected ? r : null;
+  }
+
+  async function flush() {
+    const q = store.get(QUEUE_KEY, []);
+    if (!q.length) return;
+    store.set(QUEUE_KEY, []);
+    for (const it of q) await send(it.path, it.data);
+  }
+
+  PM.Cloud = {
+    get id() { return id; },
+    get on() { return !off; },
+
+    // global top 10 for a map, plus this player's best: { top, best } or null
+    async scores(borough) {
+      const r = await call('GET', `scores?borough=${encodeURIComponent(borough)}&playerId=${id}`);
+      return r && !r.rejected ? r : null;
+    },
+    // save a single-player score: { rank, top } or null
+    submitScore(s) { return send('scores', { playerId: id, ...s }); },
+
+    addStamps(borough, names) { return send('stamps', { playerId: id, borough, names }); },
+
+    // merge this browser's stamps with the saved ones, both ways; true if this browser learned new ones
+    async syncStamps(boroughs) {
+      const r = await call('GET', `stamps?playerId=${id}`);
+      if (!r || r.rejected) return false;
+      const saved = r.stamps || {};
+      let learned = false;
+      for (const b of boroughs) {
+        const local = PM.loadStamps(b), cloud = saved[b] || [];
+        const merged = new Set([...local, ...cloud]);
+        if (merged.size > local.size) { PM.saveStamps(b, merged); learned = true; }
+        const missing = [...local].filter((n) => !cloud.includes(n));
+        if (missing.length) this.addStamps(b, missing);
+      }
+      return learned;
+    },
+
+    // a finished game and its Passport (solo or versus)
+    saveRun(run) { return send('runs', { playerId: id, ...run }); },
+
+    // on page load: resend anything queued, then sync stamps; true if the lobby should re-render
+    async start(boroughs) {
+      await flush();
+      return this.syncStamps(boroughs);
+    },
+  };
+})();
+
+</script>
+<script>
+// Tiger Data: game events go in (api/events -> pm_events hypertable); riddle stats (pm_riddle_hourly continuous
+// aggregate) and "know the block" (767k NYC buildings) come out. Separate from cloud.js so the game still gets
+// these when MongoDB is down, and vice versa. Everything fails quietly: the game never waits on it.
+(function () {
+  const PM = (window.PM = window.PM || {});
+  let off = false; // no api/ here (plain static hosting) or no database configured
+
+  const gone = (r) => { if (r.status === 404 || r.status === 503) off = true; return r; };
+  async function get(path) {
+    if (off) return null;
+    try {
+      const r = gone(await fetch('api/' + path));
+      return r.ok ? await r.json() : null;
+    } catch (e) { return null; }
+  }
+
+  PM.Tiger = {
+    event(borough, place, kind, secs) {
+      if (off || !place) return;
+      fetch('api/events', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: PM.Cloud ? PM.Cloud.id : 'anonymous-player', borough, place, kind, secs: secs == null ? null : Math.round(secs * 10) / 10 }),
+      }).then(gone).catch(() => {});
+    },
+    riddle(place) { return get('riddle?place=' + encodeURIComponent(place)); },
+    block(p) { return p && p.lat ? get(`block?lat=${p.lat}&lon=${p.lon}`) : Promise.resolve(null); },
+  };
 })();
 
 </script>
@@ -2804,6 +2984,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     state.revealed = true;
     const t = state.task;
     ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, false);
+    if (t.riddle) PM.Tiger.event(B.id, t.name, 'revealed', state.taskTime);
   }
 
   function giveHint(landmark) {
@@ -2823,7 +3004,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 
   function addToPassport(kind, place) {
     state.passport.push({ kind, place });
-    if (kind === 'landmark') { state.stamps.add(place.name); PM.saveStamps(B.id, state.stamps); }
+    if (kind === 'landmark') { state.stamps.add(place.name); PM.saveStamps(B.id, state.stamps); PM.Cloud.addStamps(B.id, [place.name]); }
     ui.setPassport(state.passport, B.LANDMARKS.length, state.stamps.size);
   }
 
@@ -2831,6 +3012,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     state.mode = 'over';
     audio.chomp(); audio.stop();
     if (!state.versus) voice.play('chomped');
+    if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
+    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
+      passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -2957,6 +3141,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     state.result = { winner, reason };
     audio.stop();
     if (winner) audio.fanfare();
+    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
+      players: state.players.map((p) => ({ name: p.name, found: p.found, caught: !p.alive,
+        passport: p.passport.map((it) => ({ kind: it.kind, name: it.place.name })) })) });
     ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
     return true;
   }
@@ -3237,6 +3424,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         addToPassport('landmark', l);
         audio.ding();
         voice.play('landmark');
+        PM.Tiger.event(B.id, l.name, 'landmark', null);
         openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
         return;
       }
@@ -3261,6 +3449,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         else ui.toast({ title: state.revealed ? 'New task: find ' + state.task.name : 'New riddle to solve', body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
       };
       voice.play(solved ? 'solved' : 'found');
+      if (t.riddle) PM.Tiger.event(B.id, t.name, solved ? 'solved' : 'found', state.taskTime);
       openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
       ui.setScore(state.score);
       return;
@@ -3528,7 +3717,11 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   // the title screen plays itself on Manhattan; picking Manhattan later reuses this load
   demoLoad = ensureBorough('manhattan').then(() => { if (state.mode === 'title' || state.mode === 'lobby') startDemo(); });
   demoLoad.catch((e) => console.warn('title screen demo:', e));
-  fetchJSON('data/boroughs.json').then((list) => { lobby = list; ui.renderLobby(list); })
+  fetchJSON('data/boroughs.json').then((list) => {
+    lobby = list; ui.renderLobby(list);
+    // resend saves that failed last time, and pull this player's stamps from MongoDB
+    PM.Cloud.start(list.map((b) => b.id)).then((learned) => { if (learned) ui.renderLobby(lobby); });
+  })
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 

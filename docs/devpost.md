@@ -5,7 +5,7 @@
 **Tagline (under 200 characters):** You're the ghost. New York is the maze. A 3D arcade chase through real NYC streets that teaches you the city one riddle at a time.
 
 **Track:** Know Your City
-**Also submit to:** Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack
+**Also submit to:** Best Use of Tiger Data, Best Use of Gemini API, Best Use of ElevenLabs, Best .Tech Domain Name, Most Popular Hack (and Best Use of MongoDB Atlas once the MongoDB connection string is set in Vercel)
 
 **Images:** `docs/media/pacmanhattan-cover-3x2.jpg` (3000x2000, Devpost thumbnail and first gallery image) and `docs/media/pacmanhattan-banner-3x1.jpg` (3840x1280, wide banner). Both are real screenshots of the game's title screen.
 
@@ -35,6 +35,8 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **Dodge three kinds of chompers.** Chomps chases you, Sneaky cuts you off on the way to your target, and Snooze wanders until you get close. A new one joins after every task.
 - **Seven maps:** all of Manhattan; neighborhoods of Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn over the East River bridges; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges, and the **Staten Island Ferry**. The ferry carries you five times faster than running, and chompers can't swim, so they wait at the terminal.
 - **A real city, in real colors.** 171,710 buildings at their real heights. Roof colors come from NYC's 2018 aerial photos, and wall colors from each lot's year built and building class, so Brooklyn shows brownstone and red brick and Midtown shows glass and limestone.
+- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
+- **Riddle stats.** After you solve a riddle, you see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
 - **A narrator** cheers you on, warns you when a chomper is behind you, and calls out every bridge you cross.
 - **2-player split screen:** race a friend to the same places on one keyboard.
 - **A live title screen:** the game plays itself behind the menu, so you see what it is before you read a word.
@@ -46,6 +48,8 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **All five boroughs on one map:** every borough is reprojected into Manhattan's frame (rotated 29° so avenues run up the screen), and the street graphs are joined at the real landing points of each bridge. The ferry is its own kind of edge, which pathfinding lets you use and never lets chompers use.
 - **Real building colors:** about 3,000 NYC aerial photo tiles, sampled at up to 10 points inside each footprint for the roof color. NYC PLUTO lots are matched to footprints with a spatial index for wall materials.
 - **Gemini API** (Gemini 3.1 Flash-Lite) writes a riddle for every place from that place's own fact and Wikipedia summary. Every riddle goes through a checker before we keep it: it can't use any word of the place's name, and every number in it has to appear in the source text, so Gemini can't invent a year. Failed riddles get up to three retries with the reason.
+- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We load 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by coordinate. Every riddle outcome (solved before the reveal, found after, revealed, caught) is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
+- **MongoDB Atlas** stores each player's high scores, Passport stamps and finished runs through Vercel functions, so the leaderboard is global, with a browser fallback when the database is unreachable.
 - **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, so the game ships plain audio files and no API key ever reaches the browser.
 - **Photos:** 189 Wikimedia Commons photos with the author and license on every card.
 - **Hosting:** a static site on Vercel at **pac-manhattan.tech**.
@@ -77,10 +81,11 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **Walk mode:** earn real Passport stamps when your phone's GPS reaches a place.
 - **The subway as fast travel,** like the ferry.
 - **Whole boroughs,** not just neighborhoods, including the Rockaways and City Island.
+- **Then vs. now:** archival photos (NYPL, NYC Municipal Archives) next to today's view on every landmark card.
 - **A daily riddle and a shareable Passport card.**
 - A global leaderboard and ghost skins unlocked with stamps.
 
-**Built with:** three.js, javascript, html5, css3, python, shapely, pillow, openstreetmap, overpass-api, nyc-open-data, gemini, elevenlabs, wikipedia, vercel, tech-domains
+**Built with:** three.js, javascript, html5, css3, node.js, python, shapely, pillow, openstreetmap, overpass-api, nyc-open-data, tiger-data, timescaledb, postgresql, mongodb, gemini, elevenlabs, wikipedia, vercel, tech-domains
 
 ---
 
@@ -89,5 +94,5 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 1. **Hook (20 s):** "86% of New Yorkers who move stay in their own borough. We built a game that drags you out of your bubble." Show the live title screen.
 2. **Play (70 s):** pick Manhattan, solo. Read the riddle out loud and let a judge guess. Run to a ★ landmark to show the photo card and hint, then find the target.
 3. **Wow (50 s):** switch to All five boroughs. Show the ferry: "Chompers can't swim." Point out the real building colors (brownstones vs. Midtown glass).
-4. **How (30 s):** OpenStreetMap + NYC aerial photos + PLUTO; Gemini riddles with a fact checker; ElevenLabs narrator.
+4. **How (30 s):** OpenStreetMap + NYC aerial photos + PLUTO; Gemini riddles with a fact checker; Tiger Data for "know the block" and live riddle stats; ElevenLabs narrator.
 5. **Close (10 s):** "Next: walk mode, so the stamps come from real places."
