@@ -41,6 +41,7 @@ button.linkish { background: none; border: 0; color: var(--ghost-deep); padding:
 #task .find { font-size: 13px; color: var(--muted); margin-top: 6px; }
 #task-name { font-size: 22px; font-weight: 800; line-height: 1.15; text-wrap: balance; }
 #task-cat { font-size: 13px; margin-top: 2px; }
+#task-riddle { font-size: 15px; font-style: italic; line-height: 1.35; margin: 4px 0 2px; color: #3b2d86; background: #f1edff; border-left: 3px solid var(--ghost); padding: 6px 10px; border-radius: 8px; text-wrap: pretty; }
 #task.pop { animation: pop .5s ease; }
 @keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
 #hints { margin-top: 10px; border-top: 1px solid #eee9f6; padding-top: 8px; display: grid; gap: 6px; }
@@ -273,6 +274,26 @@ body.live #title::before { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .title-logo, .title-cta { animation: none; } }
 /* the lobby turns see-through once the live city is running behind it */
 body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), rgba(213, 236, 250, .62) 60%, rgba(253, 238, 222, .8)); backdrop-filter: blur(2px); }
+
+/* lobby fits one screen on desktop: 4 x 2 grid, card images shrink with the window */
+@media (min-width: 900px) and (min-height: 560px) {
+  #lobby { place-items: stretch; overflow: hidden; padding-block: 14px; }
+  .lobby { position: relative; height: 100%; min-height: 0; box-sizing: border-box; width: min(1440px, 100%); margin: 0 auto; padding-block: 0; display: flex; flex-direction: column; gap: 12px; }
+  .lobby-head { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 20px; row-gap: 2px; }
+  .lobby-head h1 { font-size: clamp(30px, 3.2vw, 44px); margin: 0; }
+  .lobby-head .tag { font-size: 15px; }
+  .borough-grid { flex: 1; min-height: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .borough:first-child { grid-column: span 2; }
+  #b-bridges, #b-nyc { grid-column: auto; }
+  .borough { grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+  .borough img, #b-bridges img, #b-nyc img { height: 100%; min-height: 0; object-fit: cover; }
+  .b-body { padding: 10px 14px 12px; gap: 3px; }
+  .b-name { font-size: 18px; }
+  .b-area { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .b-stats { margin-top: 2px; }
+  .lobby-foot { position: absolute; top: 6px; right: 0; }
+  .lobby-foot .howto:not(.hidden) { position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%); width: min(720px, calc(100vw - 32px)); box-shadow: var(--shadow); z-index: 5; }
+}
 </style>
 
 <canvas id="game"></canvas>
@@ -283,6 +304,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     <div class="task-top"><span id="task-num" class="eyebrow">Task 1</span><span id="borough-label" class="eyebrow"></span></div>
     <div class="find">Find</div>
     <div id="task-name">…</div>
+    <div id="task-riddle" class="hidden"></div>
     <div id="task-cat" class="muted"></div>
     <div id="hints"></div>
   </div>
@@ -1828,6 +1850,31 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 
 </script>
 <script>
+// Narrator: short voice lines recorded once with ElevenLabs (tools/make_voice.py), played from data/voice/.
+(function () {
+  const PM = (window.PM = window.PM || {});
+  class Voice {
+    constructor() { this.muted = false; this.clips = {}; this.last = {}; this.cur = null; }
+    // gap: don't repeat this line within that many seconds
+    play(id, gap = 0) {
+      if (this.muted) return;
+      const t = performance.now() / 1000;
+      if (gap && this.last[id] && t - this.last[id] < gap) return;
+      this.last[id] = t;
+      let a = this.clips[id];
+      if (!a) { a = this.clips[id] = new Audio('data/voice/' + id + '.mp3'); a.preload = 'auto'; a.volume = 0.9; }
+      if (this.cur && this.cur !== a) this.cur.pause();
+      a.currentTime = 0;
+      a.play().catch(() => {});
+      this.cur = a;
+    }
+    setMuted(m) { this.muted = m; if (m && this.cur) this.cur.pause(); }
+  }
+  PM.voice = new Voice();
+})();
+
+</script>
+<script>
 // DOM overlays: lobby, loading, HUD, Passport, toasts, minimap, pause, place cards, game over, local scores.
 (function () {
   const PM = (window.PM = window.PM || {});
@@ -1928,10 +1975,13 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 
     setScore(s) { if (this._score !== s) { this._score = s; $('score').textContent = s.toLocaleString(); } },
     setChompers(n) { if (this._cn !== n) { this._cn = n; $('chomper-count').textContent = n === 1 ? '1 chomper' : n + ' chompers'; } },
-    setTask(t, cat, icon, n) {
+    setTask(t, cat, icon, n, asRiddle) {
+      const riddle = asRiddle && t.riddle;
       $('task-num').textContent = 'Task ' + n;
-      $('task-name').textContent = t.name;
-      $('task-cat').textContent = icon + ' ' + cat;
+      $('task-name').textContent = riddle ? '???' : t.name;
+      $('task-riddle').textContent = riddle ? t.riddle : '';
+      this.show('task-riddle', !!riddle);
+      $('task-cat').textContent = icon + ' ' + cat + (riddle ? ' · R to reveal' : '');
       const card = $('task');
       card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
     },
@@ -1976,13 +2026,13 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     },
 
     // ---------- landmark / target card ----------
-    showCard({ kind, place, points, hint, cat }) {
+    showCard({ kind, place, points, hint, cat, solved }) {
       const p = place;
       const sv = p.lat ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}` : null;
       const img = p.img
         ? `<figure><img src="${p.img}" alt="${esc(p.name)}" decoding="async"><figcaption>Photo: ${esc(p.credit || 'Wikimedia Commons')}${p.file ? ` · <a href="${esc(p.file)}" target="_blank" rel="noopener">source</a>` : ''}</figcaption></figure>`
         : `<div class="noimg">${esc(p.name)}</div>`;
-      const eyebrow = kind === 'found' ? 'Found it! +' + points.toLocaleString()
+      const eyebrow = kind === 'found' ? (solved ? 'Riddle solved! +' : 'Found it! +') + points.toLocaleString()
         : kind === 'revisit' ? 'From your Passport' : '★ Landmark +' + points;
       $('card-body').innerHTML = `
         ${img}
@@ -2273,6 +2323,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     cursorDeadZone: 30,
     trailSecs: 45,
     taskBase: 1000, hintCost: 100, taskFloor: 400, streakBonus: 250, landmarkPts: 100,
+    revealSecs: 30,           // a task starts as a riddle; its name shows after this long, at a ★ landmark, or on R
+    riddleBonus: 1.5,         // x points for finding it before the name shows
   };
   const KINDS = [
     { kind: 'chaser', name: 'Chomps', color: '#ffd21f', desc: 'It chases you straight down the streets.' },
@@ -2290,6 +2342,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   const renderer = PM.World3D.makeRenderer(canvas);
   const audio = new PM.Audio();
   const ui = PM.UI;
+  const voice = PM.voice;
+  const muteAll = () => { const m = audio.toggleMute(); voice.setMuted(m); ui.setMuted(m); };
 
   let B = null; // the loaded borough: data, graph, world, 3D objects, places
   const cache = {};
@@ -2421,7 +2475,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       return;
     }
     if ((ev.code === 'KeyP' || ev.code === 'Escape') && (state.mode === 'play' || state.mode === 'pause')) togglePause();
-    if (ev.code === 'KeyM') ui.setMuted(audio.toggleMute());
+    if (ev.code === 'KeyR' && state.mode === 'play' && !state.versus) reveal();
+    if (ev.code === 'KeyM') muteAll();
   });
   addEventListener('keyup', (ev) => { const hit = keyTarget(ev.code); if (hit) hit[0].inp.held.delete(hit[1]); });
   addEventListener('blur', () => {
@@ -2592,8 +2647,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     ui.showHUD(B.meta);
     ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
     ui.setChompers(1);
-    ui.toast({ title: 'You are the ghost', body: 'Find ' + state.task.name + '. It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
+    ui.toast({ title: 'You are the ghost', body: (state.revealed ? 'Find ' + state.task.name + '.' : 'Solve the riddle in your task card. Find it before the name shows for +50%.') + ' It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
     audio.start();
+    voice.play(state.revealed ? 'start-plain' : 'start');
   }
 
   function newTask(first) {
@@ -2612,7 +2668,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     if (state.recentCats.length > 2) state.recentCats.shift();
     state.taskHints = 0; state.taskTime = 0; state.hint = null; state.hintLog = []; state.route = null; state.routeAt = -9;
     B.world.setTarget(t);
-    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1);
+    state.revealed = !t.riddle;
+    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, !state.revealed);
     ui.setHints([]);
   }
 
@@ -2702,7 +2759,16 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     return grid ? ns + ' & ' + ew : ns + ew;
   }
 
+  // show the task's real name (riddle mode)
+  function reveal() {
+    if (state.revealed || state.versus) return;
+    state.revealed = true;
+    const t = state.task;
+    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, false);
+  }
+
   function giveHint(landmark) {
+    reveal();
     const t = state.task;
     const p = B.graph.path(state.ghost, t.pos);
     const miles = (p ? p.dist : Math.hypot(t.sx - landmark.sx, t.sy - landmark.sy)) / 1609.34;
@@ -2725,6 +2791,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   function gameOver() {
     state.mode = 'over';
     audio.chomp(); audio.stop();
+    if (!state.versus) voice.play('chomped');
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -3058,9 +3125,13 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     const g = state.ghost;
     if (!g.started) return;
     state.taskTime += dt;
+    if (!state.revealed && state.taskTime > CFG.revealSecs) reveal();
     g.anim += dt;
     moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
     const onFerry = g.e.cls === 4;
+    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+    state.lastEdge = g.e;
+    if (onFerry && !state.onFerry) voice.play('ferry');
     if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
     state.onFerry = onFerry;
     const gp = posXY(g);
@@ -3102,6 +3173,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     }
     state.danger = danger;
     audio.proximity(danger);
+    if (danger < 110) voice.play('behind', 25);
 
     // warm up HD photos for places the ghost is getting close to, so cards open sharp
     for (const pl of [state.task, ...B.LANDMARKS]) {
@@ -3117,6 +3189,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         const hint = giveHint(l);
         addToPassport('landmark', l);
         audio.ding();
+        voice.play('landmark');
         openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
         return;
       }
@@ -3124,7 +3197,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 
     const t = state.task;
     if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) < CFG.arriveDist) {
-      const pts = taskPoints();
+      const solved = !state.revealed;
+      const pts = Math.round(taskPoints() * (solved ? CFG.riddleBonus : 1));
       state.score += pts;
       state.tasksDone++;
       audio.fanfare();
@@ -3135,10 +3209,12 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         respawnAll();
         if (state.chompers.length < CFG.maxChompers) added = addChomper();
         ui.setChompers(state.chompers.length);
+        if (added) voice.play('chomper');
         if (added) ui.toast({ title: `${added.name} joined the hunt!`, body: added.desc + ' Everyone else lost your trail, for now.', kind: 'warn', secs: 6 });
-        else ui.toast({ title: 'New task: find ' + state.task.name, body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
+        else ui.toast({ title: state.revealed ? 'New task: find ' + state.task.name : 'New riddle to solve', body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
       };
-      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat] });
+      voice.play(solved ? 'solved' : 'found');
+      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
       ui.setScore(state.score);
       return;
     }
@@ -3231,7 +3307,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       const cp = posXY(c);
       const [csx, csy, cz] = world.toScreen(cp[0], cp[1], 14);
       const off = cz > 1 || csx < 0 || csy < 0 || csx > innerWidth || csy > innerHeight;
-      if (off) PM.Sprites.edgeArrow(fctx, W, H, cz > 1 ? W - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, c.dist, c.color);
+      if (off) PM.Sprites.edgeArrow(fctx, W, H, cz > 1 ? W - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, Number.isFinite(c.dist) ? c.dist : Math.hypot(cp[0] - gp[0], cp[1] - gp[1]), c.color);
     }
     if (danger < 320 && state.mode === 'play') {
       const a = (1 - danger / 320) * 0.45;
@@ -3354,6 +3430,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     audio.unlock();
     state.mode = 'lobby';
     ui.showLobby();
+    voice.play('welcome');
   }
 
   // ---------- loop ----------
@@ -3390,7 +3467,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); startDemo(); },
     onTitle: leaveTitle,
     onResume: togglePause,
-    onToggleMute: () => ui.setMuted(audio.toggleMute()),
+    onToggleMute: muteAll,
     onCloseCard: closeCard,
     onRevisit: (i) => {
       if (state.mode !== 'play' && state.mode !== 'pause') return;

@@ -20,6 +20,8 @@
     cursorDeadZone: 30,
     trailSecs: 45,
     taskBase: 1000, hintCost: 100, taskFloor: 400, streakBonus: 250, landmarkPts: 100,
+    revealSecs: 30,           // a task starts as a riddle; its name shows after this long, at a ★ landmark, or on R
+    riddleBonus: 1.5,         // x points for finding it before the name shows
   };
   const KINDS = [
     { kind: 'chaser', name: 'Chomps', color: '#ffd21f', desc: 'It chases you straight down the streets.' },
@@ -37,6 +39,8 @@
   const renderer = PM.World3D.makeRenderer(canvas);
   const audio = new PM.Audio();
   const ui = PM.UI;
+  const voice = PM.voice;
+  const muteAll = () => { const m = audio.toggleMute(); voice.setMuted(m); ui.setMuted(m); };
 
   let B = null; // the loaded borough: data, graph, world, 3D objects, places
   const cache = {};
@@ -168,7 +172,8 @@
       return;
     }
     if ((ev.code === 'KeyP' || ev.code === 'Escape') && (state.mode === 'play' || state.mode === 'pause')) togglePause();
-    if (ev.code === 'KeyM') ui.setMuted(audio.toggleMute());
+    if (ev.code === 'KeyR' && state.mode === 'play' && !state.versus) reveal();
+    if (ev.code === 'KeyM') muteAll();
   });
   addEventListener('keyup', (ev) => { const hit = keyTarget(ev.code); if (hit) hit[0].inp.held.delete(hit[1]); });
   addEventListener('blur', () => {
@@ -339,8 +344,9 @@
     ui.showHUD(B.meta);
     ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
     ui.setChompers(1);
-    ui.toast({ title: 'You are the ghost', body: 'Find ' + state.task.name + '. It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
+    ui.toast({ title: 'You are the ghost', body: (state.revealed ? 'Find ' + state.task.name + '.' : 'Solve the riddle in your task card. Find it before the name shows for +50%.') + ' It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
     audio.start();
+    voice.play(state.revealed ? 'start-plain' : 'start');
   }
 
   function newTask(first) {
@@ -359,7 +365,8 @@
     if (state.recentCats.length > 2) state.recentCats.shift();
     state.taskHints = 0; state.taskTime = 0; state.hint = null; state.hintLog = []; state.route = null; state.routeAt = -9;
     B.world.setTarget(t);
-    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1);
+    state.revealed = !t.riddle;
+    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, !state.revealed);
     ui.setHints([]);
   }
 
@@ -449,7 +456,16 @@
     return grid ? ns + ' & ' + ew : ns + ew;
   }
 
+  // show the task's real name (riddle mode)
+  function reveal() {
+    if (state.revealed || state.versus) return;
+    state.revealed = true;
+    const t = state.task;
+    ui.setTask(t, CAT[t.cat], CAT_ICON[t.cat], state.tasksDone + 1, false);
+  }
+
   function giveHint(landmark) {
+    reveal();
     const t = state.task;
     const p = B.graph.path(state.ghost, t.pos);
     const miles = (p ? p.dist : Math.hypot(t.sx - landmark.sx, t.sy - landmark.sy)) / 1609.34;
@@ -472,6 +488,7 @@
   function gameOver() {
     state.mode = 'over';
     audio.chomp(); audio.stop();
+    if (!state.versus) voice.play('chomped');
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -805,9 +822,13 @@
     const g = state.ghost;
     if (!g.started) return;
     state.taskTime += dt;
+    if (!state.revealed && state.taskTime > CFG.revealSecs) reveal();
     g.anim += dt;
     moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
     const onFerry = g.e.cls === 4;
+    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+    state.lastEdge = g.e;
+    if (onFerry && !state.onFerry) voice.play('ferry');
     if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
     state.onFerry = onFerry;
     const gp = posXY(g);
@@ -849,6 +870,7 @@
     }
     state.danger = danger;
     audio.proximity(danger);
+    if (danger < 110) voice.play('behind', 25);
 
     // warm up HD photos for places the ghost is getting close to, so cards open sharp
     for (const pl of [state.task, ...B.LANDMARKS]) {
@@ -864,6 +886,7 @@
         const hint = giveHint(l);
         addToPassport('landmark', l);
         audio.ding();
+        voice.play('landmark');
         openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
         return;
       }
@@ -871,7 +894,8 @@
 
     const t = state.task;
     if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) < CFG.arriveDist) {
-      const pts = taskPoints();
+      const solved = !state.revealed;
+      const pts = Math.round(taskPoints() * (solved ? CFG.riddleBonus : 1));
       state.score += pts;
       state.tasksDone++;
       audio.fanfare();
@@ -882,10 +906,12 @@
         respawnAll();
         if (state.chompers.length < CFG.maxChompers) added = addChomper();
         ui.setChompers(state.chompers.length);
+        if (added) voice.play('chomper');
         if (added) ui.toast({ title: `${added.name} joined the hunt!`, body: added.desc + ' Everyone else lost your trail, for now.', kind: 'warn', secs: 6 });
-        else ui.toast({ title: 'New task: find ' + state.task.name, body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
+        else ui.toast({ title: state.revealed ? 'New task: find ' + state.task.name : 'New riddle to solve', body: 'The chompers lost your trail, for now. They’re faster this time.', kind: 'info', secs: 5 });
       };
-      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat] });
+      voice.play(solved ? 'solved' : 'found');
+      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
       ui.setScore(state.score);
       return;
     }
@@ -978,7 +1004,7 @@
       const cp = posXY(c);
       const [csx, csy, cz] = world.toScreen(cp[0], cp[1], 14);
       const off = cz > 1 || csx < 0 || csy < 0 || csx > innerWidth || csy > innerHeight;
-      if (off) PM.Sprites.edgeArrow(fctx, W, H, cz > 1 ? W - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, c.dist, c.color);
+      if (off) PM.Sprites.edgeArrow(fctx, W, H, cz > 1 ? W - csx * DPR : csx * DPR, cz > 1 ? H - csy * DPR : csy * DPR, DPR, Number.isFinite(c.dist) ? c.dist : Math.hypot(cp[0] - gp[0], cp[1] - gp[1]), c.color);
     }
     if (danger < 320 && state.mode === 'play') {
       const a = (1 - danger / 320) * 0.45;
@@ -1101,6 +1127,7 @@
     audio.unlock();
     state.mode = 'lobby';
     ui.showLobby();
+    voice.play('welcome');
   }
 
   // ---------- loop ----------
@@ -1137,7 +1164,7 @@
     onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); startDemo(); },
     onTitle: leaveTitle,
     onResume: togglePause,
-    onToggleMute: () => ui.setMuted(audio.toggleMute()),
+    onToggleMute: muteAll,
     onCloseCard: closeCard,
     onRevisit: (i) => {
       if (state.mode !== 'play' && state.mode !== 'pause') return;

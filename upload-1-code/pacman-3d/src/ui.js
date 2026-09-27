@@ -98,10 +98,13 @@
 
     setScore(s) { if (this._score !== s) { this._score = s; $('score').textContent = s.toLocaleString(); } },
     setChompers(n) { if (this._cn !== n) { this._cn = n; $('chomper-count').textContent = n === 1 ? '1 chomper' : n + ' chompers'; } },
-    setTask(t, cat, icon, n) {
+    setTask(t, cat, icon, n, asRiddle) {
+      const riddle = asRiddle && t.riddle;
       $('task-num').textContent = 'Task ' + n;
-      $('task-name').textContent = t.name;
-      $('task-cat').textContent = icon + ' ' + cat;
+      $('task-name').textContent = riddle ? '???' : t.name;
+      $('task-riddle').textContent = riddle ? t.riddle : '';
+      this.show('task-riddle', !!riddle);
+      $('task-cat').textContent = icon + ' ' + cat + (riddle ? ' · R to reveal' : '');
       const card = $('task');
       card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
     },
@@ -146,13 +149,13 @@
     },
 
     // ---------- landmark / target card ----------
-    showCard({ kind, place, points, hint, cat }) {
+    showCard({ kind, place, points, hint, cat, solved }) {
       const p = place;
       const sv = p.lat ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}` : null;
       const img = p.img
         ? `<figure><img src="${p.img}" alt="${esc(p.name)}" decoding="async"><figcaption>Photo: ${esc(p.credit || 'Wikimedia Commons')}${p.file ? ` · <a href="${esc(p.file)}" target="_blank" rel="noopener">source</a>` : ''}</figcaption></figure>`
         : `<div class="noimg">${esc(p.name)}</div>`;
-      const eyebrow = kind === 'found' ? 'Found it! +' + points.toLocaleString()
+      const eyebrow = kind === 'found' ? (solved ? 'Riddle solved! +' : 'Found it! +') + points.toLocaleString()
         : kind === 'revisit' ? 'From your Passport' : '★ Landmark +' + points;
       $('card-body').innerHTML = `
         ${img}

@@ -37,6 +37,7 @@ button.linkish { background: none; border: 0; color: var(--ghost-deep); padding:
 #task .find { font-size: 13px; color: var(--muted); margin-top: 6px; }
 #task-name { font-size: 22px; font-weight: 800; line-height: 1.15; text-wrap: balance; }
 #task-cat { font-size: 13px; margin-top: 2px; }
+#task-riddle { font-size: 15px; font-style: italic; line-height: 1.35; margin: 4px 0 2px; color: #3b2d86; background: #f1edff; border-left: 3px solid var(--ghost); padding: 6px 10px; border-radius: 8px; text-wrap: pretty; }
 #task.pop { animation: pop .5s ease; }
 @keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
 #hints { margin-top: 10px; border-top: 1px solid #eee9f6; padding-top: 8px; display: grid; gap: 6px; }
