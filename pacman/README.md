@@ -51,6 +51,35 @@ The data files are generated from OpenStreetMap through the Overpass API.
 
 Targets and landmarks are hand-curated in `tools/places.py`. The build step moves each one to the matching OpenStreetMap feature when one exists by name.
 
+## Boroughs
+
+The title screen has a borough picker. `?borough=brooklyn` loads `data/brooklyn/*.js`; Manhattan (the default) loads `data/*.js`. Queens, the Bronx and Staten Island are listed as coming soon. High scores are kept per borough.
+
+Brooklyn covers the north and west of the borough (DUMBO, Downtown, Williamsburg, Greenpoint, Bushwick, Bed-Stuy, Park Slope, Prospect Park, Red Hook, Sunset Park): about 132,000 buildings, 11,379 street segments and 53 places. North stays up in Brooklyn, so hints say north/south instead of uptown/downtown.
+
+Every build step reads its settings from `tools/city.py` (boundary, origin, rotation, play area, output folder). Pick a borough with `PM_CITY` (default `manhattan`, which keeps the original `raw/`, `build/`, `data/` paths):
+
+```sh
+PM_CITY=brooklyn python3 tools/build_graph.py --land   # land from NYC NTA boundaries (set PM_NTA_GEOJSON or put it at raw/nta2020.geojson)
+PM_CITY=brooklyn python3 tools/build_data.py
+```
+
+Brooklyn's raw OpenStreetMap extracts go in `raw/brooklyn/` (`streets.json`, `parkpaths.json`, `green.json`, `water.json`, `b1.json` to `b4.json`). Places are in `tools/places_brooklyn.py`.
+
+## Real building colors
+
+`tools/color_buildings.py` replaces the palette with real colors:
+
+- **Roofs:** the median color of NYC's 2018 aerial photos (NYC DoITT orthoimagery) inside each footprint. Tiles are cached in `raw/ortho17/`.
+- **Walls:** NYC PLUTO year built and building class, mapped to period materials (pre-war walk-up: brick or brownstone; pre-war elevator building: limestone; post-war: white or buff brick; modern towers: glass). Buildings without a lot record fall back to height.
+
+```sh
+python3 tools/color_buildings.py data/map.js <pluto buildings.csv.gz> --borough-prefix 1
+PM_CITY=brooklyn python3 tools/color_buildings.py data/brooklyn/map.js <pluto buildings.csv.gz> --borough-prefix 3
+```
+
+The lot file needs `bbl, lat, lon, year_built, bldgclass` columns; the DivHacks one only covers residential lots. The renderer uses these colors when present and the old palette otherwise. Manhattan: every roof from aerials, 71% of walls from PLUTO. Brooklyn: every roof, 81% of walls.
+
 ## Tests
 
 With a local server running on port 8765, these scripts need Python Playwright:
