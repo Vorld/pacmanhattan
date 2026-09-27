@@ -321,13 +321,13 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 .postcard p { margin: 4px 0 0; font-size: 15px; line-height: 1.45; font-style: italic; color: #3a2f00; }
 .postcard-src { margin-top: 6px; font-size: 11.5px; font-weight: 700; color: #8a6c00; }
 
-/* themed run picker (mode screen) */
-.theme-field { display: grid; gap: 6px; text-align: left; padding: 10px 12px; border-radius: 14px; background: #f4f1ff; }
-.theme-field input { font: inherit; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #cfc4fb; background: #fff; }
-.theme-field input:focus { outline: 2px solid var(--ghost); outline-offset: 1px; }
+/* ---------- themed runs ---------- */
+.theme-box { display: grid; gap: 6px; text-align: left; padding: 12px; border-radius: 14px; background: #f6f3ff; }
+.theme-box input { font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd8ec; background: #fff; color: var(--ink); width: 100%; }
 .theme-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.theme-chips button { font: 600 12.5px "DM Sans", system-ui, sans-serif; padding: 5px 10px; border-radius: 999px; border: 1px solid #cfc4fb; background: #fff; color: #4b3aa8; cursor: pointer; }
-.theme-chips button:hover { background: #ebe5ff; }
+button.theme-chip { padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; }
+button.theme-chip:hover { border-color: var(--ghost); }
+.theme-tag { margin-top: 4px; font-size: 12px; font-weight: 800; color: var(--ghost-deep); }
 </style>
 
 <canvas id="game"></canvas>
@@ -336,6 +336,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 <div id="hud" class="hidden">
   <div id="task" class="panel">
     <div class="task-top"><span id="task-num" class="eyebrow">Task 1</span><span id="borough-label" class="eyebrow"></span></div>
+    <div id="theme-tag" class="theme-tag hidden"></div>
     <div class="find">Find</div>
     <div id="task-name">…</div>
     <div id="task-riddle" class="hidden"></div>
@@ -370,6 +371,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   <div id="vs-divider"></div>
   <div id="vs-task" class="panel">
     <div class="eyebrow">Race to <span id="vs-num">target 1</span> · <span id="vs-borough"></span></div>
+    <div id="vs-theme" class="theme-tag hidden"></div>
     <div id="vs-task-name">…</div>
     <div id="vs-task-cat" class="muted small"></div>
   </div>
@@ -445,18 +447,18 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 <div id="modepick" class="screen hidden">
   <div class="card narrow">
     <div id="mode-borough" class="eyebrow"></div>
-    <h2>How many players?</h2>
-    <div class="theme-field">
-      <label for="theme-input"><b>Themed run</b> <span class="muted">(optional, 1 player)</span></label>
-      <input id="theme-input" maxlength="60" placeholder="Type a theme, like food spots" autocomplete="off" spellcheck="false">
+    <div class="theme-box">
+      <label for="theme-input" class="eyebrow">Theme your run (optional)</label>
+      <input id="theme-input" maxlength="60" placeholder="food spots, movie locations, first date…" autocomplete="off" spellcheck="false">
       <div class="theme-chips">
-        <button type="button" data-theme="food spots">Food spots</button>
-        <button type="button" data-theme="movie and TV locations">Movie & TV</button>
-        <button type="button" data-theme="a first date">First date</button>
-        <button type="button" data-theme="history nerd">History</button>
+        <button type="button" class="theme-chip">food spots</button>
+        <button type="button" class="theme-chip">movie locations</button>
+        <button type="button" class="theme-chip">first date</button>
+        <button type="button" class="theme-chip">rainy day</button>
       </div>
-      <div class="small muted">Gemini picks this run's places from the ones in the game.</div>
+      <div class="small muted">Gemini picks your targets from this map's places.</div>
     </div>
+    <h2>How many players?</h2>
     <button id="btn-solo" class="mode"><b>1 player</b><span>Arrow keys or WASD, or steer with your cursor.</span></button>
     <button id="btn-duo" class="mode"><b>2 players</b><span>Split screen, one keyboard. Race each other to the same places: WASD vs. arrow keys.</span></button>
     <button id="btn-mode-back" class="linkish">Back to the maps</button>
@@ -1971,8 +1973,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       $('btn-solo').onclick = () => h.onMode(false);
       $('btn-duo').onclick = () => h.onMode(true);
       $('btn-mode-back').onclick = () => this.showLobby();
-      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') h.onMode(false); });
-      for (const c of document.querySelectorAll('.theme-chips [data-theme]')) c.onclick = () => { $('theme-input').value = c.dataset.theme; $('theme-input').focus(); };
+      // the theme box: keys typed there are text, not game controls
+      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('btn-solo').focus(); });
+      for (const c of document.querySelectorAll('.theme-chip')) c.onclick = () => { $('theme-input').value = c.textContent; $('btn-solo').focus(); };
       $('title').onclick = () => h.onTitle();
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
@@ -2016,6 +2019,14 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       if (this.lobbyList) this.renderLobby(this.lobbyList);
       this.show('lobby', true);
     },
+    themeText() { return $('theme-input').value.trim(); },
+    // the run's theme title on the task card (solo) or the race card (two players); null hides it
+    setThemeTag(title) {
+      for (const id of ['theme-tag', 'vs-theme']) {
+        $(id).textContent = title ? '✨ ' + title : '';
+        this.show(id, !!title);
+      }
+    },
     showModePick(name) {
       this.hideAllScreens();
       $('mode-borough').textContent = name;
@@ -2033,8 +2044,6 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       this.hideAllScreens(); this.show('vs-hud', false); this.show('hud', true); this.toastEl.innerHTML = '';
       $('borough-label').textContent = meta.name;
     },
-    theme() { return ($('theme-input').value || '').trim().slice(0, 60); },
-    setBoroughLabel(t) { $('borough-label').textContent = t; },
     hideHUD() { this.show('hud', false); },
     showPause(on) { this.show('pause', on); },
     showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },
@@ -2688,31 +2697,10 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     ui.showLoading(info.name, 0.05, 'Downloading the map…');
     if (demoLoad) await demoLoad.catch(() => {}); // don't race the title screen's Manhattan
     await ensureBorough(id, (done) => ui.showLoading(info.name, 0.05 + done * 0.15, 'Downloading the map…'));
-    await pickTheme(info.name);
     // build the city around the start before the run begins
     const start = startPlace();
     B.loadFocus = [start.sx, start.sy];
     state.mode = 'building';
-  }
-
-  // themed run (1 player): Gemini picks this run's targets from B.TARGETS via api/theme; picks it didn't get from
-  // the list are dropped server-side. No theme, or nothing that fits: the normal full map.
-  async function pickTheme(name) {
-    state.themeRun = null; state.themeNote = null;
-    const theme = state.versus ? '' : ui.theme();
-    if (!theme) return;
-    ui.showLoading(name, 0.45, `Gemini is picking places for "${theme}"…`);
-    try {
-      const r = await fetch('api/theme', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(12000),
-        body: JSON.stringify({ theme, places: B.TARGETS.map((t) => ({ name: t.name, cat: CAT[t.cat], where: t.ntaname || '', fact: t.fact })) }),
-      });
-      const d = r.ok ? await r.json() : null;
-      if (d && d.picks && d.picks.length >= 3) state.themeRun = { theme, title: d.title, names: new Set(d.picks), count: d.picks.length };
-      else state.themeNote = `No places here really fit "${theme}", so this is a regular run.`;
-    } catch (e) {
-      state.themeNote = 'Themed runs need the live site, so this is a regular run.';
-    }
   }
 
   // a ghost parked on the street node nearest a place
@@ -2939,12 +2927,10 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     newTask(true);
     addChomper();
     ui.showHUD(B.meta);
-    if (state.themeRun) ui.setBoroughLabel(`${B.meta.name} · ${state.themeRun.title}`);
     ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
     ui.setChompers(1);
-    if (state.themeRun) ui.toast({ title: `Themed run: ${state.themeRun.title}`, body: `Gemini picked ${state.themeRun.count} places for "${state.themeRun.theme}". Find them all.`, kind: 'info', secs: 7 });
-    else if (state.themeNote) ui.toast({ title: 'Regular run', body: state.themeNote, kind: 'info', secs: 6 });
     ui.toast({ title: 'You are the ghost', body: (state.revealed ? 'Find ' + state.task.name + '.' : 'Solve the riddle in your task card. Find it before the name shows for +50%.') + ' It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
+    announceTheme();
     audio.start();
     voice.play(state.revealed ? 'start-plain' : 'start');
   }
@@ -2953,24 +2939,18 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     const g = posXY(state.ghost);
     const m = B.meta;
     const far = (t, lo, hi) => { const d = Math.hypot(t.sx - g[0], t.sy - g[1]); return d >= lo && d <= hi; };
-    if (state.themeRun && !state.versus) {
-      const left = B.TARGETS.filter((t) => state.themeRun.names.has(t.name) && !state.used.has(t.name));
-      if (left.length) {
-        const near = left.filter((t) => far(t, 300, first ? m.first_max * 1.6 : Infinity));
-        const pick = (near.length ? near : left).reduce((a, t) => (Math.hypot(t.sx - g[0], t.sy - g[1]) < Math.hypot(a.sx - g[0], a.sy - g[1]) ? t : a));
-        return setTask(pick);
-      }
-      ui.toast({ title: `Theme complete: ${state.themeRun.title}`, body: 'You found every place Gemini picked. Back to the full map.', kind: 'info', secs: 6 });
-      state.themeRun = null;
-    }
     const pool = B.TARGETS.filter((t) => !state.used.has(t.name) && !state.recentCats.includes(t.cat));
     let cands = pool.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
     if (!cands.length) cands = pool.filter((t) => far(t, m.task_min * 0.6, Infinity));
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && far(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => far(t, 300, Infinity)); }
-    setTask(cands[Math.floor(Math.random() * cands.length)]);
-  }
-  function setTask(t) {
+    const themed = themedLeft();
+    if (themed.length) {
+      let tc = themed.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
+      if (!tc.length) tc = themed.filter((t) => far(t, 300, Infinity));
+      if (tc.length) cands = tc.slice(0, 4); // among the best matches in range
+    }
+    const t = cands[Math.floor(Math.random() * cands.length)];
     state.task = t;
     state.used.add(t.name);
     state.recentCats.push(t.cat);
@@ -3103,7 +3083,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     audio.chomp(); audio.stop();
     if (!state.versus) voice.play('chomped');
     if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
-    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
+    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, theme: state.theme ? state.theme.text : null, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
       passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
     if (!state.versus) sendPostcard();
     ui.hideHUD();
@@ -3161,6 +3141,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     newVersusTask(true);
     addChomper(alivePos());
     ui.showVersusHUD(B.meta, state.players);
+    announceTheme();
     ui.setHere('');
     ui.showStartHint(false);
     audio.start();
@@ -3186,6 +3167,12 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && within(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => within(t, 300, Infinity)); }
     if (!cands.length) cands = B.TARGETS.slice();
+    const themed = themedLeft();
+    if (themed.length) {
+      let tc = themed.filter((t) => within(t, m.task_min, first ? m.first_max : m.task_max));
+      if (!tc.length) tc = themed.filter((t) => within(t, 300, Infinity));
+      if (tc.length) cands = tc.slice(0, 6); // the fairest of the best matches in range
+    }
     const spread = (t) => { const d = dists(t); return Math.max(...d) - Math.min(...d); };
     cands.sort((a, b) => spread(a) - spread(b));
     const t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
@@ -3232,7 +3219,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     state.result = { winner, reason };
     audio.stop();
     if (winner) audio.fanfare();
-    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
+    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, theme: state.theme ? state.theme.text : null, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
       players: state.players.map((p) => ({ name: p.name, found: p.found, caught: !p.alive,
         passport: p.passport.map((it) => ({ kind: it.kind, name: it.place.name })) })) });
     ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
@@ -3566,7 +3553,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       found: state.passport.filter((it) => it.kind === 'found').map((it) => it.place.name),
       target: state.task ? state.task.name : '', milesFromTarget: p ? p.dist / 1609.34 : null,
       street: streetText(g), seconds: Math.round(state.time), caughtBy: catcher ? catcher.name : 'a chomper', score: state.score,
-      theme: state.themeRun ? state.themeRun.title : '',
+      theme: state.theme && state.theme.picks.length ? state.theme.title : '',
     };
     const run = (state.postcardRun = (state.postcardRun || 0) + 1);
     ui.setPostcard('Writing your postcard…', '');
@@ -3607,10 +3594,11 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       world.updateGround(fx0, fz0, 3);
       world.updateBuildings(fx0, fz0, 30);
       const near = world.pendingNear(fx0, fz0, 1100);
-      ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))), 'Building the city in 3D…');
+      ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))),
+        near === 0 && state.themePending ? 'Gemini is picking places for your theme…' : 'Building the city in 3D…');
       if (B.nearTotal === undefined) B.nearTotal = near;
       world.render(B.loadFocus, now, null);
-      if (near === 0) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
+      if (near === 0 && !state.themePending) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
       return;
     }
     const g = state.ghost;
@@ -3805,6 +3793,42 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     requestAnimationFrame(frame);
   }
 
+  // ---------- themed runs ----------
+  // Gemini picks this run's targets from the map's own list (api/theme); the run starts once it answers
+  function requestTheme(theme) {
+    const boroughId = B.id;
+    state.themePending = true;
+    const places = B.TARGETS.map((t) => ({ name: t.name, cat: t.cat, fact: t.fact, about: (t.about || '').slice(0, 240), area: t.ntaname || '' }));
+    fetch('api/theme', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({ theme, borough: B.meta.name, places }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!B || B.id !== boroughId) return;
+        const picks = d && Array.isArray(d.picks) ? d.picks.filter((n) => B.TARGETS.some((t) => t.name === n)) : [];
+        state.theme = { text: theme, title: (d && d.title) || theme, picks, source: d ? d.source : 'none' };
+      })
+      .catch(() => { state.theme = { text: theme, title: theme, picks: [], source: 'none' }; })
+      .finally(() => { state.themePending = false; });
+  }
+
+  // unused targets that fit the theme, best match first (empty when there's no theme or it's used up)
+  function themedLeft() {
+    if (!state.theme || !state.theme.picks.length) return [];
+    return state.theme.picks.map((n) => B.TARGETS.find((t) => t.name === n)).filter((t) => t && !state.used.has(t.name));
+  }
+
+  function announceTheme() {
+    const th = state.theme;
+    ui.setThemeTag(th && th.picks.length ? th.title : null);
+    if (!th) return;
+    const msg = th.picks.length
+      ? { title: '✨ ' + th.title, body: `${th.picks.length} place${th.picks.length === 1 ? '' : 's'} on this map fit "${th.text}". They come up first.`, kind: 'info', secs: 7 }
+      : { title: 'No theme this time', body: th.source === 'none' ? "Couldn't reach the theme picker, so this is a regular run."
+        : `Nothing on this map fit "${th.text}", so this is a regular run.`, kind: 'warn', secs: 6 };
+    if (state.versus) for (const p of state.players) ui.toast({ ...msg, side: p.i });
+    else ui.toast(msg);
+  }
+
   let lobby = [];
   let picked = null;
   // a map card was clicked: ask for one or two players next
@@ -3815,7 +3839,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   function chooseMode(versus) {
     audio.unlock();
     state.versus = versus;
-    loadBorough(picked).catch((e) => {
+    state.theme = null;
+    const theme = ui.themeText();
+    loadBorough(picked).then(() => { if (theme) requestTheme(theme); }).catch((e) => {
       console.error(e);
       ui.showLoading('failed', 0, 'The map could not load: ' + e.message + '. Serve the folder over http (see README).');
     });

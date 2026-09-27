@@ -31,8 +31,9 @@
       $('btn-solo').onclick = () => h.onMode(false);
       $('btn-duo').onclick = () => h.onMode(true);
       $('btn-mode-back').onclick = () => this.showLobby();
-      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') h.onMode(false); });
-      for (const c of document.querySelectorAll('.theme-chips [data-theme]')) c.onclick = () => { $('theme-input').value = c.dataset.theme; $('theme-input').focus(); };
+      // the theme box: keys typed there are text, not game controls
+      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('btn-solo').focus(); });
+      for (const c of document.querySelectorAll('.theme-chip')) c.onclick = () => { $('theme-input').value = c.textContent; $('btn-solo').focus(); };
       $('title').onclick = () => h.onTitle();
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
@@ -76,6 +77,14 @@
       if (this.lobbyList) this.renderLobby(this.lobbyList);
       this.show('lobby', true);
     },
+    themeText() { return $('theme-input').value.trim(); },
+    // the run's theme title on the task card (solo) or the race card (two players); null hides it
+    setThemeTag(title) {
+      for (const id of ['theme-tag', 'vs-theme']) {
+        $(id).textContent = title ? '✨ ' + title : '';
+        this.show(id, !!title);
+      }
+    },
     showModePick(name) {
       this.hideAllScreens();
       $('mode-borough').textContent = name;
@@ -93,8 +102,6 @@
       this.hideAllScreens(); this.show('vs-hud', false); this.show('hud', true); this.toastEl.innerHTML = '';
       $('borough-label').textContent = meta.name;
     },
-    theme() { return ($('theme-input').value || '').trim().slice(0, 60); },
-    setBoroughLabel(t) { $('borough-label').textContent = t; },
     hideHUD() { this.show('hud', false); },
     showPause(on) { this.show('pause', on); },
     showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },

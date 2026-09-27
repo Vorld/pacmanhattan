@@ -17,6 +17,7 @@ export default handle(async (req, res) => {
   if (req.method === 'POST') {
     const d = body(req);
     const base = { playerId: playerId(d.playerId), borough: borough(d.borough), time: int(d.time || 0, 86_400, 'time'), createdAt: new Date() };
+    if (d.theme) base.theme = text(d.theme, 60);
     let doc;
     if (d.mode === 'solo') {
       doc = { ...base, mode: 'solo', score: int(d.score, 10_000_000, 'score'), tasks: int(d.tasks, 10_000, 'tasks'), passport: passport(d.passport) };
