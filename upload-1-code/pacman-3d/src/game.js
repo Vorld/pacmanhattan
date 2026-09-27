@@ -481,7 +481,7 @@
 
   function addToPassport(kind, place) {
     state.passport.push({ kind, place });
-    if (kind === 'landmark') { state.stamps.add(place.name); PM.saveStamps(B.id, state.stamps); }
+    if (kind === 'landmark') { state.stamps.add(place.name); PM.saveStamps(B.id, state.stamps); PM.Cloud.addStamps(B.id, [place.name]); }
     ui.setPassport(state.passport, B.LANDMARKS.length, state.stamps.size);
   }
 
@@ -489,6 +489,8 @@
     state.mode = 'over';
     audio.chomp(); audio.stop();
     if (!state.versus) voice.play('chomped');
+    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
+      passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -615,6 +617,9 @@
     state.result = { winner, reason };
     audio.stop();
     if (winner) audio.fanfare();
+    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
+      players: state.players.map((p) => ({ name: p.name, found: p.found, caught: !p.alive,
+        passport: p.passport.map((it) => ({ kind: it.kind, name: it.place.name })) })) });
     ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
     return true;
   }
@@ -1186,7 +1191,11 @@
   // the title screen plays itself on Manhattan; picking Manhattan later reuses this load
   demoLoad = ensureBorough('manhattan').then(() => { if (state.mode === 'title' || state.mode === 'lobby') startDemo(); });
   demoLoad.catch((e) => console.warn('title screen demo:', e));
-  fetchJSON('data/boroughs.json').then((list) => { lobby = list; ui.renderLobby(list); })
+  fetchJSON('data/boroughs.json').then((list) => {
+    lobby = list; ui.renderLobby(list);
+    // resend saves that failed last time, and pull this player's stamps from MongoDB
+    PM.Cloud.start(list.map((b) => b.id)).then((learned) => { if (learned) ui.renderLobby(lobby); });
+  })
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 

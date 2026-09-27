@@ -1,1 +1,6 @@
 .vercel
+
+# local-only: installed packages and secrets
+node_modules/
+.env
+.env.*

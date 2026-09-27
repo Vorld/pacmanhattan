@@ -22,6 +22,29 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
+That plays fine but saves only in the browser. To also save to MongoDB, run the local server, which runs the `api/` functions the way Vercel does:
+
+```sh
+npm install
+# put MONGODB_URI=mongodb+srv://... in .env.local (ignored by git)
+npm run dev   # then open http://localhost:5173
+```
+
+## Saving to MongoDB
+
+High scores, landmark stamps and every finished game's Passport are saved to MongoDB through small Vercel functions in `api/`. The connection string lives only in the `MONGODB_URI` environment variable (Vercel project settings, or `.env.local` on your machine), never in the code or the browser. Players don't sign in: each browser gets an anonymous id. Everything is also kept in the browser, so the game plays the same without a database, and saves that fail (say, on bad Wi-Fi) are queued and resent on the next visit.
+
+| Collection | What's in it |
+|---|---|
+| `scores` | single-player high scores: initials, map, score, tasks, landmarks, time. The game-over table shows the top 10 for that map across everyone. |
+| `stamps` | one document per player and map with the landmark names they've stamped. Merged both ways with the browser's copy on each visit. |
+| `runs` | every finished game with its Passport (places reached, in order). Two-player matches store both players' Passports, targets, who was caught, and the winner. |
+| `players` | each anonymous id with the initials it last used and when it was last seen. |
+
+Endpoints: `GET /api/health`, `GET|POST /api/scores`, `GET|POST /api/stamps`, `GET|POST /api/runs`. The server checks every value it saves. There are no accounts or anti-cheat, so scores can be faked by anyone who calls the API directly; that's fine for a demo.
+
+To deploy: in the Vercel project, add the environment variable `MONGODB_URI` (and optionally `MONGODB_DB`, default `pacmanhattan`), redeploy, then open `/api/health`, which should say `{"ok":true}`. In MongoDB Atlas, under Network Access, allow `0.0.0.0/0`, because Vercel's servers don't have fixed IP addresses.
+
 ## Project layout
 
 ```
@@ -32,12 +55,14 @@ src/world3d.js      Three.js scene: ground tiles, toon-shaded buildings, x-ray v
 src/characters3d.js toon ghost and chompers, location bubble, trail, hint arrow
 src/sprites.js      2D overlay arrow for an off-screen chomper
 src/audio.js        WebAudio sound effects (no asset files)
-src/ui.js           lobby, HUD, Passport, toasts, minimap with fog of war, game over, local high scores
+src/ui.js           lobby, HUD, Passport, toasts, minimap with fog of war, game over, high scores
+src/cloud.js        saves scores, stamps and Passports through api/, with a browser fallback and a retry queue
+api/                Vercel functions that read and write MongoDB (api/_lib/db.js holds the shared connection)
 src/game.js         borough loading, game loop, input, chomper personalities, tasks, hints, scoring (tuning in CFG), two-player race
 src/style.css       styles
 data/boroughs.json  lobby cards (name, area, difficulty, preview)
 data/<borough>/     map.json, graph.json, places.json for each borough
-tools/              data pipeline and headless tests
+tools/              data pipeline, headless tests, and dev-server.mjs for local play with the api/
 ```
 
 ## Tuning
