@@ -31,15 +31,17 @@ Meanwhile, New York drew **65 million visitors in 2025** ([NYC Tourism + Convent
 Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you through real New York streets in 3D.
 
 - **Solve a riddle, find the place.** Each task is a riddle about a real spot ("Simon and Garfunkel sang of this cantilever path spanning the East River..."). Figure it out before the name is revealed for a 50% bonus. The name appears after 30 seconds, at a landmark, or when you press R.
-- **Themed runs.** Type "food spots" or "a first date in Brooklyn" and Gemini picks that run's places, only from the places in the game. Judges can type their own.
-- **Visit ★ landmarks** for a card with an HD photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
+- **Themed runs.** Type a theme like "food spots", "movie locations" or "first date in Brooklyn", and Gemini picks that run's places, only from the places in the game. It works in 1 and 2 player, so judges can type their own.
+- **Visit landmarks** for a card with an HD photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
+- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
+- **Riddle stats.** After you solve one, see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
+- **What you just learned.** Eight places add a short lesson to their card, written with Grok.
 - **Dodge three kinds of chompers.** Chomps chases you, Sneaky cuts you off on the way to your target, and Snooze wanders until you get close. A new one joins after every task.
 - **Seven maps:** all of Manhattan; neighborhoods of Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn over the East River bridges; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges, and the **Staten Island Ferry**. The ferry carries you five times faster than running, and chompers can't swim, so they wait at the terminal.
-- **A real city, in real colors.** 171,710 buildings at their real heights. Roof colors come from NYC's 2018 aerial photos, and wall colors from each lot's year built and building class, so Brooklyn shows brownstone and red brick and Midtown shows glass and limestone.
-- **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
-- **Riddle stats.** After you solve a riddle, you see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
-- **A postcard from your run.** When you get caught, Gemini writes a funny recap from what actually happened ("You barely left One Court Square before Chomps tagged you on Jackson Avenue"), checked against the run's facts, and the narrator reads it aloud.
+- **A real city, in real colors.** 171,710 buildings at their real heights. Roofs are colored from NYC's 2018 aerial photos and walls from each lot's year built and building class, so Brooklyn shows brownstone and red brick and Midtown shows glass and limestone.
+- **A postcard from your run.** When you get caught, Gemini writes a funny recap of what actually happened ("You barely left One Court Square before Chomps tagged you on Jackson Avenue"), and the narrator reads it aloud.
 - **A narrator** cheers you on, warns you when a chomper is behind you, and calls out every bridge you cross.
+- **A global leaderboard**, and Passport stamps that follow you between visits.
 - **2-player split screen:** race a friend to the same places on one keyboard.
 - **A live title screen:** the game plays itself behind the menu, so you see what it is before you read a word.
 
@@ -49,21 +51,24 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **Map data pipeline (Python, Shapely):** OpenStreetMap streets, parks, water, buildings and coastline via the Overpass API, turned into a routable graph per borough. Brooklyn and Queens sit on Long Island, so we used NYC's shoreline-clipped neighborhood boundaries (NTA 2020) for their land.
 - **All five boroughs on one map:** every borough is reprojected into Manhattan's frame (rotated 29° so avenues run up the screen), and the street graphs are joined at the real landing points of each bridge. The ferry is its own kind of edge, which pathfinding lets you use and never lets chompers use.
 - **Real building colors:** about 3,000 NYC aerial photo tiles, sampled at up to 10 points inside each footprint for the roof color. NYC PLUTO lots are matched to footprints with a spatial index for wall materials.
-- **Gemini API** (Gemini 3.1 Flash-Lite) writes a riddle for every place from that place's own fact and Wikipedia summary. Every riddle goes through a checker before we keep it: it can't use any word of the place's name, and every number in it has to appear in the source text, so Gemini can't invent a year. Failed riddles get up to three retries with the reason.
-- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We load 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by coordinate. Every riddle outcome (solved before the reveal, found after, revealed, caught) is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time. The connection string (`TIGER_DATABASE_URL`) is not set yet, so the panel is hidden until it is.
-- **MongoDB Atlas** stores each player's high scores, Passport stamps and finished runs through Vercel functions, so the leaderboard is global, with a browser fallback when the database is unreachable. `MONGODB_URI` is not set yet, so saves stay in the browser until it is.
-- **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, so the game ships plain audio files and no API key ever reaches the browser.
-- **Grok in Cursor** writes the on-screen lesson after you find one of eight places (the High Line, Inwood Hill Park, the ferry terminal, the Brooklyn Bridge, Little Island, the Battery, Katz's, Sheep Meadow), plus a toast on the ferry and the Brooklyn Bridge. Three lesson pictures were generated in Cursor. The prompt is `upload-1-code/pacman-3d/prompts/grok-lessons.md`. Gemini still writes the riddle. ElevenLabs is the only voice.
+- **Gemini API** (Gemini 3.1 Flash-Lite) does three jobs, each checked against a source:
+  - It writes a riddle for every place from that place's own Wikipedia summary. A checker rejects any riddle that uses a word of the name or a number that isn't in the source, with up to three retries.
+  - It picks the places for themed runs, limited by a response schema to the map's exact place names and checked again on the server.
+  - It writes the end-of-run postcard, which is rejected and rewritten if it names a place or number that didn't happen in your run.
+- **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, and reads each postcard aloud through a server function, so no API key ever reaches the browser.
+- **Tiger Data** (TimescaleDB) powers the live panel on every place card. We loaded 767,563 NYC buildings (PLUTO lots joined with HPD data) and query the ones around each place by location. Every riddle outcome is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
+- **MongoDB Atlas** stores global high scores, Passport stamps and every finished run (with its theme) through Vercel functions, with a browser fallback if the database can't be reached.
+- **Grok, built in Cursor,** wrote the "What you just learned" lessons and generated their pictures.
 - **Photos:** 189 Wikimedia Commons photos with the author and license on every card.
-- **Hosting:** a static site on Vercel at **pac-manhattan.tech**.
+- **Hosting:** a Vercel static site plus serverless functions, at **pac-manhattan.tech**.
 
 ## Challenges we ran into
 
 - **The map thought New York Harbor was land.** Our coastline method works for an island like Manhattan, but Brooklyn and Queens are part of Long Island. We switched those to NYC's official shoreline-clipped boundaries.
 - **The bridges disappeared.** Cutting streets to land also cut every bridge deck over the river. We rebuilt each crossing from its real landing points and snapped them to the nearest street (all within about 200 m).
 - **170,000 buildings in a browser tab.** We build geometry only near the camera and skip open-water ground tiles, so the five-borough map loads in a few seconds.
-- **Keeping an LLM honest.** Early riddles invented dates. The number check and name-leak check fixed that.
-- **Four people, four versions.** We had two 2D prototypes and two 3D versions on separate branches, and merged them into one game on the last night.
+- **Keeping an LLM honest, three times over.** Early riddles invented dates, and early postcards called 0.3 miles "just yards." Every Gemini output is now checked against its source before a player sees it.
+- **Four people, four versions.** We had two 2D prototypes and two 3D versions on separate branches, and merged them into one game on the last night. Two of us even built themed runs at the same time; we kept the version that works in both 1 and 2 player.
 - **Free-tier rate limits** during riddle generation, fixed with backoff and saving after every riddle.
 
 ## Accomplishments that we're proud of
@@ -71,6 +76,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - All five boroughs in one playable map, including a real ferry ride.
 - Every one of the 244 places on the five-borough map is reachable by street from Times Square. We checked, and Staten Island is reachable only by ferry, just like real life.
 - Every building is colored from real city data.
+- Every sponsor tool does a real job in the game: Tiger Data for the city data and riddle stats, MongoDB for the leaderboard and Passports, Gemini for riddles, themes and postcards, ElevenLabs for the voice, and Grok for the lessons.
 - A title screen that shows the game instead of explaining it.
 
 ## What we learned
@@ -82,13 +88,13 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 ## What's next for Pac-Manhattan
 
 - **Walk mode:** earn real Passport stamps when your phone's GPS reaches a place.
+- **Then vs. now:** archival photos from NYPL and the NYC Municipal Archives next to today's view on every landmark card.
 - **The subway as fast travel,** like the ferry.
 - **Whole boroughs,** not just neighborhoods, including the Rockaways and City Island.
-- **Then vs. now:** archival photos (NYPL, NYC Municipal Archives) next to today's view on every landmark card.
 - **A daily riddle and a shareable Passport card.**
-- A global leaderboard and ghost skins unlocked with stamps.
+- Ghost skins unlocked with Passport stamps.
 
-**Built with:** three.js, javascript, html5, css3, node.js, python, shapely, pillow, openstreetmap, overpass-api, nyc-open-data, tiger-data, timescaledb, postgresql, mongodb, gemini, elevenlabs, wikipedia, vercel, tech-domains
+**Built with:** three.js, javascript, html5, css3, node.js, python, shapely, pillow, openstreetmap, overpass-api, nyc-open-data, tiger-data, timescaledb, postgresql, mongodb, gemini, elevenlabs, grok, cursor, wikipedia, vercel, tech-domains
 
 ---
 
