@@ -1,9 +1,9 @@
 {
   "ghostSpeed": 34,
   "pacman": {
-    "baseSpeed": 26,
-    "speedGainPerMinute": 3,
-    "maxSpeed": 39,
+    "baseSpeed": 37,
+    "speedGainPerMinute": 2,
+    "maxSpeed": 44,
     "reactionDelayMs": 700,
     "repathIntervalMs": 350,
     "startGraceMs": 2500,
@@ -17,6 +17,7 @@
   "targetSpawnMinDistance": 1500,
   "targetSpawnMaxDistance": 3500,
   "zoom": { "min": 15, "max": 17.5, "initial": 16.3 },
+  "overview": { "showTarget": true, "viewMeters": 3000 },
   "scoring": {
     "pointsPerSecond": 2,
     "targetBaseBonus": 1500,

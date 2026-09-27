@@ -36,13 +36,15 @@ src/analytics.ts              run_start / landmark_visit / hint_shown / caught /
 
 To refresh the data: `npm run data:fetch && npm run data:build`. To edit places, change `data/places.json`, then run `npm run data:build`.
 
-**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He waits `startGraceMs` at the start, then speeds up by `speedGainPerMinute` up to `maxSpeed`. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
+**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (37 vs 34 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (44 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
+
+**Map highlighting.** Every walkable street is drawn in blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, Pac-Man and the target, in a 3 km window around you, with the straight-line distance to the target. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
 
 **Hints** are revealed one per landmark visit in this order: zone → bearing and distance from that landmark (in Manhattan terms: uptown, crosstown east, and so on) → neighborhood → hand-written fact → another bearing → street name → second fact. After that, each visit gives a new bearing.
 
 **Score** = landmark points + 2/s survived + target bonus (1500 − 150 per hint, minimum 300, times 1.0/1.3/1.6 by difficulty).
 
-**Balance check:** `npm run simulate` runs a bot that only flees. With the default config, it survives a median of about 3.5 min (range 50 s to 10 min) across 40 seeded runs.
+**Balance check:** `npm run simulate` runs two bots over 40 seeded runs each. One only flees Pac-Man and survives a median of about 4 min. The other races the shortest route to the target, ignoring Pac-Man, and wins 18 of 40 runs (45%).
 
 ## Status against the PRD
 
@@ -58,5 +60,6 @@ To refresh the data: `npm run data:fetch && npm run data:build`. To edit places,
 
 - **Base map: MapLibre + OpenFreeMap, not Google Maps.** The spec lists Google as primary, but its terms and pricing for this use are still an open question, and it needs an API key. The map layer is isolated in `src/ui/basemap.ts`, and the style URL is set in config, so switching later only touches that file. Map data © OpenStreetMap contributors (ODbL). Tiles by OpenFreeMap / OpenMapTiles.
 - **Pac-Man name and likeness** are Bandai Namco trademarks. The chaser is a generic yellow chomper drawn in code, but the name is used throughout. This must be decided before the beta.
+- **The target is visible on the overview map** by default, at the user's request. This makes hints optional. The PRD's hints-only mode is one config flag away (`overview.showTarget: false`).
 - **Zoom** is a fixed range (15–17.5) set in config. Zoom that costs points is not implemented.
 - Landmarks are **Manhattan only**.

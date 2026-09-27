@@ -9,6 +9,9 @@
   --gold: #ffb347;
   --mint: #3fd6a0;
   --danger: #ff3b5c;
+  --road: #3d6bff;
+  --dead-end: #ff6a3d;
+  --target: #ff4fd8;
   --arcade: 'Press Start 2P', ui-monospace, monospace;
   --gutter: 16px;
 }
@@ -77,11 +80,77 @@ body {
 
 /* --- HUD --------------------------------------------------------------- */
 
-.clue-panel {
+/* Overview map sits top-left; the clue panel stacks under it. */
+.overview-panel {
+  --overview-size: 240px;
   top: var(--gutter);
   left: var(--gutter);
-  width: min(360px, calc(100vw - 2 * var(--gutter)));
-  max-height: calc(100vh - 2 * var(--gutter) - 180px);
+  width: var(--overview-size);
+  padding: 8px;
+}
+
+.overview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.target-distance {
+  font-family: var(--arcade);
+  font-size: 9px;
+  color: var(--target);
+}
+
+#overview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #02030a;
+}
+
+.legend {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.swatch.road {
+  background: var(--road);
+}
+
+.swatch.dead {
+  background: var(--dead-end);
+}
+
+.swatch.target {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--target);
+}
+
+.clue-panel {
+  top: calc(var(--gutter) + 322px);
+  left: var(--gutter);
+  width: 240px;
+  max-height: calc(100vh - 2 * var(--gutter) - 322px - 12px);
   overflow-y: auto;
   padding: 12px 14px;
 }
@@ -511,25 +580,37 @@ kbd {
     font-size: 10px;
   }
 
+  /* Phones: overview top-left, clue beside it; the discovered-streets minimap is dropped for space. */
+  .overview-panel {
+    --overview-size: 132px;
+    padding: 5px;
+  }
+
+  .overview-head,
+  .legend {
+    display: none;
+  }
+
   .clue-panel {
-    max-height: 34vh;
-    width: calc(100vw - 2 * var(--gutter) - 70px);
+    top: var(--gutter);
+    left: calc(var(--gutter) * 2 + 132px);
+    width: auto;
+    right: var(--gutter);
+    max-height: 30vh;
     padding: 10px 12px;
+  }
+
+  .minimap-panel {
+    display: none;
   }
 
   .clue {
     font-size: 15px;
   }
 
-  .minimap-panel {
-    top: var(--gutter);
-    width: 60px;
-    height: 34vh;
-  }
-
   .zoom {
     right: var(--gutter);
-    top: calc(34vh + 20px);
+    top: calc(30vh + 24px);
   }
 
   .street {

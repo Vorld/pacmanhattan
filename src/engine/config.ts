@@ -19,6 +19,10 @@ export interface GameConfig {
   targetSpawnMinDistance: number; // meters between ghost spawn and target
   targetSpawnMaxDistance: number;
   zoom: { min: number; max: number; initial: number };
+  overview: {
+    showTarget: boolean; // false restores hints-only play (target stays secret)
+    viewMeters: number; // width of the area the overview map shows
+  };
   scoring: {
     pointsPerSecond: number;
     targetBaseBonus: number;
@@ -33,9 +37,9 @@ export interface GameConfig {
 export const DEFAULT_CONFIG: GameConfig = {
   ghostSpeed: 34,
   pacman: {
-    baseSpeed: 26,
-    speedGainPerMinute: 3,
-    maxSpeed: 39,
+    baseSpeed: 37,
+    speedGainPerMinute: 2,
+    maxSpeed: 44,
     reactionDelayMs: 700,
     repathIntervalMs: 350,
     startGraceMs: 2500,
@@ -49,6 +53,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   targetSpawnMinDistance: 1500,
   targetSpawnMaxDistance: 3500,
   zoom: { min: 15, max: 17.5, initial: 16.3 },
+  overview: { showTarget: true, viewMeters: 3000 },
   scoring: {
     pointsPerSecond: 2,
     targetBaseBonus: 1500,

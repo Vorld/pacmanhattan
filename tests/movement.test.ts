@@ -80,3 +80,19 @@ describe('ghost movement', () => {
     }
   });
 });
+
+describe('dead ends', () => {
+  it('marks whole dead-end branches, not just their last block', () => {
+    // A loop 0-1-2-0 with a two-block spur 2-3-4 hanging off it.
+    const spur = tinyGraph(
+      [[0, 0], [100, 0], [50, 80], [50, 180], [50, 280]],
+      [[0, 1], [1, 2], [2, 0], [2, 3], [3, 4]],
+    );
+    expect(Array.from(spur.deadEndEdges())).toEqual([0, 0, 0, 1, 1]);
+  });
+
+  it('treats a graph with no loops as all dead ends', () => {
+    // The plus-shaped test graph is a tree: every street eventually ends.
+    expect(Array.from(g.deadEndEdges())).toEqual([1, 1, 1, 1, 1, 1]);
+  });
+});

@@ -57,3 +57,12 @@ describe('Manhattan street graph', () => {
     }
   });
 });
+
+describe('dead-end highlighting', () => {
+  it('marks a small share of Manhattan as dead ends', () => {
+    const dead = graph.deadEndEdges();
+    const share = dead.reduce((a, b) => a + b, 0) / dead.length;
+    expect(share).toBeGreaterThan(0.01);
+    expect(share).toBeLessThan(0.25);
+  });
+});

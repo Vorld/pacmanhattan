@@ -128,6 +128,27 @@ export class StreetGraph {
     return normalize({ x: end.x - start.x, y: end.y - start.y });
   }
 
+  /**
+   * Edges on dead-end branches: once you enter one, the only way out is back
+   * the way you came. Found by repeatedly peeling off degree-1 nodes.
+   */
+  deadEndEdges(): Uint8Array {
+    const dead = new Uint8Array(this.edges.length);
+    const degree = Int32Array.from(this.exits, (x) => x.length);
+    const queue: number[] = [];
+    for (let n = 0; n < this.nodeCount; n++) if (degree[n] === 1) queue.push(n);
+    while (queue.length) {
+      const n = queue.pop()!;
+      const exit = this.exits[n].find((x) => !dead[x.edge]);
+      if (!exit) continue;
+      dead[exit.edge] = 1;
+      degree[n]--;
+      const other = this.otherEnd(exit.edge, n);
+      if (--degree[other] === 1) queue.push(other);
+    }
+    return dead;
+  }
+
   otherEnd(edgeId: number, node: number): number {
     const e = this.edges[edgeId];
     return e.a === node ? e.b : e.a;

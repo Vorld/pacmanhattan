@@ -45,6 +45,18 @@ export function strokeEdge(ctx: CanvasRenderingContext2D, g: StreetGraph, frame:
   ctx.stroke();
 }
 
+/** An offscreen canvas covering the whole island at `pxPerM`, grid-aligned like the main map. */
+export function islandCanvas(graph: StreetGraph, pxPerM: number) {
+  const nodes = Array.from({ length: graph.nodeCount }, (_, n) => graph.nodePos(n));
+  const grid = nodes.map(toGrid);
+  const span = (vals: number[]) => Math.max(...vals) - Math.min(...vals);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(span(grid.map((g) => g.u)) * pxPerM) + 20;
+  canvas.height = Math.ceil(span(grid.map((g) => g.v)) * pxPerM) + 20;
+  const frame = new GridFrame(nodes, canvas.width, canvas.height, 10);
+  return { canvas, ctx: canvas.getContext('2d')!, frame };
+}
+
 const FOG_PX_PER_M = 0.07; // fog layer resolution: the whole island is ~1.5k px tall
 
 /**
@@ -62,16 +74,10 @@ export class Minimap {
     private graph: StreetGraph,
   ) {
     this.ctx = canvas.getContext('2d')!;
-    const nodes = Array.from({ length: graph.nodeCount }, (_, n) => graph.nodePos(n));
-    const grid = nodes.map(toGrid);
-    const span = (vals: number[]) => Math.max(...vals) - Math.min(...vals);
-    const width = Math.ceil(span(grid.map((g) => g.u)) * FOG_PX_PER_M) + 20;
-    const height = Math.ceil(span(grid.map((g) => g.v)) * FOG_PX_PER_M) + 20;
-    this.fog = document.createElement('canvas');
-    this.fog.width = width;
-    this.fog.height = height;
-    this.fogCtx = this.fog.getContext('2d')!;
-    this.fogFrame = new GridFrame(nodes, width, height, 10);
+    const island = islandCanvas(graph, FOG_PX_PER_M);
+    this.fog = island.canvas;
+    this.fogCtx = island.ctx;
+    this.fogFrame = island.frame;
   }
 
   /** Clear the fog layer for a new run. */

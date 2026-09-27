@@ -11,6 +11,7 @@ import { BaseMap } from './ui/basemap';
 import { bindDirectionInput } from './ui/input';
 import { Minimap } from './ui/minimap';
 import { Overlay } from './ui/overlay';
+import { Overview } from './ui/overview';
 import { RouteReplay } from './ui/replay';
 
 const CITY = 'manhattan';
@@ -25,6 +26,7 @@ interface Game {
   base: BaseMap;
   overlay: Overlay;
   minimap: Minimap;
+  overview: Overview;
 }
 
 const sfx = new Sfx();
@@ -53,7 +55,9 @@ async function boot() {
       base,
       overlay: new Overlay($<HTMLCanvasElement>('overlay'), base),
       minimap: new Minimap($<HTMLCanvasElement>('minimap'), graph),
+      overview: new Overview($<HTMLCanvasElement>('overview'), graph, config.overview.viewMeters, config.overview.showTarget),
     };
+    $('legend-target').hidden = !config.overview.showTarget;
     const start = $<HTMLButtonElement>('start');
     start.disabled = false;
     start.textContent = 'Start run';
@@ -186,7 +190,8 @@ function frame(now: number) {
     if (run.status === 'playing') game.base.follow(toLonLat(g.x, g.y));
     game.overlay.draw(run, now);
     game.minimap.draw(run);
-    updateHud(run);
+    game.overview.draw(run, now);
+    updateHud(run, game.config);
     if (run.status === 'playing' && !paused && run.pacmanActive) {
       sfx.danger(Math.max(0, 1 - run.pacmanDistance / game.config.warnDistance));
     }
@@ -194,11 +199,20 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 
-function updateHud(r: Run) {
+function updateHud(r: Run, config: GameConfig) {
   $('score').textContent = String(r.score.total);
   $('time').textContent = formatTime(r.time);
   $('landmark-count').textContent = `${r.visited.length}/${r.places.landmarks.length}`;
   $('street').textContent = r.graph.edges[r.ghost.edge].name || '';
+  if (config.overview.showTarget) {
+    const t = r.graph.nodePos(r.target.node);
+    const g = r.ghostPos;
+    $('target-distance').textContent = `Target ${formatDistance(Math.hypot(t.x - g.x, t.y - g.y))}`;
+  }
+}
+
+function formatDistance(m: number) {
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1)} km`;
 }
 
 // --- HUD helpers -------------------------------------------------------------

@@ -16,6 +16,19 @@
       <canvas id="overlay"></canvas>
 
       <div id="hud" hidden>
+        <section class="panel overview-panel">
+          <div class="overview-head">
+            <span class="eyebrow">Overview</span>
+            <span id="target-distance" class="target-distance"></span>
+          </div>
+          <canvas id="overview"></canvas>
+          <div class="legend">
+            <span><i class="swatch road"></i>Road</span>
+            <span><i class="swatch dead"></i>Dead end</span>
+            <span id="legend-target"><i class="swatch target"></i>Target</span>
+          </div>
+        </section>
+
         <section class="panel clue-panel" id="clue-panel">
           <div class="eyebrow">Secret target</div>
           <p id="clue" class="clue"></p>

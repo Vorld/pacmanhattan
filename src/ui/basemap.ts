@@ -26,6 +26,9 @@ const PAINT: [string, string, unknown][] = [
 ];
 const HIDDEN = ['road_oneway', 'road_oneway_opposite'];
 
+/** Walkable-street colors, shared with the overview map so both read the same. */
+export const ROAD_COLORS = { road: '#3d6bff', deadEnd: '#ff6a3d' };
+
 /**
  * The visual map layer. It never affects movement: the street graph is the
  * only source of truth for where the ghost and Pac-Man can go.
@@ -63,18 +66,32 @@ export class BaseMap {
     return base;
   }
 
-  /** Draw the walkable graph so players see exactly where they can go. */
+  /**
+   * Highlight the walkable graph so players see exactly where they can go,
+   * with dead-end branches in a warning color and a dot at each dead end.
+   */
   private addStreets(graph: StreetGraph) {
+    const dead = graph.deadEndEdges();
     const features = graph.edges.map((e) => ({
       type: 'Feature' as const,
-      properties: {},
+      properties: { deadEnd: dead[e.id] === 1 },
       geometry: {
         type: 'LineString' as const,
         coordinates: Array.from(e.xs, (x, i) => toLonLat(x, e.ys[i])),
       },
     }));
+    const tips = [];
+    for (let n = 0; n < graph.nodeCount; n++) {
+      if (graph.exits[n].length !== 1) continue;
+      const p = graph.nodePos(n);
+      tips.push({ type: 'Feature' as const, properties: {}, geometry: { type: 'Point' as const, coordinates: toLonLat(p.x, p.y) } });
+    }
     this.map.addSource('walkable', { type: 'geojson', data: { type: 'FeatureCollection', features } });
-    const beforeLabels = this.map.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+    this.map.addSource('dead-end-tips', { type: 'geojson', data: { type: 'FeatureCollection', features: tips } });
+    // Sit above every road and building, just under the labels drawn on top of them.
+    const layers = this.map.getStyle().layers;
+    const lastShape = layers.findLastIndex((l) => l.type !== 'symbol');
+    const beforeLabels = layers.slice(lastShape + 1).find((l) => l.type === 'symbol')?.id;
     this.map.addLayer(
       {
         id: 'walkable',
@@ -82,9 +99,23 @@ export class BaseMap {
         source: 'walkable',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#1d2c75',
-          'line-opacity': 0.9,
+          'line-color': ['case', ['get', 'deadEnd'], ROAD_COLORS.deadEnd, ROAD_COLORS.road],
+          'line-opacity': 0.5,
           'line-width': ['interpolate', ['exponential', 2], ['zoom'], 15, 3, 18, 14],
+        },
+      },
+      beforeLabels,
+    );
+    this.map.addLayer(
+      {
+        id: 'dead-end-tips',
+        type: 'circle',
+        source: 'dead-end-tips',
+        paint: {
+          'circle-color': ROAD_COLORS.deadEnd,
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 3, 18, 7],
+          'circle-stroke-color': '#02030a',
+          'circle-stroke-width': 1.5,
         },
       },
       beforeLabels,
