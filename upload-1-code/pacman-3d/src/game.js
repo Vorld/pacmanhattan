@@ -348,6 +348,7 @@
     ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
     ui.setChompers(1);
     ui.toast({ title: 'You are the ghost', body: (state.revealed ? 'Find ' + state.task.name + '.' : 'Solve the riddle in your task card. Find it before the name shows for +50%.') + ' It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
+    announceTheme();
     audio.start();
     voice.play(state.revealed ? 'start-plain' : 'start');
   }
@@ -361,6 +362,12 @@
     if (!cands.length) cands = pool.filter((t) => far(t, m.task_min * 0.6, Infinity));
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && far(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => far(t, 300, Infinity)); }
+    const themed = themedLeft();
+    if (themed.length) {
+      let tc = themed.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
+      if (!tc.length) tc = themed.filter((t) => far(t, 300, Infinity));
+      if (tc.length) cands = tc.slice(0, 4); // among the best matches in range
+    }
     const t = cands[Math.floor(Math.random() * cands.length)];
     state.task = t;
     state.used.add(t.name);
@@ -494,7 +501,7 @@
     audio.chomp(); audio.stop();
     if (!state.versus) voice.play('chomped');
     if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
-    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
+    PM.Cloud.saveRun({ mode: 'solo', borough: B.id, theme: state.theme ? state.theme.text : null, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
       passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
     if (!state.versus) sendPostcard();
     ui.hideHUD();
@@ -552,6 +559,7 @@
     newVersusTask(true);
     addChomper(alivePos());
     ui.showVersusHUD(B.meta, state.players);
+    announceTheme();
     ui.setHere('');
     ui.showStartHint(false);
     audio.start();
@@ -577,6 +585,12 @@
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && within(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => within(t, 300, Infinity)); }
     if (!cands.length) cands = B.TARGETS.slice();
+    const themed = themedLeft();
+    if (themed.length) {
+      let tc = themed.filter((t) => within(t, m.task_min, first ? m.first_max : m.task_max));
+      if (!tc.length) tc = themed.filter((t) => within(t, 300, Infinity));
+      if (tc.length) cands = tc.slice(0, 6); // the fairest of the best matches in range
+    }
     const spread = (t) => { const d = dists(t); return Math.max(...d) - Math.min(...d); };
     cands.sort((a, b) => spread(a) - spread(b));
     const t = cands[Math.floor(Math.random() * Math.min(3, cands.length))];
@@ -623,7 +637,7 @@
     state.result = { winner, reason };
     audio.stop();
     if (winner) audio.fanfare();
-    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
+    PM.Cloud.saveRun({ mode: 'versus', borough: B.id, theme: state.theme ? state.theme.text : null, time: Math.round(state.time), winner: winner ? winner.name : null, reason,
       players: state.players.map((p) => ({ name: p.name, found: p.found, caught: !p.alive,
         passport: p.passport.map((it) => ({ kind: it.kind, name: it.place.name })) })) });
     ui.showVersusOver({ boroughName: B.meta.name, players: state.players, winner, reason, time: state.time });
@@ -997,10 +1011,11 @@
       world.updateGround(fx0, fz0, 3);
       world.updateBuildings(fx0, fz0, 30);
       const near = world.pendingNear(fx0, fz0, 1100);
-      ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))), 'Building the city in 3D…');
+      ui.showLoading(B.meta.name, 0.5 + 0.5 * (1 - Math.min(1, near / Math.max(1, B.nearTotal || near))),
+        near === 0 && state.themePending ? 'Gemini is picking places for your theme…' : 'Building the city in 3D…');
       if (B.nearTotal === undefined) B.nearTotal = near;
       world.render(B.loadFocus, now, null);
-      if (near === 0) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
+      if (near === 0 && !state.themePending) { B.nearTotal = undefined; state.versus ? startVersus() : startRun(); }
       return;
     }
     const g = state.ghost;
@@ -1195,6 +1210,42 @@
     requestAnimationFrame(frame);
   }
 
+  // ---------- themed runs ----------
+  // Gemini picks this run's targets from the map's own list (api/theme); the run starts once it answers
+  function requestTheme(theme) {
+    const boroughId = B.id;
+    state.themePending = true;
+    const places = B.TARGETS.map((t) => ({ name: t.name, cat: t.cat, fact: t.fact, about: (t.about || '').slice(0, 240), area: t.ntaname || '' }));
+    fetch('api/theme', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({ theme, borough: B.meta.name, places }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!B || B.id !== boroughId) return;
+        const picks = d && Array.isArray(d.picks) ? d.picks.filter((n) => B.TARGETS.some((t) => t.name === n)) : [];
+        state.theme = { text: theme, title: (d && d.title) || theme, picks, source: d ? d.source : 'none' };
+      })
+      .catch(() => { state.theme = { text: theme, title: theme, picks: [], source: 'none' }; })
+      .finally(() => { state.themePending = false; });
+  }
+
+  // unused targets that fit the theme, best match first (empty when there's no theme or it's used up)
+  function themedLeft() {
+    if (!state.theme || !state.theme.picks.length) return [];
+    return state.theme.picks.map((n) => B.TARGETS.find((t) => t.name === n)).filter((t) => t && !state.used.has(t.name));
+  }
+
+  function announceTheme() {
+    const th = state.theme;
+    ui.setThemeTag(th && th.picks.length ? th.title : null);
+    if (!th) return;
+    const msg = th.picks.length
+      ? { title: '✨ ' + th.title, body: `${th.picks.length} place${th.picks.length === 1 ? '' : 's'} on this map fit "${th.text}". They come up first.`, kind: 'info', secs: 7 }
+      : { title: 'No theme this time', body: th.source === 'none' ? "Couldn't reach the theme picker, so this is a regular run."
+        : `Nothing on this map fit "${th.text}", so this is a regular run.`, kind: 'warn', secs: 6 };
+    if (state.versus) for (const p of state.players) ui.toast({ ...msg, side: p.i });
+    else ui.toast(msg);
+  }
+
   let lobby = [];
   let picked = null;
   // a map card was clicked: ask for one or two players next
@@ -1205,7 +1256,9 @@
   function chooseMode(versus) {
     audio.unlock();
     state.versus = versus;
-    loadBorough(picked).catch((e) => {
+    state.theme = null;
+    const theme = ui.themeText();
+    loadBorough(picked).then(() => { if (theme) requestTheme(theme); }).catch((e) => {
       console.error(e);
       ui.showLoading('failed', 0, 'The map could not load: ' + e.message + '. Serve the folder over http (see README).');
     });

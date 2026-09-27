@@ -32,6 +32,10 @@ npm install
 npm run dev   # then open http://localhost:5173
 ```
 
+## Themed runs
+
+After picking a map, players can type a theme ("food spots", "movie locations", "first date") or tap an example. `api/theme` sends the theme and that map's target list to Gemini, which returns the places that fit, best first, plus a short title for the run. Gemini can only answer with names from that list (the response schema limits it to those exact names), and the server checks every name again, so a theme can never add a place that isn't in the game. Themed targets come up first, still at sensible distances (and fair to both players in a race); when they run out, the run continues with regular targets. Without `GEMINI_API_KEY`, a keyword match picks instead, and if the theme can't be fetched at all the run simply starts unthemed. The theme is saved with the run in MongoDB.
+
 ## Saving to MongoDB
 
 High scores, landmark stamps and every finished game's Passport are saved to MongoDB through small Vercel functions in `api/`. The connection string lives only in the `MONGODB_URI` environment variable (Vercel project settings, or `.env.local` on your machine), never in the code or the browser. Players don't sign in: each browser gets an anonymous id. Everything is also kept in the browser, so the game plays the same without a database, and saves that fail (say, on bad Wi-Fi) are queued and resent on the next visit.

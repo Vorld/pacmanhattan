@@ -31,6 +31,9 @@
       $('btn-solo').onclick = () => h.onMode(false);
       $('btn-duo').onclick = () => h.onMode(true);
       $('btn-mode-back').onclick = () => this.showLobby();
+      // the theme box: keys typed there are text, not game controls
+      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('btn-solo').focus(); });
+      for (const c of document.querySelectorAll('.theme-chip')) c.onclick = () => { $('theme-input').value = c.textContent; $('btn-solo').focus(); };
       $('title').onclick = () => h.onTitle();
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
@@ -73,6 +76,14 @@
       this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false);
       if (this.lobbyList) this.renderLobby(this.lobbyList);
       this.show('lobby', true);
+    },
+    themeText() { return $('theme-input').value.trim(); },
+    // the run's theme title on the task card (solo) or the race card (two players); null hides it
+    setThemeTag(title) {
+      for (const id of ['theme-tag', 'vs-theme']) {
+        $(id).textContent = title ? '✨ ' + title : '';
+        this.show(id, !!title);
+      }
     },
     showModePick(name) {
       this.hideAllScreens();

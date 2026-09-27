@@ -25,6 +25,7 @@
 <div id="hud" class="hidden">
   <div id="task" class="panel">
     <div class="task-top"><span id="task-num" class="eyebrow">Task 1</span><span id="borough-label" class="eyebrow"></span></div>
+    <div id="theme-tag" class="theme-tag hidden"></div>
     <div class="find">Find</div>
     <div id="task-name">…</div>
     <div id="task-riddle" class="hidden"></div>
@@ -59,6 +60,7 @@
   <div id="vs-divider"></div>
   <div id="vs-task" class="panel">
     <div class="eyebrow">Race to <span id="vs-num">target 1</span> · <span id="vs-borough"></span></div>
+    <div id="vs-theme" class="theme-tag hidden"></div>
     <div id="vs-task-name">…</div>
     <div id="vs-task-cat" class="muted small"></div>
   </div>
@@ -134,6 +136,17 @@
 <div id="modepick" class="screen hidden">
   <div class="card narrow">
     <div id="mode-borough" class="eyebrow"></div>
+    <div class="theme-box">
+      <label for="theme-input" class="eyebrow">Theme your run (optional)</label>
+      <input id="theme-input" maxlength="60" placeholder="food spots, movie locations, first date…" autocomplete="off" spellcheck="false">
+      <div class="theme-chips">
+        <button type="button" class="theme-chip">food spots</button>
+        <button type="button" class="theme-chip">movie locations</button>
+        <button type="button" class="theme-chip">first date</button>
+        <button type="button" class="theme-chip">rainy day</button>
+      </div>
+      <div class="small muted">Gemini picks your targets from this map's places.</div>
+    </div>
     <h2>How many players?</h2>
     <button id="btn-solo" class="mode"><b>1 player</b><span>Arrow keys or WASD, or steer with your cursor.</span></button>
     <button id="btn-duo" class="mode"><b>2 players</b><span>Split screen, one keyboard. Race each other to the same places: WASD vs. arrow keys.</span></button>
