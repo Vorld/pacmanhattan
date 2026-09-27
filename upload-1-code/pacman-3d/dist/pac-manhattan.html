@@ -2046,7 +2046,11 @@ button.theme-chip:hover { border-color: var(--ghost); }
     },
     hideHUD() { this.show('hud', false); },
     showPause(on) { this.show('pause', on); },
-    showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },
+    showStartHint(on) {
+      // phones and tablets have no cursor or arrow keys
+      if (on && !this._hintText) { this._hintText = true; if (matchMedia('(pointer: coarse)').matches) $('start-hint').textContent = 'Tap where you want to go'; }
+      if (this._sh !== on) { this._sh = on; this.show('start-hint', on); }
+    },
     setMuted(m) { $('btn-mute').textContent = m ? '🔇' : '🔊'; },
 
     setScore(s) { if (this._score !== s) { this._score = s; $('score').textContent = s.toLocaleString(); } },
@@ -2371,7 +2375,7 @@ button.theme-chip:hover { border-color: var(--ghost); }
       this.show('over', true);
       $('over-borough').textContent = r.boroughName;
       $('over-score').textContent = r.score.toLocaleString();
-      $('over-stats').innerHTML = `<div><b>${r.tasks}</b> tasks</div><div><b>${r.landmarkCount}</b> landmarks</div><div><b>${fmtTime(r.time)}</b> survived</div>`;
+      $('over-stats').innerHTML = `<div><b>${r.tasks}</b> ${r.tasks === 1 ? 'task' : 'tasks'}</div><div><b>${r.landmarkCount}</b> ${r.landmarkCount === 1 ? 'landmark' : 'landmarks'}</div><div><b>${fmtTime(r.time)}</b> survived</div>`;
       $('over-target').textContent = `You were looking for ${r.target.name}. It's the green dot on your route map.`;
       const scores = store.get(scoresKey(r.borough), []);
       const qualifies = r.score > 0 && (scores.length < 10 || r.score > scores[scores.length - 1].score);
@@ -2618,7 +2622,17 @@ button.theme-chip:hover { border-color: var(--ghost); }
   const fx = document.getElementById('fx');
   const fctx = fx.getContext('2d');
   const DPR = Math.min(2, window.devicePixelRatio || 1);
-  const renderer = PM.World3D.makeRenderer(canvas);
+  let renderer;
+  try { renderer = PM.World3D.makeRenderer(canvas); }
+  catch (e) {
+    // no WebGL (hardware acceleration off, some locked-down laptops): say so instead of a title screen that does nothing
+    console.error('Pac-Manhattan needs WebGL:', e.message);
+    const cta = document.getElementById('btn-title');
+    if (cta) { cta.textContent = "This browser can't show 3D"; cta.style.animation = 'none'; cta.disabled = true; }
+    const foot = document.querySelector('.title-foot');
+    if (foot) foot.textContent = 'Turn on hardware acceleration (in Chrome: Settings, System, "Use graphics acceleration"), then reload. Or try another browser.';
+    return;
+  }
   const audio = new PM.Audio();
   const ui = PM.UI;
   const voice = PM.voice;
