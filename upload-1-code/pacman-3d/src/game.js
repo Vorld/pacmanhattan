@@ -115,10 +115,31 @@
     ui.showLoading(info.name, 0.05, 'Downloading the map…');
     if (demoLoad) await demoLoad.catch(() => {}); // don't race the title screen's Manhattan
     await ensureBorough(id, (done) => ui.showLoading(info.name, 0.05 + done * 0.15, 'Downloading the map…'));
+    await pickTheme(info.name);
     // build the city around the start before the run begins
     const start = startPlace();
     B.loadFocus = [start.sx, start.sy];
     state.mode = 'building';
+  }
+
+  // themed run (1 player): Gemini picks this run's targets from B.TARGETS via api/theme; picks it didn't get from
+  // the list are dropped server-side. No theme, or nothing that fits: the normal full map.
+  async function pickTheme(name) {
+    state.themeRun = null; state.themeNote = null;
+    const theme = state.versus ? '' : ui.theme();
+    if (!theme) return;
+    ui.showLoading(name, 0.45, `Gemini is picking places for "${theme}"…`);
+    try {
+      const r = await fetch('api/theme', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(12000),
+        body: JSON.stringify({ theme, places: B.TARGETS.map((t) => ({ name: t.name, cat: CAT[t.cat], where: t.ntaname || '', fact: t.fact })) }),
+      });
+      const d = r.ok ? await r.json() : null;
+      if (d && d.picks && d.picks.length >= 3) state.themeRun = { theme, title: d.title, names: new Set(d.picks), count: d.picks.length };
+      else state.themeNote = `No places here really fit "${theme}", so this is a regular run.`;
+    } catch (e) {
+      state.themeNote = 'Themed runs need the live site, so this is a regular run.';
+    }
   }
 
   // a ghost parked on the street node nearest a place
@@ -345,8 +366,11 @@
     newTask(true);
     addChomper();
     ui.showHUD(B.meta);
+    if (state.themeRun) ui.setBoroughLabel(`${B.meta.name} · ${state.themeRun.title}`);
     ui.setPassport([], B.LANDMARKS.length, state.stamps.size);
     ui.setChompers(1);
+    if (state.themeRun) ui.toast({ title: `Themed run: ${state.themeRun.title}`, body: `Gemini picked ${state.themeRun.count} places for "${state.themeRun.theme}". Find them all.`, kind: 'info', secs: 7 });
+    else if (state.themeNote) ui.toast({ title: 'Regular run', body: state.themeNote, kind: 'info', secs: 6 });
     ui.toast({ title: 'You are the ghost', body: (state.revealed ? 'Find ' + state.task.name + '.' : 'Solve the riddle in your task card. Find it before the name shows for +50%.') + ' It glows gold when you get close. Visit ★ landmarks for hints.', kind: 'info', secs: 7 });
     audio.start();
     voice.play(state.revealed ? 'start-plain' : 'start');
@@ -356,12 +380,24 @@
     const g = posXY(state.ghost);
     const m = B.meta;
     const far = (t, lo, hi) => { const d = Math.hypot(t.sx - g[0], t.sy - g[1]); return d >= lo && d <= hi; };
+    if (state.themeRun && !state.versus) {
+      const left = B.TARGETS.filter((t) => state.themeRun.names.has(t.name) && !state.used.has(t.name));
+      if (left.length) {
+        const near = left.filter((t) => far(t, 300, first ? m.first_max * 1.6 : Infinity));
+        const pick = (near.length ? near : left).reduce((a, t) => (Math.hypot(t.sx - g[0], t.sy - g[1]) < Math.hypot(a.sx - g[0], a.sy - g[1]) ? t : a));
+        return setTask(pick);
+      }
+      ui.toast({ title: `Theme complete: ${state.themeRun.title}`, body: 'You found every place Gemini picked. Back to the full map.', kind: 'info', secs: 6 });
+      state.themeRun = null;
+    }
     const pool = B.TARGETS.filter((t) => !state.used.has(t.name) && !state.recentCats.includes(t.cat));
     let cands = pool.filter((t) => far(t, m.task_min, first ? m.first_max : m.task_max));
     if (!cands.length) cands = pool.filter((t) => far(t, m.task_min * 0.6, Infinity));
     if (!cands.length) cands = B.TARGETS.filter((t) => !state.used.has(t.name) && far(t, 300, Infinity));
     if (!cands.length) { state.used.clear(); cands = B.TARGETS.filter((t) => far(t, 300, Infinity)); }
-    const t = cands[Math.floor(Math.random() * cands.length)];
+    setTask(cands[Math.floor(Math.random() * cands.length)]);
+  }
+  function setTask(t) {
     state.task = t;
     state.used.add(t.name);
     state.recentCats.push(t.cat);
@@ -957,6 +993,7 @@
       found: state.passport.filter((it) => it.kind === 'found').map((it) => it.place.name),
       target: state.task ? state.task.name : '', milesFromTarget: p ? p.dist / 1609.34 : null,
       street: streetText(g), seconds: Math.round(state.time), caughtBy: catcher ? catcher.name : 'a chomper', score: state.score,
+      theme: state.themeRun ? state.themeRun.title : '',
     };
     const run = (state.postcardRun = (state.postcardRun || 0) + 1);
     ui.setPostcard('Writing your postcard…', '');

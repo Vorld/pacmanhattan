@@ -20,7 +20,7 @@ function clean(f) {
   return {
     borough: text(f.borough, 40), start: text(f.start, 80), reached: list(f.reached), found: list(f.found),
     target: text(f.target, 80), milesFromTarget: Number.isFinite(miles) ? Math.round(miles * 10) / 10 : null,
-    street: text(f.street, 80), seconds: secs, caughtBy: text(f.caughtBy, 20), score: Math.max(0, Math.round(Number(f.score) || 0)),
+    street: text(f.street, 80), theme: text(f.theme, 40), seconds: secs, caughtBy: text(f.caughtBy, 20), score: Math.max(0, Math.round(Number(f.score) || 0)),
   };
 }
 
@@ -76,6 +76,7 @@ export default handle(async (req, res) => {
       f.reached.length ? `Places reached, in order: ${f.reached.join(', ')}` : 'Places reached: none yet',
       f.found.length ? `Targets found: ${f.found.join(', ')}` : 'Targets found: none',
       `Was looking for: ${f.target}` + (f.milesFromTarget != null ? ` (still ${f.milesFromTarget} miles away)` : ''),
+      ...(f.theme ? [`Themed run: ${f.theme}`] : []),
       `Caught on: ${f.street || 'a quiet street'}`, `Caught by: ${f.caughtBy}`, `Time survived: ${clock(f.seconds)}`, `Score: ${f.score}`,
     ];
     const prompt = 'You write a funny postcard for the end of a run in Pac-Manhattan, an arcade game where the player is a ghost '

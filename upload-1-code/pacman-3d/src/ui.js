@@ -31,6 +31,8 @@
       $('btn-solo').onclick = () => h.onMode(false);
       $('btn-duo').onclick = () => h.onMode(true);
       $('btn-mode-back').onclick = () => this.showLobby();
+      $('theme-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') h.onMode(false); });
+      for (const c of document.querySelectorAll('.theme-chips [data-theme]')) c.onclick = () => { $('theme-input').value = c.dataset.theme; $('theme-input').focus(); };
       $('title').onclick = () => h.onTitle();
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
@@ -91,6 +93,8 @@
       this.hideAllScreens(); this.show('vs-hud', false); this.show('hud', true); this.toastEl.innerHTML = '';
       $('borough-label').textContent = meta.name;
     },
+    theme() { return ($('theme-input').value || '').trim().slice(0, 60); },
+    setBoroughLabel(t) { $('borough-label').textContent = t; },
     hideHUD() { this.show('hud', false); },
     showPause(on) { this.show('pause', on); },
     showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },

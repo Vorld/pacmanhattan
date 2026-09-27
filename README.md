@@ -33,6 +33,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 **Solve a riddle → find the place → visit landmarks for hints → don't get chomped**
 
 - **Riddles about real places.** "Visit the former factory where the famous dark sandwich cookie was invented." Find it before the name is revealed for a 50% bonus.
+- **Themed runs.** Type a theme like "food spots" or "a first date" and Gemini picks that run's places, only from the places in the game.
 - **Landmarks** give you a photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
 - **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
 - **Riddle stats.** After you solve one, see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
@@ -40,6 +41,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 - **Seven maps.** All of Manhattan; Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges and the **Staten Island Ferry**. Chompers can't swim, so they wait at the terminal.
 - **A real city in real colors.** 171,710 buildings at their real heights. Roofs are colored from NYC's 2018 aerial photos and walls from each lot's year built and building class, so Brooklyn is brownstone and brick and Midtown is glass and limestone.
 - **What you just learned.** Eight places add a short lesson to their card, written with Grok, three of them with a picture generated in Cursor.
+- **A postcard from your run.** When you get caught, Gemini writes a short, funny recap from what actually happened in your run, and the narrator reads it aloud.
 - **A narrator** who warns you when a chomper is behind you and calls out every bridge you cross.
 - **2-player split screen**, racing to the same places on one keyboard.
 
@@ -56,9 +58,9 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 | **NYC Open Data** | 2018 aerial photos for roof colors, PLUTO lot data for wall materials, and 2020 neighborhood boundaries for Brooklyn and Queens (which sit on Long Island). |
 | **Tiger Data** (TimescaleDB) | "Know the block" queries a 767,563-building table by location. Every riddle outcome goes into a **hypertable**, and a **real-time continuous aggregate** turns it into each place's solve rate and average time. |
 | **MongoDB Atlas** | Global high scores, Passport stamps and finished runs, with a browser fallback when the database can't be reached. |
-| **Gemini API** | Writes a riddle for every place from that place's own Wikipedia summary. A checker rejects any riddle that uses a word of the name or a number that isn't in the source. |
+| **Gemini API** | Writes a riddle for every place from that place's own Wikipedia summary (a checker rejects any riddle that uses a word of the name or a number that isn't in the source); picks the places for themed runs, only from the game's own list; and writes the end-of-run postcard, rejected if it names a place or number that didn't happen in the run. |
 | **Grok** (built in Cursor) | The "What you just learned" lessons and their pictures on eight place cards (`data/lessons.json`, prompt in `prompts/grok-lessons.md`). |
-| **ElevenLabs** | The narrator, recorded once at build time, so no API key ever reaches the browser. |
+| **ElevenLabs** | The narrator: 16 lines recorded at build time, plus each end-of-run postcard read aloud through a server function. No API key ever reaches the browser. |
 | **Vercel + .tech** | Static hosting plus serverless functions, at [pac-manhattan.tech](https://pac-manhattan.tech). |
 
 ## Architecture
@@ -146,6 +148,8 @@ python3 tools/build_bridges.py   # copy riddles onto the multi-borough maps
 ```sh
 ELEVENLABS_API_KEY=... python3 tools/make_voice.py
 ```
+
+**Postcard and themed runs (Gemini + ElevenLabs, live).** `api/recap.js` gets the facts of a finished run (map, places reached, target and how far away it still was, street, chomper, time, score). Gemini writes a two-sentence postcard; it's rejected and rewritten, up to three times, if it contains a number or a capitalized name that isn't in those facts, and a plain template is used if it never passes. ElevenLabs then reads it aloud. `api/theme.js` sends the map's places to Gemini with the player's theme and keeps only picks that are on that list. Both read `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` on the server only.
 
 **Use of MongoDB Atlas.** `api/scores.js`, `api/stamps.js`, and `api/runs.js` save high scores, landmark stamps, and each finished Passport. `src/cloud.js` sends them and keeps a copy in the browser, then retries if the save fails. The connection string is `MONGODB_URI` (optional database name `MONGODB_DB`, default `pacmanhattan`). It is read only on the server, in `api/_lib/db.js`. It is not set in this repo, so `/api/health` returns 503 until you add it in Vercel, or in `upload-1-code/pacman-3d/.env.local` for `npm run dev`. In Atlas, allow `0.0.0.0/0` so Vercel can connect.
 

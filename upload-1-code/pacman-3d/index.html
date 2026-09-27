@@ -135,6 +135,17 @@
   <div class="card narrow">
     <div id="mode-borough" class="eyebrow"></div>
     <h2>How many players?</h2>
+    <div class="theme-field">
+      <label for="theme-input"><b>Themed run</b> <span class="muted">(optional, 1 player)</span></label>
+      <input id="theme-input" maxlength="60" placeholder="Type a theme, like food spots" autocomplete="off" spellcheck="false">
+      <div class="theme-chips">
+        <button type="button" data-theme="food spots">Food spots</button>
+        <button type="button" data-theme="movie and TV locations">Movie & TV</button>
+        <button type="button" data-theme="a first date">First date</button>
+        <button type="button" data-theme="history nerd">History</button>
+      </div>
+      <div class="small muted">Gemini picks this run's places from the ones in the game.</div>
+    </div>
     <button id="btn-solo" class="mode"><b>1 player</b><span>Arrow keys or WASD, or steer with your cursor.</span></button>
     <button id="btn-duo" class="mode"><b>2 players</b><span>Split screen, one keyboard. Race each other to the same places: WASD vs. arrow keys.</span></button>
     <button id="btn-mode-back" class="linkish">Back to the maps</button>

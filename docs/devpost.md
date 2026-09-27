@@ -31,12 +31,14 @@ Meanwhile, New York drew **65 million visitors in 2025** ([NYC Tourism + Convent
 Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you through real New York streets in 3D.
 
 - **Solve a riddle, find the place.** Each task is a riddle about a real spot ("Simon and Garfunkel sang of this cantilever path spanning the East River..."). Figure it out before the name is revealed for a 50% bonus. The name appears after 30 seconds, at a landmark, or when you press R.
+- **Themed runs.** Type "food spots" or "a first date in Brooklyn" and Gemini picks that run's places, only from the places in the game. Judges can type their own.
 - **Visit ★ landmarks** for a card with an HD photo, a fun fact, a Wikipedia summary, and a hint with the target's walking distance and direction. Every place you reach is stamped in your **Passport**.
 - **Dodge three kinds of chompers.** Chomps chases you, Sneaky cuts you off on the way to your target, and Snooze wanders until you get close. A new one joins after every task.
 - **Seven maps:** all of Manhattan; neighborhoods of Brooklyn, Queens, the Bronx and Staten Island; Manhattan + Brooklyn over the East River bridges; and **all five boroughs on one map**, joined by the Brooklyn, Manhattan, Williamsburg, Queensboro, Macombs Dam and Third Avenue Bridges, and the **Staten Island Ferry**. The ferry carries you five times faster than running, and chompers can't swim, so they wait at the terminal.
 - **A real city, in real colors.** 171,710 buildings at their real heights. Roof colors come from NYC's 2018 aerial photos, and wall colors from each lot's year built and building class, so Brooklyn shows brownstone and red brick and Midtown shows glass and limestone.
 - **Know the block.** Every place card shows the streets around it, live from a 767,563-building NYC database: "151 buildings within a block or two, typically built around 1879; the oldest dates to 1819."
 - **Riddle stats.** After you solve a riddle, you see how everyone else did: "12 of 17 finds solved this riddle before the name appeared, in 41 s on average."
+- **A postcard from your run.** When you get caught, Gemini writes a funny recap from what actually happened ("You barely left One Court Square before Chomps tagged you on Jackson Avenue"), checked against the run's facts, and the narrator reads it aloud.
 - **A narrator** cheers you on, warns you when a chomper is behind you, and calls out every bridge you cross.
 - **2-player split screen:** race a friend to the same places on one keyboard.
 - **A live title screen:** the game plays itself behind the menu, so you see what it is before you read a word.
