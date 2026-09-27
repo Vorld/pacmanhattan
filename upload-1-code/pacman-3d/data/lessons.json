@@ -589,6 +589,398 @@
     "Eldridge Street Synagogue": {
       "id": "eldridge-street-synagogue",
       "text": "One of the first great synagogues built by Eastern European Jews in the US. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Brooklyn Borough Hall": {
+      "id": "brooklyn-borough-hall",
+      "text": "Brooklyn's city hall from when it was its own city, until 1898. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Barclays Center": {
+      "id": "barclays-center",
+      "text": "Its rusted-steel skin is made of 12,000 weathered panels. The route you just took is the part a map usually erases."
+    },
+    "Jane's Carousel": {
+      "id": "jane-s-carousel",
+      "text": "A 1922 carousel restored over 25 years, now in a glass box by the river. Standing here is how the name becomes a place you can find again."
+    },
+    "Brooklyn Heights Promenade": {
+      "id": "brooklyn-heights-promenade",
+      "text": "It sits on top of a highway, with one of the best views of Manhattan. Standing here is how the name becomes a place you can find again."
+    },
+    "Brooklyn Navy Yard": {
+      "id": "brooklyn-navy-yard",
+      "text": "It built the USS Missouri, where World War II ended. A search result cannot show you which way the door faces the street."
+    },
+    "Domino Park": {
+      "id": "domino-park",
+      "text": "Built on the site of a sugar refinery that once made half of America's sugar. A search result cannot show you which way the door faces the street."
+    },
+    "Fort Greene Park": {
+      "id": "fort-greene-park",
+      "text": "Its 149-foot column honors over 11,000 prisoners who died on British ships. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Grand Army Plaza": {
+      "id": "grand-army-plaza",
+      "text": "Its arch honors Union soldiers of the Civil War. The route you just took is the part a map usually erases."
+    },
+    "Pratt Institute": {
+      "id": "pratt-institute",
+      "text": "Its campus doubles as a sculpture park with over 70 works. That detail lives on the block, not in a directions app."
+    },
+    "Williamsburg Bridge (Brooklyn)": {
+      "id": "williamsburg-bridge-brooklyn",
+      "text": "Its towers were the first bridge towers made entirely of steel. Arriving on foot is what makes the next block familiar."
+    },
+    "Gowanus Canal": {
+      "id": "gowanus-canal",
+      "text": "Once one of the most polluted waterways in the US, now a Superfund cleanup. A search result cannot show you which way the door faces the street."
+    },
+    "McCarren Park": {
+      "id": "mccarren-park",
+      "text": "Its huge 1936 pool sat empty for 28 years before reopening in 2012. Standing here is how the name becomes a place you can find again."
+    },
+    "DUMBO Archway": {
+      "id": "dumbo-archway",
+      "text": "DUMBO stands for Down Under the Manhattan Bridge Overpass. The skyline photo skips the street you just used."
+    },
+    "Juliana's Pizza": {
+      "id": "juliana-s-pizza",
+      "text": "Coal-oven pizza from Patsy Grimaldi, a legend of NYC pizza. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Peter Luger Steak House": {
+      "id": "peter-luger-steak-house",
+      "text": "Serving porterhouse steaks since 1887, and cash-only for decades. A pin can name the door. It cannot make you find the block."
+    },
+    "Junior's Restaurant": {
+      "id": "junior-s-restaurant",
+      "text": "The original home of Junior's famous cheesecake, since 1950. The line out front is part of the map. An app will not show you that."
+    },
+    "Lucali": {
+      "id": "lucali",
+      "text": "A candlelit pizza spot with no phone reservations and long lines. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Sahadi's": {
+      "id": "sahadi-s",
+      "text": "A Middle Eastern grocery on Atlantic Avenue since 1948. The borough is not only a subway stop. It is also a counter you can walk to."
+    },
+    "Time Out Market New York": {
+      "id": "time-out-market-new-york",
+      "text": "A food hall in a Civil War-era warehouse with a rooftop view. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Brooklyn Brewery": {
+      "id": "brooklyn-brewery",
+      "text": "Its logo was designed by Milton Glaser, who also made I ♥ NY. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Brooklyn Museum": {
+      "id": "brooklyn-museum",
+      "text": "One of the largest art museums in the US, with 1.5 million works. The building's place in the grid is the part a ticket page skips."
+    },
+    "Brooklyn Academy of Music": {
+      "id": "brooklyn-academy-of-music",
+      "text": "America's oldest performing arts center still running, since 1861. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "New York Transit Museum": {
+      "id": "new-york-transit-museum",
+      "text": "It lives inside a real 1936 subway station. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "Center for Brooklyn History": {
+      "id": "center-for-brooklyn-history",
+      "text": "Holds the borough's archives, from maps to Dodgers memorabilia. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "St. Ann's Warehouse": {
+      "id": "st-ann-s-warehouse",
+      "text": "A theater built inside the walls of an 1860s tobacco warehouse. The building's place in the grid is the part a ticket page skips."
+    },
+    "Brooklyn Botanic Garden": {
+      "id": "brooklyn-botanic-garden",
+      "text": "Its cherry blossom festival draws huge crowds every spring. You found the open ground by the streets around it. That is how a neighborhood gets a shape."
+    },
+    "Cobble Hill Park": {
+      "id": "cobble-hill-park",
+      "text": "A tiny neighborhood park saved from becoming a supermarket. Once you have stood here, this part of the city has an edge you can remember."
+    },
+    "Commodore Barry Park": {
+      "id": "commodore-barry-park",
+      "text": "Brooklyn's oldest park, named for the father of the US Navy. The paths around it are now yours. A pin never teaches those."
+    },
+    "Cadman Plaza Park": {
+      "id": "cadman-plaza-park",
+      "text": "Home to Brooklyn's World War II memorial. The green is the lesson. The pin is only the gate."
+    },
+    "Williamsburgh Savings Bank Tower": {
+      "id": "williamsburgh-savings-bank-tower",
+      "text": "Brooklyn's tallest building for 80 years, with a giant four-sided clock. Arriving on foot is what makes the next block familiar."
+    },
+    "Old Stone House": {
+      "id": "old-stone-house",
+      "text": "A rebuilt 1699 farmhouse at the center of the Battle of Brooklyn. The skyline photo skips the street you just used."
+    },
+    "Plymouth Church": {
+      "id": "plymouth-church",
+      "text": "A stop on the Underground Railroad; Lincoln worshipped here. Standing here is how the name becomes a place you can find again."
+    },
+    "Clock Tower Building": {
+      "id": "clock-tower-building",
+      "text": "Its glass clock faces frame one of NYC's most famous views. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Gantry Plaza State Park": {
+      "id": "gantry-plaza-state-park",
+      "text": "Its giant gantries once loaded rail cars onto river barges. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Queensboro Plaza": {
+      "id": "queensboro-plaza",
+      "text": "An elevated station where the 7 and N/W trains meet above the streets. That detail lives on the block, not in a directions app."
+    },
+    "Silvercup Studios": {
+      "id": "silvercup-studios",
+      "text": "An old bread bakery turned TV studio; The Sopranos filmed here. The route you just took is the part a map usually erases."
+    },
+    "One Court Square": {
+      "id": "one-court-square",
+      "text": "Queens' tallest building for decades, a lone green glass tower. A search result cannot show you which way the door faces the street."
+    },
+    "Astoria Park": {
+      "id": "astoria-park",
+      "text": "Home to NYC's oldest and largest public pool, from 1936. The skyline photo skips the street you just used."
+    },
+    "Kaufman Astoria Studios": {
+      "id": "kaufman-astoria-studios",
+      "text": "Silent films were shot here in the 1920s; Sesame Street is taped here now. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Queensbridge Park": {
+      "id": "queensbridge-park",
+      "text": "Sits right under the Queensboro Bridge by the East River. Standing here is how the name becomes a place you can find again."
+    },
+    "Steinway Street": {
+      "id": "steinway-street",
+      "text": "Named for the piano family whose factory is still in Astoria. The skyline photo skips the street you just used."
+    },
+    "LaGuardia Community College": {
+      "id": "laguardia-community-college",
+      "text": "Housed in a former factory for White Motor Company trucks. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Hunters Point Library": {
+      "id": "hunters-point-library",
+      "text": "A concrete library with windows carved into odd shapes. That detail lives on the block, not in a directions app."
+    },
+    "Bohemian Hall & Beer Garden": {
+      "id": "bohemian-hall-beer-garden",
+      "text": "NYC's oldest beer garden, open since 1910. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Taverna Kyclades": {
+      "id": "taverna-kyclades",
+      "text": "A Greek seafood favorite on Ditmars Boulevard. Finding it yourself is the difference between a recommendation and a place you know."
+    },
+    "Elias Corner": {
+      "id": "elias-corner",
+      "text": "Astoria's classic Greek fish taverna with no menu. A skyline does not teach you a counter on a side street. Walking here does."
+    },
+    "Court Square Diner": {
+      "id": "court-square-diner",
+      "text": "A 24-hour silver diner under the elevated tracks. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "MoMA PS1": {
+      "id": "moma-ps1",
+      "text": "A contemporary art space inside a former public school. You walked here, so the address is yours now, not just a search result."
+    },
+    "Museum of the Moving Image": {
+      "id": "museum-of-the-moving-image",
+      "text": "Home to a huge collection of movie and TV props and cameras. A museum on a map is a dot. Standing on its block is how the neighborhood gets a shape."
+    },
+    "Noguchi Museum": {
+      "id": "noguchi-museum",
+      "text": "Sculptor Isamu Noguchi designed it himself around a garden. The collection is inside. What you keep is where the building sits in the city."
+    },
+    "SculptureCenter": {
+      "id": "sculpturecenter",
+      "text": "A contemporary sculpture space in a former trolley repair shop. Once you have approached it from the street, you can find it again without the pin."
+    },
+    "Socrates Sculpture Park": {
+      "id": "socrates-sculpture-park",
+      "text": "Artists turned an illegal dump into an outdoor sculpture park. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "Rainey Park": {
+      "id": "rainey-park",
+      "text": "A small riverside park named for a local who pushed for the Queensboro Bridge. Standing in it is how you learn what the blocks beside it feel like."
+    },
+    "Hunters Point South Park": {
+      "id": "hunters-point-south-park",
+      "text": "A waterfront park with a view of the Manhattan skyline and the UN. Once you have stood here, this part of the city has an edge you can remember."
+    },
+    "Athens Square": {
+      "id": "athens-square",
+      "text": "A plaza with Greek columns and statues of Socrates and Athena. You found the open ground by the streets around it. That is how a neighborhood gets a shape."
+    },
+    "Pepsi-Cola Sign": {
+      "id": "pepsi-cola-sign",
+      "text": "A landmark neon sign from 1936, moved to Gantry Plaza. The skyline photo skips the street you just used."
+    },
+    "Hell Gate Bridge": {
+      "id": "hell-gate-bridge",
+      "text": "It was the world's longest steel arch bridge when it opened in 1917. The skyline photo skips the street you just used."
+    },
+    "Queensboro Bridge": {
+      "id": "queensboro-bridge",
+      "text": "Simon & Garfunkel called it the 59th Street Bridge. You had to come this way to learn it. A pin never makes you do that."
+    },
+    "Yankee Stadium": {
+      "id": "yankee-stadium",
+      "text": "The Yankees have won 27 World Series, more than any other team. The route you just took is the part a map usually erases."
+    },
+    "Bronx County Courthouse": {
+      "id": "bronx-county-courthouse",
+      "text": "An Art Deco courthouse wrapped in carved limestone figures. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Andrew Freedman Home": {
+      "id": "andrew-freedman-home",
+      "text": "Built as a retirement home for millionaires who had lost their fortunes. Arriving on foot is what makes the next block familiar."
+    },
+    "The Hub": {
+      "id": "the-hub",
+      "text": "The Bronx's busiest shopping district, where five streets meet. The route you just took is the part a map usually erases."
+    },
+    "Hostos Community College": {
+      "id": "hostos-community-college",
+      "text": "Named for Eugenio María de Hostos, a Puerto Rican educator. That detail lives on the block, not in a directions app."
+    },
+    "Bronx Terminal Market": {
+      "id": "bronx-terminal-market",
+      "text": "A 1920s produce market turned shopping center by the river. That detail lives on the block, not in a directions app."
+    },
+    "St. Mary's Park": {
+      "id": "st-mary-s-park",
+      "text": "The largest park in the South Bronx, on a rocky hill. Standing here is how the name becomes a place you can find again."
+    },
+    "Crotona Park": {
+      "id": "crotona-park",
+      "text": "Its lake and pool have served the Bronx since the 1930s. Arriving on foot is what makes the next block familiar."
+    },
+    "Claremont Park": {
+      "id": "claremont-park",
+      "text": "Once the estate of the Zborowski family in the 1800s. Standing here is how the name becomes a place you can find again."
+    },
+    "Arthur Avenue Retail Market": {
+      "id": "arthur-avenue-retail-market",
+      "text": "An indoor Italian market in the Bronx's Little Italy, since 1940. You crossed real streets for this. That is what puts it in your head."
+    },
+    "Yankee Tavern": {
+      "id": "yankee-tavern",
+      "text": "A sports bar near the stadium since 1927; Babe Ruth drank here. Knowing the city means knowing where people actually eat, not only the skyline."
+    },
+    "Bronx Museum of the Arts": {
+      "id": "bronx-museum-of-the-arts",
+      "text": "A free art museum on the Grand Concourse. Getting here on foot is how this stop becomes part of your own map."
+    },
+    "Edgar Allan Poe Cottage": {
+      "id": "edgar-allan-poe-cottage",
+      "text": "Poe wrote Annabel Lee in this small 1812 farmhouse. The building's place in the grid is the part a ticket page skips."
+    },
+    "Bronx Zoo": {
+      "id": "bronx-zoo",
+      "text": "One of the largest city zoos in the world, opened in 1899. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "New York Botanical Garden": {
+      "id": "new-york-botanical-garden",
+      "text": "250 acres of gardens and an old-growth forest. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "Franz Sigel Park": {
+      "id": "franz-sigel-park",
+      "text": "Named for a German-born Civil War general. Standing in it is how you learn what the blocks beside it feel like."
+    },
+    "Joyce Kilmer Park": {
+      "id": "joyce-kilmer-park",
+      "text": "Named for the poet who wrote 'Trees'. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "1520 Sedgwick Avenue": {
+      "id": "1520-sedgwick-avenue",
+      "text": "The apartment building where hip hop was born in 1973. The skyline photo skips the street you just used."
+    },
+    "Lorelei Fountain": {
+      "id": "lorelei-fountain",
+      "text": "A fountain honoring poet Heinrich Heine, rejected by Düsseldorf. That detail lives on the block, not in a directions app."
+    },
+    "Bronx General Post Office": {
+      "id": "bronx-general-post-office",
+      "text": "Its lobby has murals painted by Ben Shahn and Bernarda Bryson. Standing here is how the name becomes a place you can find again."
+    },
+    "Loew's Paradise Theater": {
+      "id": "loew-s-paradise-theater",
+      "text": "A 1929 movie palace with a ceiling painted like a starry sky. That detail lives on the block, not in a directions app."
+    },
+    "St. George Terminal": {
+      "id": "st-george-terminal",
+      "text": "The Staten Island Ferry is free and runs 24 hours a day. A search result cannot show you which way the door faces the street."
+    },
+    "Staten Island Borough Hall": {
+      "id": "staten-island-borough-hall",
+      "text": "Its clock tower greets every ferry arriving from Manhattan. That detail lives on the block, not in a directions app."
+    },
+    "Postcards": {
+      "id": "postcards",
+      "text": "Staten Island's 9/11 memorial, shaped like two folded postcards. A search result cannot show you which way the door faces the street."
+    },
+    "Snug Harbor Cultural Center": {
+      "id": "snug-harbor-cultural-center",
+      "text": "Built in 1833 as a home for retired sailors. The route you just took is the part a map usually erases."
+    },
+    "Wagner College": {
+      "id": "wagner-college",
+      "text": "Its hilltop campus looks out over New York Harbor. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Silver Lake Park": {
+      "id": "silver-lake-park",
+      "text": "Its lake is really a reservoir for the island's water. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Tompkinsville Park": {
+      "id": "tompkinsville-park",
+      "text": "Near the spot where Henry Hudson's crew got fresh water in 1609. You can point to it from the corner now. That is a mental map, not a bookmark."
+    },
+    "Fort Wadsworth": {
+      "id": "fort-wadsworth",
+      "text": "One of the oldest military sites in the country, guarding the Narrows. That detail lives on the block, not in a directions app."
+    },
+    "Enoteca Maria": {
+      "id": "enoteca-maria",
+      "text": "Its chefs are grandmothers from around the world, cooking in rotation. The line out front is part of the map. An app will not show you that."
+    },
+    "National Lighthouse Museum": {
+      "id": "national-lighthouse-museum",
+      "text": "On the site of the old US Lighthouse Service depot. You will remember the corner, not the search result."
+    },
+    "Staten Island Museum": {
+      "id": "staten-island-museum",
+      "text": "Founded in 1881, it has art, science, and history under one roof. You will remember the corner, not the search result."
+    },
+    "Alice Austen House": {
+      "id": "alice-austen-house",
+      "text": "Home of Alice Austen, one of America's first female photographers. The building's place in the grid is the part a ticket page skips."
+    },
+    "Staten Island Children's Museum": {
+      "id": "staten-island-children-s-museum",
+      "text": "A hands-on museum inside the grounds of Snug Harbor. You will remember the corner, not the search result."
+    },
+    "Garibaldi-Meucci Museum": {
+      "id": "garibaldi-meucci-museum",
+      "text": "Home of Antonio Meucci, an early telephone inventor. Getting here on foot is how this stop becomes part of your own map."
+    },
+    "Staten Island Zoo": {
+      "id": "staten-island-zoo",
+      "text": "Famous for its large reptile collection and its groundhog, Chuck. You did not teleport to the lawn. You arrived, and that is the lesson."
+    },
+    "Clove Lakes Park": {
+      "id": "clove-lakes-park",
+      "text": "Home to the oldest living thing in NYC, a 300-year-old tulip tree. Standing in it is how you learn what the blocks beside it feel like."
+    },
+    "Von Briesen Park": {
+      "id": "von-briesen-park",
+      "text": "A cliff-top park with a close view of the Verrazzano-Narrows Bridge. You came in from the street, which is how a park becomes a place you can aim for."
+    },
+    "Richmond County Bank Ballpark": {
+      "id": "richmond-county-bank-ballpark",
+      "text": "A ballpark with the Manhattan skyline behind the outfield. Standing here is how the name becomes a place you can find again."
+    },
+    "St. George Theatre": {
+      "id": "st-george-theatre",
+      "text": "A 1929 movie palace with a Spanish-Baroque interior. Arriving on foot is what makes the next block familiar."
     }
   },
   "edges": {
