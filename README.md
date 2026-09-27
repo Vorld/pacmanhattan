@@ -60,7 +60,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
 | **MongoDB Atlas** | Global high scores, Passport stamps and finished runs, with a browser fallback when the database can't be reached. |
 | **Gemini API** | Writes a riddle for every place from that place's own Wikipedia summary (a checker rejects any riddle that uses a word of the name or a number that isn't in the source); picks the places for themed runs, only from the game's own list; and writes the end-of-run postcard, rejected if it names a place or number that didn't happen in the run. |
 | **Grok** (built in Cursor) | The "What you just learned" lessons and their pictures on eight place cards (`data/lessons.json`, prompt in `prompts/grok-lessons.md`). |
-| **ElevenLabs** | The narrator: 16 lines recorded at build time, plus each end-of-run postcard read aloud through a server function. No API key ever reaches the browser. |
+| **ElevenLabs** | The narrator, voice "Laura": 16 English lines recorded at build time (Multilingual v2 model), plus each end-of-run postcard read aloud live through a server function (Flash v2.5 model). No API key ever reaches the browser. |
 | **Vercel + .tech** | Static hosting plus serverless functions, at [pac-manhattan.tech](https://pac-manhattan.tech). |
 
 ## Architecture

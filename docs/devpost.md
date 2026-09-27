@@ -39,7 +39,7 @@ Pac-Manhattan flips Pac-Man. **You're the ghost**, and hungry chompers hunt you 
   - It writes a riddle for every place from that place's own Wikipedia summary. A checker rejects any riddle that uses a word of the name or a number that isn't in the source, with up to three retries.
   - It picks the places for themed runs, limited by a response schema to the map's exact place names and checked again on the server.
   - It writes the end-of-run postcard, which is rejected and rewritten if it names a place or number that didn't happen in your run.
-- **ElevenLabs** (Multilingual v2, voice "Laura") recorded 16 narrator lines at build time, and reads each postcard aloud through a server function, so no API key ever reaches the browser.
+- **ElevenLabs** voices the game in one voice, "Laura": 16 English narrator lines recorded at build time (Multilingual v2 model), plus each end-of-run postcard, read aloud live through a server function (Flash v2.5 model), so no API key ever reaches the browser.
 - **Tiger Data** (TimescaleDB) powers the live panel on every place card. We loaded 767,563 NYC residential buildings (PLUTO lots joined with HPD data) and query the ones around each place by location. Every riddle outcome is written to a **hypertable**, and a **real-time continuous aggregate** rolls it up into each place's solve rate and average solve time.
 - **MongoDB Atlas** stores global high scores, Passport stamps and every finished run (with its theme) through Vercel functions, with a browser fallback if the database can't be reached.
 - **Grok, built in Cursor,** wrote the "What you just learned" lessons and generated their pictures.
