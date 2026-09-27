@@ -16,6 +16,15 @@
       a.play().catch(() => {});
       this.cur = a;
     }
+    // a one-off clip made at runtime (the run postcard)
+    playData(url) {
+      if (this.muted) return;
+      if (this.cur) this.cur.pause();
+      const a = new Audio(url);
+      a.volume = 0.9;
+      a.play().catch(() => {});
+      this.cur = a;
+    }
     setMuted(m) { this.muted = m; if (m && this.cur) this.cur.pause(); }
   }
   PM.voice = new Voice();

@@ -496,6 +496,7 @@
     if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
     PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
       passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
+    if (!state.versus) sendPostcard();
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -943,6 +944,31 @@
       return;
     }
     ui.setScore(state.score);
+  }
+
+  // "Postcard from your run": the run's real facts go to api/recap (Gemini writes it, ElevenLabs reads it)
+  function sendPostcard() {
+    const g = state.ghost;
+    const catcher = state.chompers.reduce((a, c) => ((c.dist ?? Infinity) < (a.dist ?? Infinity) ? c : a), state.chompers[0]);
+    const p = state.task ? B.graph.path(g, state.task.pos) : null;
+    const facts = {
+      borough: B.meta.name, start: startPlace().name,
+      reached: state.passport.map((it) => it.place.name),
+      found: state.passport.filter((it) => it.kind === 'found').map((it) => it.place.name),
+      target: state.task ? state.task.name : '', milesFromTarget: p ? p.dist / 1609.34 : null,
+      street: streetText(g), seconds: Math.round(state.time), caughtBy: catcher ? catcher.name : 'a chomper', score: state.score,
+    };
+    const run = (state.postcardRun = (state.postcardRun || 0) + 1);
+    ui.setPostcard('Writing your postcard…', '');
+    fetch('api/recap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts, voice: !voice.muted }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (run !== state.postcardRun || state.mode !== 'over') return;
+        if (!d || !d.text) { ui.setPostcard(null); return; }
+        ui.setPostcard(d.text, d.source === 'gemini' ? 'Written by Gemini from this run, read by ElevenLabs' : 'From this run');
+        if (d.audio) voice.playData('data:audio/mpeg;base64,' + d.audio);
+      })
+      .catch(() => ui.setPostcard(null));
   }
 
   function streetText(g) {

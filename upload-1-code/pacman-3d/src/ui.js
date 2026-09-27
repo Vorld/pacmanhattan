@@ -404,6 +404,15 @@
     },
 
     // ---------- game over ----------
+    // text: the postcard, or null to hide it
+    setPostcard(text, src) {
+      const el = $('over-postcard');
+      if (!el) return;
+      el.hidden = !text;
+      if (!text) return;
+      $('postcard-text').textContent = text;
+      $('postcard-src').textContent = src || '';
+    },
     showGameOver(r) {
       this.last = r;
       this.show('over', true);

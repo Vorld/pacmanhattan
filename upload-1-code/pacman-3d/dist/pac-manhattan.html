@@ -156,6 +156,9 @@ h2 { margin: 0 0 12px; font-family: Bungee, "DM Sans", system-ui, sans-serif; fo
 .eyebrow.found { color: var(--good); }
 .eyebrow.revisit { color: var(--ghost-deep); }
 .fact { font-size: 15px; line-height: 1.45; }
+.lesson { background: #f4f0ff; border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; }
+.lesson p { margin: 0; font-size: 15px; line-height: 1.45; }
+.lesson img { width: 100%; border-radius: 8px; display: block; max-height: 160px; object-fit: cover; }
 .about { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
 .card-hint { background: #e6f7ee; border-radius: 12px; padding: 10px 12px; color: #0d5e33; font-size: 14px; line-height: 1.4; }
 .links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; font-weight: 700; }
@@ -312,6 +315,11 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 /* live panel on place cards (Tiger Data) */
 .card-live { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #eef7f3; border: 1px solid #cdeadc; font-size: 14px; line-height: 1.45; display: grid; gap: 6px; }
 .card-live-src { font-size: 11.5px; color: #3d7a5e; font-weight: 700; letter-spacing: .02em; }
+
+/* game over: postcard from your run (Gemini + ElevenLabs) */
+.postcard { margin: 8px 0 10px; padding: 12px 14px; border-radius: 14px; background: #fff8dc; border: 1px dashed #d9b400; transform: rotate(-.6deg); }
+.postcard p { margin: 4px 0 0; font-size: 15px; line-height: 1.45; font-style: italic; color: #3a2f00; }
+.postcard-src { margin-top: 6px; font-size: 11.5px; font-weight: 700; color: #8a6c00; }
 </style>
 
 <canvas id="game"></canvas>
@@ -480,6 +488,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         <div id="over-score" class="big">0</div>
         <div id="over-stats" class="stats"></div>
         <p id="over-target" class="muted small"></p>
+        <div id="over-postcard" class="postcard" hidden><div class="eyebrow">Postcard from your run</div><p id="postcard-text"></p><div id="postcard-src" class="postcard-src"></div></div>
         <div id="save-row" class="hidden">
           <input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false">
           <button id="btn-save">Save score</button>
@@ -1894,6 +1903,15 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       a.play().catch(() => {});
       this.cur = a;
     }
+    // a one-off clip made at runtime (the run postcard)
+    playData(url) {
+      if (this.muted) return;
+      if (this.cur) this.cur.pause();
+      const a = new Audio(url);
+      a.volume = 0.9;
+      a.play().catch(() => {});
+      this.cur = a;
+    }
     setMuted(m) { this.muted = m; if (m && this.cur) this.cur.pause(); }
   }
   PM.voice = new Voice();
@@ -2052,7 +2070,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     },
 
     // ---------- landmark / target card ----------
-    showCard({ kind, place, points, hint, cat, solved }) {
+    showCard({ kind, place, points, hint, cat, solved, lesson }) {
       const p = place;
       const sv = p.lat ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}` : null;
       const img = p.img
@@ -2067,6 +2085,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
           <h2>${esc(p.name)}</h2>
           ${cat ? `<div class="muted small">${esc(cat)}</div>` : ''}
           <div class="fact"><b>Fun fact:</b> ${esc(p.fact)}</div>
+          ${lesson ? `<div class="lesson"><div class="eyebrow">What you just learned</div><p>${esc(lesson.text)}</p>${lesson.image ? `<img src="${esc(lesson.image)}" alt="">` : ''}</div>` : ''}
           ${p.about ? `<p class="about">${esc(p.about)}</p>` : ''}
           ${hint ? `<div class="card-hint"><b>Hint:</b> ${esc(hint)}<div class="small">A green arrow points the way for a few seconds.</div></div>` : ''}
           <div id="card-live" class="card-live" hidden></div>
@@ -2306,6 +2325,15 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     },
 
     // ---------- game over ----------
+    // text: the postcard, or null to hide it
+    setPostcard(text, src) {
+      const el = $('over-postcard');
+      if (!el) return;
+      el.hidden = !text;
+      if (!text) return;
+      $('postcard-text').textContent = text;
+      $('postcard-src').textContent = src || '';
+    },
     showGameOver(r) {
       this.last = r;
       this.show('over', true);
@@ -2562,6 +2590,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
   const audio = new PM.Audio();
   const ui = PM.UI;
   const voice = PM.voice;
+  let LESSONS = { places: {}, edges: {} };
+  fetch('data/lessons.json').then((r) => r.ok ? r.json() : null).then((j) => { if (j) LESSONS = j; }).catch(() => {});
+  const lessonFor = (name) => (LESSONS.places || {})[name] || null;
   const muteAll = () => { const m = audio.toggleMute(); voice.setMuted(m); ui.setMuted(m); };
 
   let B = null; // the loaded borough: data, graph, world, 3D objects, places
@@ -3015,6 +3046,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     if (!state.versus && state.task) PM.Tiger.event(B.id, state.task.name, 'caught', state.taskTime);
     PM.Cloud.saveRun({ mode: 'solo', borough: B.id, score: state.score, tasks: state.tasksDone, time: Math.round(state.time),
       passport: state.passport.map((it) => ({ kind: it.kind, name: it.place.name })) });
+    if (!state.versus) sendPostcard();
     ui.hideHUD();
     ui.setHere('');
     ui.showGameOver({
@@ -3363,10 +3395,17 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     g.anim += dt;
     moveGhost(g, CFG.ghostSpeed * dt * (g.e.cls === 4 ? CFG.ferrySpeed : 1));
     const onFerry = g.e.cls === 4;
-    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+    if (g.e !== state.lastEdge && / Bridge$/.test(g.e.name) && g.e.len > 500) {
+      const bridgeLesson = (LESSONS.edges || {})[g.e.name];
+      voice.play('bridge-' + g.e.name.toLowerCase().replace(/ /g, '-'), 60);
+      if (bridgeLesson) ui.toast({ title: g.e.name, body: bridgeLesson.text, kind: 'info', secs: 6 });
+    }
     state.lastEdge = g.e;
-    if (onFerry && !state.onFerry) voice.play('ferry');
-    if (onFerry && !state.onFerry) ui.toast({ title: 'All aboard the ' + g.e.name, body: 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 4 });
+    if (onFerry && !state.onFerry) {
+      const ferryLesson = (LESSONS.edges || {}).ferry;
+      voice.play('ferry');
+      ui.toast({ title: 'All aboard the ' + g.e.name, body: ferryLesson ? ferryLesson.text : 'Chompers can\'t swim. They\'ll wait at the terminal.', kind: 'info', secs: 6 });
+    }
     state.onFerry = onFerry;
     const gp = posXY(g);
     B.trail.add(gp[0], gp[1], state.time);
@@ -3425,7 +3464,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         audio.ding();
         voice.play('landmark');
         PM.Tiger.event(B.id, l.name, 'landmark', null);
-        openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint });
+        openCard({ kind: 'landmark', place: l, points: CFG.landmarkPts, hint, lesson: lessonFor(l.name) });
         return;
       }
     }
@@ -3450,11 +3489,36 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       };
       voice.play(solved ? 'solved' : 'found');
       if (t.riddle) PM.Tiger.event(B.id, t.name, solved ? 'solved' : 'found', state.taskTime);
-      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved });
+      openCard({ kind: 'found', place: t, points: pts, cat: CAT[t.cat], solved, lesson: lessonFor(t.name) });
       ui.setScore(state.score);
       return;
     }
     ui.setScore(state.score);
+  }
+
+  // "Postcard from your run": the run's real facts go to api/recap (Gemini writes it, ElevenLabs reads it)
+  function sendPostcard() {
+    const g = state.ghost;
+    const catcher = state.chompers.reduce((a, c) => ((c.dist ?? Infinity) < (a.dist ?? Infinity) ? c : a), state.chompers[0]);
+    const p = state.task ? B.graph.path(g, state.task.pos) : null;
+    const facts = {
+      borough: B.meta.name, start: startPlace().name,
+      reached: state.passport.map((it) => it.place.name),
+      found: state.passport.filter((it) => it.kind === 'found').map((it) => it.place.name),
+      target: state.task ? state.task.name : '', milesFromTarget: p ? p.dist / 1609.34 : null,
+      street: streetText(g), seconds: Math.round(state.time), caughtBy: catcher ? catcher.name : 'a chomper', score: state.score,
+    };
+    const run = (state.postcardRun = (state.postcardRun || 0) + 1);
+    ui.setPostcard('Writing your postcard…', '');
+    fetch('api/recap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts, voice: !voice.muted }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (run !== state.postcardRun || state.mode !== 'over') return;
+        if (!d || !d.text) { ui.setPostcard(null); return; }
+        ui.setPostcard(d.text, d.source === 'gemini' ? 'Written by Gemini from this run, read by ElevenLabs' : 'From this run');
+        if (d.audio) voice.playData('data:audio/mpeg;base64,' + d.audio);
+      })
+      .catch(() => ui.setPostcard(null));
   }
 
   function streetText(g) {
@@ -3710,7 +3774,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       if (state.mode !== 'play' && state.mode !== 'pause') return;
       if (state.mode === 'pause') ui.showPause(false);
       const it = state.passport[i];
-      if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '' });
+      if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '', lesson: lessonFor(it.place.name) });
     },
   });
   ui.showTitle();

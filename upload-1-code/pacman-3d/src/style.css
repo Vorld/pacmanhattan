@@ -308,3 +308,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 /* live panel on place cards (Tiger Data) */
 .card-live { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #eef7f3; border: 1px solid #cdeadc; font-size: 14px; line-height: 1.45; display: grid; gap: 6px; }
 .card-live-src { font-size: 11.5px; color: #3d7a5e; font-weight: 700; letter-spacing: .02em; }
+
+/* game over: postcard from your run (Gemini + ElevenLabs) */
+.postcard { margin: 8px 0 10px; padding: 12px 14px; border-radius: 14px; background: #fff8dc; border: 1px dashed #d9b400; transform: rotate(-.6deg); }
+.postcard p { margin: 4px 0 0; font-size: 15px; line-height: 1.45; font-style: italic; color: #3a2f00; }
+.postcard-src { margin-top: 6px; font-size: 11.5px; font-weight: 700; color: #8a6c00; }
