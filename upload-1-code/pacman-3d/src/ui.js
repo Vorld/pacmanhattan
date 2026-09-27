@@ -104,7 +104,11 @@
     },
     hideHUD() { this.show('hud', false); },
     showPause(on) { this.show('pause', on); },
-    showStartHint(on) { if (this._sh !== on) { this._sh = on; this.show('start-hint', on); } },
+    showStartHint(on) {
+      // phones and tablets have no cursor or arrow keys
+      if (on && !this._hintText) { this._hintText = true; if (matchMedia('(pointer: coarse)').matches) $('start-hint').textContent = 'Tap where you want to go'; }
+      if (this._sh !== on) { this._sh = on; this.show('start-hint', on); }
+    },
     setMuted(m) { $('btn-mute').textContent = m ? '🔇' : '🔊'; },
 
     setScore(s) { if (this._score !== s) { this._score = s; $('score').textContent = s.toLocaleString(); } },
