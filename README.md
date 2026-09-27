@@ -179,7 +179,7 @@ docs/media/                cover and banner images
 
 ## Team
 
-Built in 24 hours at DivHacks 2026 by Candy Xie, Tyler Sheng Kok, Alina Du, Venugopal Kulkarni and [@Vorld](https://github.com/Vorld).
+Built in 24 hours at DivHacks 2026 by Candy Xie, Tyler Sheng Kok, Alina Du and Venugopal Kulkarni
 
 ## Credits
 
