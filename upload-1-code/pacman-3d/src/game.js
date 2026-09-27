@@ -36,7 +36,17 @@
   const fx = document.getElementById('fx');
   const fctx = fx.getContext('2d');
   const DPR = Math.min(2, window.devicePixelRatio || 1);
-  const renderer = PM.World3D.makeRenderer(canvas);
+  let renderer;
+  try { renderer = PM.World3D.makeRenderer(canvas); }
+  catch (e) {
+    // no WebGL (hardware acceleration off, some locked-down laptops): say so instead of a title screen that does nothing
+    console.error('Pac-Manhattan needs WebGL:', e.message);
+    const cta = document.getElementById('btn-title');
+    if (cta) { cta.textContent = "This browser can't show 3D"; cta.style.animation = 'none'; cta.disabled = true; }
+    const foot = document.querySelector('.title-foot');
+    if (foot) foot.textContent = 'Turn on hardware acceleration (in Chrome: Settings, System, "Use graphics acceleration"), then reload. Or try another browser.';
+    return;
+  }
   const audio = new PM.Audio();
   const ui = PM.UI;
   const voice = PM.voice;
