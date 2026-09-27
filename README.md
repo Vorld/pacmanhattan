@@ -36,7 +36,7 @@ src/analytics.ts              run_start / landmark_visit / hint_shown / caught /
 
 To refresh the data: `npm run data:fetch && npm run data:build`. To edit places, change `data/places.json`, then run `npm run data:build`.
 
-**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (37 vs 34 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (44 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
+**Pac-Man** runs A* every `repathIntervalMs` (350 ms) toward where the ghost was `reactionDelayMs` (700 ms) ago. He is faster than the ghost from the start (52 vs 48 m/s) and speeds up by `speedGainPerMinute` up to `maxSpeed` (62 m/s). You survive by making him re-route, not by outrunning him. The warning vignette, beeps and edge arrow use his real walking distance, not straight-line distance.
 
 **Map highlighting.** Every walkable street is drawn in blue. Dead-end branches (streets you can only leave the way you came) are orange, with a dot where each one ends. The **overview map** (top-left) shows every street, all landmarks, Pac-Man and the target, in a 3 km window around you, with the straight-line distance to the target. Set `overview.showTarget` to `false` in `config.json` to hide the target and go back to hints-only play.
 
@@ -44,7 +44,7 @@ To refresh the data: `npm run data:fetch && npm run data:build`. To edit places,
 
 **Score** = landmark points + 2/s survived + target bonus (1500 − 150 per hint, minimum 300, times 1.0/1.3/1.6 by difficulty).
 
-**Balance check:** `npm run simulate` runs two bots over 40 seeded runs each. One only flees Pac-Man and survives a median of about 4 min. The other races the shortest route to the target, ignoring Pac-Man, and wins 18 of 40 runs (45%).
+**Balance check:** `npm run simulate` runs two bots over 40 seeded runs each. One only flees Pac-Man and survives a median of about 2.5 min. The other races the shortest route to the target, ignoring Pac-Man, and wins 20 of 40 runs (50%), with a median run of about 1 min.
 
 ## Status against the PRD
 

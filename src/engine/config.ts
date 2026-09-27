@@ -35,11 +35,11 @@ export interface GameConfig {
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
-  ghostSpeed: 34,
+  ghostSpeed: 48,
   pacman: {
-    baseSpeed: 37,
-    speedGainPerMinute: 2,
-    maxSpeed: 44,
+    baseSpeed: 52,
+    speedGainPerMinute: 3,
+    maxSpeed: 62,
     reactionDelayMs: 700,
     repathIntervalMs: 350,
     startGraceMs: 2500,
