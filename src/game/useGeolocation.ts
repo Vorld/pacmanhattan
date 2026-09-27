@@ -7,6 +7,11 @@ export type LocationStatus = 'locating' | 'ok' | 'denied' | 'unavailable'
 const SIM_START: LngLat = [-73.9903, 40.7359]
 const SIM_STEP_METERS = 15
 
+// Skip fixes the phone itself rates as worse than this (they cause visible hops)…
+const MAX_ACCURACY_METERS = 30
+// …unless that's all we've had for a while, so the ghost never freezes indoors.
+const STALE_MS = 10_000
+
 // Arrow keys move along the rotated grid, so "up" walks up the avenue on screen.
 const ARROW_BEARINGS: Record<string, number> = {
   ArrowUp: GRID_BEARING,
@@ -28,8 +33,12 @@ export function useGeolocation(sim: boolean) {
 
   useEffect(() => {
     if (sim || !('geolocation' in navigator)) return
+    let lastAccepted = 0
     const id = navigator.geolocation.watchPosition(
       (p) => {
+        const now = Date.now()
+        if (p.coords.accuracy > MAX_ACCURACY_METERS && lastAccepted && now - lastAccepted < STALE_MS) return
+        lastAccepted = now
         setPosition([p.coords.longitude, p.coords.latitude])
         setStatus('ok')
       },

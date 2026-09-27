@@ -17,6 +17,14 @@ export function haversine([lng1, lat1]: LngLat, [lng2, lat2]: LngLat): number {
   return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(a))
 }
 
+/** Compass bearing (degrees, 0 = north) from a to b. */
+export function bearing([lng1, lat1]: LngLat, [lng2, lat2]: LngLat): number {
+  const r = Math.PI / 180
+  const y = Math.sin((lng2 - lng1) * r) * Math.cos(lat2 * r)
+  const x = Math.cos(lat1 * r) * Math.sin(lat2 * r) - Math.sin(lat1 * r) * Math.cos(lat2 * r) * Math.cos((lng2 - lng1) * r)
+  return (Math.atan2(y, x) / r + 360) % 360
+}
+
 /** Move `meters` from `from` toward compass `bearing` (degrees, 0 = north). Fine for short hops. */
 export function offset([lng, lat]: LngLat, meters: number, bearing: number): LngLat {
   const b = toRad(bearing)

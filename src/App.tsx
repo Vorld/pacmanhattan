@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
-import { inManhattan } from './game/geo'
+import Hud from './components/Hud'
+import { haversine, inManhattan } from './game/geo'
 import { useGeolocation } from './game/useGeolocation'
+import { useNow } from './game/useNow'
+import { usePacman } from './game/usePacman'
 import { useTrail } from './game/useTrail'
 import MazeMap from './map/MazeMap'
 
@@ -13,16 +16,18 @@ export default function App() {
   const { position, status, moveTo } = useGeolocation(sim)
   const trail = useTrail(position)
   const offIsland = position !== null && !inManhattan(position)
+  const { pacmanAt, startedAt } = usePacman(position, status === 'ok' && !offIsland)
+  const now = useNow(250)
+  const pacman = pacmanAt(now)
+  const distance = pacman && position ? haversine(pacman.position, position) : null
 
   return (
     <main className="relative h-full overflow-hidden">
-      <MazeMap player={position} trail={trail} ghostColor={GHOST_COLOR} onTap={moveTo} />
+      <MazeMap player={position} trail={trail} ghostColor={GHOST_COLOR} pacmanAt={pacmanAt} onTap={moveTo} />
 
-      <h1 className="pointer-events-none absolute top-4 left-4 font-arcade text-xs text-pac glow-maze">
-        PACMANhattan
-      </h1>
+      <Hud distance={distance} elapsedMs={startedAt ? now - startedAt : 0} />
       {sim && (
-        <p className="pointer-events-none absolute top-4 right-4 font-arcade text-[10px] text-inky">SIM</p>
+        <p className="pointer-events-none absolute bottom-2 left-3 font-arcade text-[10px] text-inky">SIM</p>
       )}
 
       {status === 'locating' && (

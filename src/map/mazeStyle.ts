@@ -74,6 +74,7 @@ export const mazeStyle: StyleSpecification = {
     offIsland: { type: 'geojson', data: offIsland },
     manhattan: { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: manhattan as MultiPolygon } },
     trail: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    dots: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
   },
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#000' } },
@@ -125,6 +126,16 @@ export const mazeStyle: StyleSpecification = {
       source: 'trail',
       layout: round,
       paint: { 'line-color': '#fff', 'line-width': 4, 'line-opacity': 0.7 },
+    },
+    // Pellets on Pac-Man's path; he eats them as he goes.
+    {
+      id: 'dots',
+      type: 'circle',
+      source: 'dots',
+      paint: {
+        'circle-color': '#ffb897',
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 1, 17, 3, 18.5, 4],
+      },
     },
     {
       id: 'street-label',
