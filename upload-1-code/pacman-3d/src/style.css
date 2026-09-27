@@ -235,3 +235,37 @@ button.mode:hover { border-color: var(--ghost); }
 .vs-ready { margin: 8px 20px 18px; padding: 10px 12px; border-radius: 12px; border: 2px dashed var(--rc); font-weight: 800; text-align: center; animation: pulse 1.4s infinite; }
 .vs-ready.done { border-style: solid; background: color-mix(in srgb, var(--rc) 14%, #fff); animation: none; }
 #vs-hud.carding #vs-task, #vs-hud.carding .vs-side, #vs-hud.carding .vs-toasts { display: none; }
+
+/* ---------- title screen (attract mode: the live city plays behind it) ---------- */
+#title { place-items: stretch; padding: 0; background: linear-gradient(180deg, rgba(34, 22, 86, 0.78) 0%, rgba(34, 22, 86, 0) 32%, rgba(34, 22, 86, 0) 56%, rgba(34, 22, 86, 0.86) 100%);
+  backdrop-filter: none; cursor: pointer; overflow: hidden; }
+#title::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, #8f74ff, #2a1f5c 70%); transition: opacity 1.4s ease; }
+body.live #title::before { opacity: 0; pointer-events: none; }
+.title-wrap { position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-height: 100%;
+  padding: calc(env(safe-area-inset-top, 0px) + 5vh) 16px calc(env(safe-area-inset-bottom, 0px) + 26px); text-align: center; color: #fff; }
+.title-top { display: grid; justify-items: center; gap: 4px; }
+.title-eyebrow { font-weight: 800; letter-spacing: .18em; text-transform: uppercase; font-size: 12px; color: #ffe27a; }
+.title-logo { margin: 0; font-size: clamp(46px, 9.5vw, 118px); color: #fff; line-height: .95;
+  text-shadow: 0 5px 0 #2a1f5c, 0 10px 0 rgba(42, 31, 92, .45), 0 0 48px rgba(143, 116, 255, .9); animation: titleFloat 3.4s ease-in-out infinite; }
+.title-logo span { color: #ffd21f; }
+.title-tag { margin: 6px 0 0; font-size: clamp(16px, 2.2vw, 22px); font-weight: 600; text-shadow: 0 2px 10px rgba(20, 10, 60, .6); }
+.title-bottom { display: grid; justify-items: center; gap: 16px; width: min(980px, 100%); }
+.title-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.title-steps li { display: grid; justify-items: center; gap: 4px; padding: 14px 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, .13);
+  border: 1px solid rgba(255, 255, 255, .22); backdrop-filter: blur(6px); font-size: 14px; line-height: 1.35; }
+.title-steps li b { font-size: 16px; }
+.title-steps li > span:last-child { color: rgba(255, 255, 255, .82); }
+.ts-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 18px; margin-bottom: 2px; }
+.ts-icon.ghost { background: #8f74ff; border-radius: 17px 17px 8px 8px; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .12); }
+.ts-icon.pin { background: #ff5a36; color: #fff; }
+.ts-icon.chomp { background: conic-gradient(from 120deg, transparent 0 60deg, #ffd21f 60deg 360deg); }
+.title-cta { font: 800 clamp(17px, 2vw, 21px) "DM Sans", system-ui, sans-serif; color: #2a1f5c; background: #ffd21f; border: 0; border-radius: 999px;
+  padding: 16px 34px; box-shadow: 0 6px 0 #b88f00, 0 12px 30px rgba(255, 210, 31, .45); cursor: pointer; animation: ctaPulse 1.6s ease-in-out infinite; }
+.title-foot { font-size: 13px; color: rgba(255, 255, 255, .78); }
+@keyframes titleFloat { 50% { transform: translateY(-8px); } }
+@keyframes ctaPulse { 50% { transform: scale(1.05); box-shadow: 0 6px 0 #b88f00, 0 12px 44px rgba(255, 210, 31, .75); } }
+@media (max-width: 700px) { .title-steps { grid-template-columns: 1fr; } .title-steps li { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: 12px; }
+  .title-steps .ts-icon { grid-row: span 2; } }
+@media (prefers-reduced-motion: reduce) { .title-logo, .title-cta { animation: none; } }
+/* the lobby turns see-through once the live city is running behind it */
+body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), rgba(213, 236, 250, .62) 60%, rgba(253, 238, 222, .8)); backdrop-filter: blur(2px); }

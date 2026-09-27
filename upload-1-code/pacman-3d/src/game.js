@@ -59,16 +59,14 @@
     return r.json();
   }
 
-  async function loadBorough(id) {
-    const info = lobby.find((b) => b.id === id);
-    state.mode = 'loading';
-    ui.showLoading(info.name, 0.05, 'Downloading the map…');
-    if (B && B.id !== id) { B.world.dispose(); B = null; }
+  // load a borough's data and build its 3D world (reused if it's already loaded)
+  async function ensureBorough(id, progress = () => {}) {
+    if (B && B.id !== id) { B.world.dispose(); B = null; demo = null; }
     if (!B) {
       let raw = cache[id];
       if (!raw) {
         let done = 0;
-        const step = (p) => p.then((v) => { done++; ui.showLoading(info.name, 0.05 + done * 0.15, 'Downloading the map…'); return v; });
+        const step = (p) => p.then((v) => { done++; progress(done); return v; });
         const [map, gdata, places] = await Promise.all([
           step(fetchJSON(`data/${id}/map.json`)), step(fetchJSON(`data/${id}/graph.json`)), step(fetchJSON(`data/${id}/places.json`)),
         ]);
@@ -100,6 +98,16 @@
       };
       ui.resetMini();
     }
+    return B;
+  }
+
+  async function loadBorough(id) {
+    const info = lobby.find((b) => b.id === id);
+    state.mode = 'loading';
+    demo = null;
+    ui.showLoading(info.name, 0.05, 'Downloading the map…');
+    if (demoLoad) await demoLoad.catch(() => {}); // don't race the title screen's Manhattan
+    await ensureBorough(id, (done) => ui.showLoading(info.name, 0.05 + done * 0.15, 'Downloading the map…'));
     // build the city around the start before the run begins
     const start = startPlace();
     B.loadFocus = [start.sx, start.sy];
@@ -136,6 +144,10 @@
     return KEYMAP[code] && state.ghost ? [state.ghost, KEYMAP[code]] : null;
   }
   addEventListener('keydown', (ev) => {
+    if (state.mode === 'title') {
+      if (!ev.metaKey && !ev.ctrlKey && !ev.altKey) { ev.preventDefault(); leaveTitle(); }
+      return;
+    }
     if (state.mode === 'card') {
       if (ev.code === 'Enter' || ev.code === 'Space' || ev.code === 'Escape') { ev.preventDefault(); closeCard(); }
       return;
@@ -306,7 +318,7 @@
 
   // ---------- run state ----------
   let now = 0;
-  const state = { mode: 'lobby', chompers: [] };
+  const state = { mode: 'title', chompers: [] };
 
   function startRun() {
     const start = startPlace();
@@ -895,7 +907,8 @@
     renderer.setViewport(0, 0, innerWidth, innerHeight);
     if (state.versus && B && state.players && ['play', 'pause', 'over', 'vscard'].includes(state.mode)) return drawVersus(dt);
     fctx.clearRect(0, 0, W, H);
-    if (!B || state.mode === 'lobby' || state.mode === 'loading') {
+    if (demo && demo.b === B && (state.mode === 'title' || state.mode === 'lobby')) return drawDemo(dt);
+    if (!B || state.mode === 'title' || state.mode === 'lobby' || state.mode === 'loading') {
       renderer.setClearColor('#cfe8f7'); renderer.clear();
       return;
     }
@@ -981,6 +994,115 @@
       landmarks: B.LANDMARKS, visited: state.visited, cam: camPos, viewW: 1100, viewH: 900 });
   }
 
+  // ---------- title screen: attract mode ----------
+  // Behind the title and the lobby a live city plays itself: a ghost wanders real streets and two
+  // chompers chase it, so you can see what the game is before you pick a map.
+  let demo = null, demoLoad = null;
+  function startDemo() {
+    if (!B) return;
+    const start = startPlace();
+    const g = { e: start.pos.e, s: start.pos.s, dir: 1 };
+    const [x, y] = B.graph.pointAt(g.e, g.s);
+    const cs = [[260, 240], [-300, 200]].map(([dx, dy], i) => {
+      const n = B.graph.nearest(x + dx, y + dy, 800) || { e: g.e, s: 0 };
+      return { ...KINDS[i], e: n.e, s: n.s, dir: 1, path: [], repath: 0, mouth: 0, dist: Infinity };
+    });
+    demo = { b: B, g, cs, home: [start.sx, start.sy] };
+    B.trail.reset();
+    B.world.resetMarkers();
+    showSoloModels(true);
+    camPos = null;
+    document.body.classList.add('live');
+  }
+  // wander: mostly straight on at intersections, a little random, drift back if it gets far from home
+  function demoWalk(g, dist) {
+    const graph = B.graph;
+    let guard = 0;
+    while (dist > 1e-6 && guard++ < 20) {
+      const remain = g.dir > 0 ? g.e.len - g.s : g.s;
+      if (dist < remain) { g.s += dist * g.dir; return; }
+      dist -= remain;
+      const node = g.dir > 0 ? g.e.b : g.e.a;
+      const h = graph.headingAt(g.e, g.dir > 0 ? g.e.len : 0, g.dir);
+      const nx = graph.nx[node], ny = graph.ny[node];
+      const far = Math.hypot(nx - demo.home[0], ny - demo.home[1]) > 1600;
+      let opts = graph.adj[node].filter((e) => e !== g.e && e.cls !== 0 && e.cls !== 4);
+      if (!opts.length) opts = graph.adj[node].filter((e) => e !== g.e);
+      if (!opts.length) opts = [g.e]; // dead end: turn around
+      let best = opts[0], bs = -Infinity;
+      for (const e of opts) {
+        const o = graph.outHeading(e, node);
+        let sc = o[0] * h[0] + o[1] * h[1] + Math.random() * 1.1;
+        if (far) sc += ((demo.home[0] - nx) * o[0] + (demo.home[1] - ny) * o[1]) / 500;
+        if (sc > bs) { bs = sc; best = e; }
+      }
+      enterEdge(g, best, node);
+    }
+  }
+  function drawDemo(dt) {
+    const world = B.world, g = demo.g;
+    demoWalk(g, CFG.ghostSpeed * 0.85 * dt);
+    const gp = posXY(g);
+    B.trail.add(gp[0], gp[1], now);
+    demo.cs.forEach((c, i) => {
+      c.repath -= dt;
+      if (c.repath <= 0) { const p = B.graph.path(c, g, { noFerry: true }); c.path = p ? p.nodes : []; c.repath = 0.6; }
+      moveChomper(c, CFG.ghostSpeed * (i ? 0.66 : 0.76) * dt, g);
+      c.mouth += dt * 10;
+      const cp = posXY(c);
+      c.dist = Math.hypot(cp[0] - gp[0], cp[1] - gp[1]);
+      if (c.dist < 30) { // caught in the demo: it pops back out somewhere behind
+        const n = B.graph.nearest(gp[0] + (Math.random() - 0.5) * 900, gp[1] + (Math.random() - 0.5) * 900, 800);
+        if (n) { c.e = n.e; c.s = n.s; c.path = []; c.repath = 0; }
+      }
+    });
+    // the camera drifts gently around the chase
+    const want = [gp[0] + Math.sin(now * 0.12) * 140, gp[1] + Math.cos(now * 0.09) * 90];
+    if (!camPos) camPos = want.slice();
+    const k = 1 - Math.pow(0.05, dt);
+    camPos[0] += (want[0] - camPos[0]) * k; camPos[1] += (want[1] - camPos[1]) * k;
+    world.updateGround(camPos[0], camPos[1], 2);
+    world.updateBuildings(camPos[0], camPos[1], 6);
+    const near = Math.min(...demo.cs.map((c) => c.dist));
+    B.ghost3d.update(gp[0], gp[1], B.graph.headingAt(g.e, g.s, g.dir), now, near < 160, true);
+    B.bubble.update(gp[0], gp[1], now, near);
+    B.trail.update(now, gp[0], gp[1]);
+    B.chompers3d.forEach((m, i) => {
+      const c = demo.cs[i];
+      m.setVisible(!!c);
+      if (!c) return;
+      const cp = posXY(c);
+      m.update(cp[0], cp[1], B.graph.headingAt(c.e, c.s, c.dir), Math.abs(Math.sin(c.mouth)), now + i, 0, c.dist < 400);
+    });
+    B.arrow.update(0, 0, 0, 0, now);
+    for (const m of world.markers.values()) m.sprite.visible = Math.hypot(m.g.position.x - gp[0], m.g.position.z - gp[1]) < 1100;
+    world.render(camPos, now, gp);
+    if (state.mode === 'title') { // point out who's who
+      demoLabel(world, gp, 'YOU', '#7b5cff');
+      const c = demo.cs.reduce((a, b) => (b.dist < a.dist ? b : a));
+      if (c.dist < 700) demoLabel(world, posXY(c), 'CHOMPER', '#e0a800');
+    }
+  }
+  function demoLabel(world, p, text, color) {
+    const [sx, sy, z] = world.toScreen(p[0], p[1], 34);
+    if (z > 1) return;
+    const x = sx * DPR, y = sy * DPR;
+    fctx.save();
+    fctx.font = `800 ${12 * DPR}px "DM Sans", system-ui, sans-serif`;
+    const w = fctx.measureText(text).width + 18 * DPR, h = 24 * DPR;
+    fctx.fillStyle = color; fctx.beginPath(); fctx.roundRect(x - w / 2, y - h, w, h, h / 2); fctx.fill();
+    fctx.beginPath(); fctx.moveTo(x - 6 * DPR, y - 1); fctx.lineTo(x + 6 * DPR, y - 1); fctx.lineTo(x, y + 7 * DPR); fctx.fill();
+    fctx.fillStyle = '#fff'; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+    fctx.fillText(text, x, y - h / 2);
+    fctx.restore();
+  }
+  function leaveTitle() {
+    if (state.mode !== 'title') return;
+    audio.unlock();
+    state.mode = 'lobby';
+    ui.showLobby();
+  }
+
   // ---------- loop ----------
   let last = performance.now();
   function frame(t) {
@@ -1012,7 +1134,8 @@
     onPick: pick,
     onMode: chooseMode,
     onAgain: () => { camPos = null; state.versus ? startVersus() : startRun(); },
-    onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); },
+    onLobby: () => { state.mode = 'lobby'; audio.stop(); ui.setHere(''); ui.showLobby(); startDemo(); },
+    onTitle: leaveTitle,
     onResume: togglePause,
     onToggleMute: () => ui.setMuted(audio.toggleMute()),
     onCloseCard: closeCard,
@@ -1023,7 +1146,11 @@
       if (it) openCard({ kind: 'revisit', place: it.place, cat: it.kind === 'found' ? CAT[it.place.cat] : '' });
     },
   });
-  fetchJSON('data/boroughs.json').then((list) => { lobby = list; ui.renderLobby(list); ui.showLobby(); })
+  ui.showTitle();
+  // the title screen plays itself on Manhattan; picking Manhattan later reuses this load
+  demoLoad = ensureBorough('manhattan').then(() => { if (state.mode === 'title' || state.mode === 'lobby') startDemo(); });
+  demoLoad.catch((e) => console.warn('title screen demo:', e));
+  fetchJSON('data/boroughs.json').then((list) => { lobby = list; ui.renderLobby(list); })
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 

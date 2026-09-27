@@ -31,6 +31,7 @@
       $('btn-solo').onclick = () => h.onMode(false);
       $('btn-duo').onclick = () => h.onMode(true);
       $('btn-mode-back').onclick = () => this.showLobby();
+      $('title').onclick = () => h.onTitle();
       $('btn-rematch').onclick = () => h.onAgain();
       $('btn-vs-lobby').onclick = () => h.onLobby();
       $('passport-toggle').onclick = () => { $('passport').classList.toggle('collapsed'); };
@@ -41,7 +42,7 @@
     },
 
     show(id, on) { $(id).classList.toggle('hidden', !on); },
-    hideAllScreens() { for (const id of ['lobby', 'modepick', 'loadscreen', 'over', 'vsover', 'pause', 'card']) this.show(id, false); },
+    hideAllScreens() { for (const id of ['title', 'lobby', 'modepick', 'loadscreen', 'over', 'vsover', 'pause', 'card']) this.show(id, false); },
 
     // ---------- lobby ----------
     renderLobby(list) {
@@ -63,6 +64,10 @@
         </button>`;
       }).join('');
       for (const el of document.querySelectorAll('.borough')) el.onclick = () => this.h.onPick(el.dataset.id);
+    },
+    showTitle() {
+      this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false);
+      this.show('title', true);
     },
     showLobby() {
       this.hideAllScreens(); this.show('hud', false); this.show('vs-hud', false);
