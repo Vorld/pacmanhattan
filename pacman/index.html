@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pac-Manhattan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<canvas id="fx"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="task" class="panel">
+    <div id="task-num" class="eyebrow">Task 1</div>
+    <div class="find">Find</div>
+    <div id="task-name">…</div>
+    <div id="task-cat" class="muted"></div>
+    <div id="hints"></div>
+  </div>
+  <div id="scorebox" class="panel">
+    <div class="eyebrow">Score</div>
+    <div id="score">0</div>
+    <button id="btn-mute" class="icon" title="Mute (M)">🔊</button>
+  </div>
+  <div id="street" class="panel hidden"></div>
+  <canvas id="minimap" class="panel"></canvas>
+  <div id="toasts"></div>
+  <div id="start-hint" class="hidden">Click the map or press an arrow key to start running</div>
+</div>
+
+<div id="title" class="screen">
+  <div class="card">
+    <h1>Pac-<span>Manhattan</span></h1>
+    <p class="tag">You're the ghost now. Something yellow and hungry is hunting you through the streets of New York.</p>
+    <ol class="how">
+      <li><b>Move</b> by pointing your cursor where you want to go, or use the arrow keys / WASD. You stay on real Manhattan streets.</li>
+      <li><b>Find the place</b> named in your task. It glows gold with a beam of light once it's in view.</li>
+      <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint: how far the target is, and which way.</li>
+      <li><b>Don't get chomped.</b> The chomper gets faster with every task you finish.</li>
+    </ol>
+    <p class="muted small">Up is uptown, right is east. P to pause, M to mute.</p>
+    <button id="btn-start" class="primary">Start running</button>
+    <div id="loading" class="small muted">Building Manhattan in 3D…</div>
+    <div class="scores-title">High scores</div>
+    <div id="title-scores" class="scores"></div>
+  </div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <div class="card narrow">
+    <h2>Paused</h2>
+    <button id="btn-resume" class="primary">Resume</button>
+    <button id="btn-menu">Quit to menu</button>
+  </div>
+</div>
+
+<div id="card" class="screen hidden">
+  <div class="card place-card">
+    <div id="card-body"></div>
+    <button id="btn-card" class="primary">Keep running (Space)</button>
+  </div>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="card wide">
+    <h2>Chomped!</h2>
+    <div class="over-grid">
+      <div>
+        <div class="eyebrow">Final score</div>
+        <div id="over-score" class="big">0</div>
+        <div id="over-stats" class="stats"></div>
+        <p id="over-target" class="muted small"></p>
+        <div id="save-row" class="hidden">
+          <input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false">
+          <button id="btn-save">Save score</button>
+        </div>
+        <div class="scores-title">High scores</div>
+        <div id="over-scores" class="scores"></div>
+        <button id="btn-again" class="primary">Run again</button>
+      </div>
+      <canvas id="route"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="credits">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="data/map.js"></script>
+<script src="data/graph.js"></script>
+<script src="data/places.js"></script>
+<script src="src/graph.js"></script>
+<script src="src/render.js"></script>
+<script src="src/world3d.js"></script>
+<script src="src/characters3d.js"></script>
+<script src="src/sprites.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/game.js"></script>
+</body>
+</html>

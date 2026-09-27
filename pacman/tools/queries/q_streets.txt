@@ -1,0 +1,6 @@
+[out:json][timeout:240];
+area(3608398124)->.m;
+(
+ way["highway"~"^(primary|secondary|tertiary|residential|unclassified|living_street|pedestrian|primary_link|secondary_link|tertiary_link)$"]["area"!="yes"](area.m);
+);
+out geom qt;
