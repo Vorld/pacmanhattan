@@ -128,6 +128,10 @@ Open-ended prompts with no single answer and no pin on the map — you decide wh
 - Find a street performer or busker
 - Find a waterfront you can touch
 
+**Always walkable.** There's no skipping, so every challenge must be answerable within about **5 minutes' walk (~400m)** of the player. Otherwise Pac-Man (4 km/h) catches you on the way. Challenges come in two kinds:
+- **Look-around** — exists on nearly every block (a fire escape, signs in a language you can't read, a street named after a person). Always fair, no data needed. These make up most of the pool.
+- **Place** — depends on where you are (community garden, bookstore, waterfront, park, food cart). Only dealt when there are **at least 2 matches within ~400m** of the player. We download the relevant places in Manhattan from OpenStreetMap once when we build the app and ship them as a static file, so it's a local lookup at game time. There's still no pin on the map, and nothing is shown to the player; we just never deal a challenge you can't win.
+
 ## 4. Submitting a Challenge
 
 1. Tap **FOUND IT!** — the camera opens immediately. No screens in between.
@@ -205,6 +209,7 @@ Holding **✕ done** ends the run and shows the same screen — no penalty.
 - [ ] Chiptune sound effects
 
 ### Later
+- [ ] Walkable challenge dealing — look-around vs. place challenges, with place challenges only dealt when 2+ matches are within ~400m (see Challenges)
 - [ ] Verification — check where each photo was taken against OpenStreetMap to see if the place matches the challenge. Not shown to players; just data for us.
 
 ---
