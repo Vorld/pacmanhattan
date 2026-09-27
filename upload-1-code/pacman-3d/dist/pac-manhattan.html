@@ -1,4 +1,7 @@
 <title>Pac-Manhattan</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;600;800&display=swap">
 <style>
@@ -211,9 +214,20 @@ button.mode:hover { border-color: var(--ghost); }
 .vs-score b { font-size: 30px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .vs-street:empty { display: none; }
 .vs-hints { border-top: 1px solid #eee9f6; padding-top: 6px; margin-top: 2px; }
-.vs-toasts { position: fixed; bottom: 32px; width: min(360px, calc(50vw - 32px)); display: grid; gap: 8px; pointer-events: none; }
-#vs-toasts-0 { left: 25%; transform: translateX(-50%); }
-#vs-toasts-1 { left: 75%; transform: translateX(-50%); }
+.vs-hints { display: grid; gap: 6px; max-height: 32vh; overflow-y: auto; }
+/* toasts sit beside each player's Passport, toward the middle of the screen */
+.vs-toasts { position: fixed; bottom: 32px; width: min(340px, calc(50vw - 290px)); min-width: 200px; display: grid; gap: 8px; pointer-events: none; }
+#vs-toasts-0 { left: 272px; }
+#vs-toasts-1 { right: 272px; }
+.vs-passport { bottom: 32px; width: 240px; max-height: min(300px, calc(100vh - 32px - 32vh - 220px)); min-height: 0; display: flex; flex-direction: column; overflow: hidden; border-bottom: 5px solid var(--pc); }
+#vs-pp-0 { left: 16px; }
+#vs-pp-1 { right: 16px; }
+.vs-passport.bump { animation: pop .45s ease; }
+.vs-passport .pp-head { cursor: default; grid-template-columns: 1fr; grid-template-areas: "t" "n"; }
+.vs-passport .pp-title { color: var(--pc); }
+.vs-pp-count { grid-area: n; font-weight: 600; }
+.vs-pp-list { overflow-y: auto; padding: 0 8px 8px; display: grid; gap: 4px; align-content: start; min-height: 0; }
+.vs-pp-list .pp-item:hover { background: transparent; }
 #vs-count { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: Bungee, "DM Sans", sans-serif; font-size: 120px; color: #fff;
   -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; pointer-events: none; animation: pulse 1s infinite; }
 .vs-over h2 { margin: 0; font-family: Bungee, "DM Sans", sans-serif; font-weight: 400; font-size: 30px; }
@@ -222,7 +236,7 @@ button.mode:hover { border-color: var(--ghost); }
 .vso-p { border: 2px solid #eee9f6; border-radius: 14px; padding: 12px 10px; display: grid; gap: 2px; justify-items: center; }
 .vso-p.win { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 10%, #fff); }
 .vso-p .big { font-size: 40px; font-weight: 800; line-height: 1.1; }
-@media (max-width: 760px) { .vs-side .vs-hints { display: none; } #vs-task { top: auto; bottom: 16px; } }
+@media (max-width: 760px) { .vs-side .vs-hints, .vs-passport { display: none; } #vs-task { top: auto; bottom: 16px; } .vs-toasts { width: calc(50vw - 32px); min-width: 0; } #vs-toasts-0 { left: 16px; } #vs-toasts-1 { right: 16px; } }
 
 /* place card on each half after a target is found */
 .vs-card { position: fixed; top: 24px; width: min(440px, calc(50vw - 40px)); max-height: calc(100vh - 48px); overflow: auto; transform: translateX(-50%);
@@ -239,7 +253,7 @@ button.mode:hover { border-color: var(--ghost); }
 .vs-card .vs-finder { color: var(--pc); }
 .vs-ready { margin: 8px 20px 18px; padding: 10px 12px; border-radius: 12px; border: 2px dashed var(--rc); font-weight: 800; text-align: center; animation: pulse 1.4s infinite; }
 .vs-ready.done { border-style: solid; background: color-mix(in srgb, var(--rc) 14%, #fff); animation: none; }
-#vs-hud.carding #vs-task, #vs-hud.carding .vs-side, #vs-hud.carding .vs-toasts { display: none; }
+#vs-hud.carding #vs-task, #vs-hud.carding .vs-side, #vs-hud.carding .vs-toasts, #vs-hud.carding .vs-passport { display: none; }
 
 /* ---------- title screen (attract mode: the live city plays behind it) ---------- */
 #title { place-items: stretch; padding: 0; background: linear-gradient(180deg, rgba(34, 22, 86, 0.78) 0%, rgba(34, 22, 86, 0) 32%, rgba(34, 22, 86, 0) 56%, rgba(34, 22, 86, 0.86) 100%);
@@ -351,6 +365,14 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     <div class="vs-street small muted"></div>
     <div class="vs-hints"></div>
   </div>
+  <div class="vs-passport panel" id="vs-pp-0">
+    <div class="pp-head"><span class="pp-title">Passport</span><span class="vs-pp-count small muted"></span></div>
+    <div class="vs-pp-list"></div>
+  </div>
+  <div class="vs-passport panel" id="vs-pp-1">
+    <div class="pp-head"><span class="pp-title">Passport</span><span class="vs-pp-count small muted"></span></div>
+    <div class="vs-pp-list"></div>
+  </div>
   <div id="vs-toasts-0" class="vs-toasts"></div>
   <div id="vs-toasts-1" class="vs-toasts"></div>
   <div id="vs-count" class="hidden"></div>
@@ -392,7 +414,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
           <li><b>Find the place</b> named in your task. It glows gold under a beam of light once it's in view.</li>
           <li><b>Visit ★ landmarks</b> for points, a photo and fun facts, and a hint. Each one goes in your Passport so you can look at it again.</li>
           <li><b>Don't get chomped.</b> A new chomper joins after every task, up to three, and each has its own way of hunting.</li>
-          <li><b>2 players:</b> split screen on one keyboard. Player 1 uses WASD, Player 2 the arrow keys. You race to the same places while one chomper hunts whoever is closer. Get caught and you're out. Most targets wins.</li>
+          <li><b>2 players:</b> split screen on one keyboard. Player 1 uses WASD, Player 2 the arrow keys. You race to the same places while one chomper hunts whoever is closer. The game ends the moment anyone gets caught: most targets wins, and a tie goes to whoever wasn't caught.</li>
         </ol>
         <p class="muted small">P to pause, M to mute. In Manhattan, up is uptown.</p>
       </div>
@@ -2064,7 +2086,9 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         el.querySelector('.vs-name').textContent = p.name;
         el.querySelector('.vs-keys').textContent = p.keys;
         $('vs-toasts-' + p.i).innerHTML = '';
+        $('vs-pp-' + p.i).style.setProperty('--pc', p.color);
         this.setVersusPlayer(p);
+        this.setVersusPassport(p.i, p.passport);
       }
       this.hideVersusCards();
       this._vsStreet = [];
@@ -2083,10 +2107,25 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       const card = $('vs-task');
       card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
     },
+    // every hint for the current target stays listed, newest first
     setVersusHints(i, list) {
       const el = $('vs-side-' + i).querySelector('.vs-hints');
-      el.innerHTML = list.length ? `<div class="hint"><b>${esc(list[0].from)}:</b> ${esc(list[0].text)}</div>`
+      el.innerHTML = list.length ? list.map((h, k) => `<div class="hint ${k ? 'old' : ''}"><b>${esc(h.from)}:</b> ${esc(h.text)}</div>`).join('')
         : '<div class="hint muted">Reach a ★ landmark for a hint.</div>';
+    },
+    // one player's own Passport: the landmarks and targets they reached, newest first
+    setVersusPassport(i, items) {
+      const box = $('vs-pp-' + i);
+      const n = items.filter((it) => it.kind === 'found').length;
+      box.querySelector('.vs-pp-count').textContent = `${n} found · ${items.length - n} landmark${items.length - n === 1 ? '' : 's'}`;
+      const el = box.querySelector('.vs-pp-list');
+      el.innerHTML = items.length ? items.map((it) => `<div class="pp-item" title="${esc(it.place.name)}">
+          ${it.place.img ? `<img src="${it.place.img}" alt="" loading="lazy" decoding="async">` : `<span class="pp-noimg">${it.kind === 'found' ? '✓' : '★'}</span>`}
+          <span class="pp-name">${esc(it.place.name)}</span>
+          <span class="pp-tag ${it.kind}">${it.kind === 'found' ? 'Found' : 'Landmark'}</span>
+        </div>`).reverse().join('')
+        : '<div class="muted small pp-empty">Places you reach show up here.</div>';
+      if (items.length) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
     },
     setVersusStreet(i, text) {
       if (this._vsStreet[i] === text) return;
@@ -2804,7 +2843,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
 
   // ---------- two-player race (split screen) ----------
   // Both ghosts start at the same place and race to the same target. One chomper chases whoever is closer.
-  // Caught means out. Most targets wins; a tie goes to whoever survived longer.
+  // The match ends the moment anyone is caught. Most targets wins; a tie goes to whoever wasn't caught.
   const VS = [
     { name: 'Player 1', keys: 'W A S D', color: '#8f74ff' },
     { name: 'Player 2', keys: 'Arrow keys', color: '#12b3c4' },
@@ -2842,7 +2881,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       o.trail.reset();
       o.ghost3d.group.visible = true; o.bubble.setVisible(true);
       return { ...v, i, o, g: newGhost(start), found: 0, alive: true, diedAt: 0, visited: new Set([start.name]),
-        hint: null, hintLog: [], camPos: null, danger: Infinity };
+        hint: null, hintLog: [], passport: [], camPos: null, danger: Infinity };
     });
     newVersusTask(true);
     addChomper(alivePos());
@@ -2895,7 +2934,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     ui.setVersusHints(p.i, p.hintLog);
   }
 
-  // end the match as soon as the winner is certain
+  // end the match the moment anyone is caught
   function versusCheckEnd() {
     const [a, b] = state.players;
     const run = alive();
@@ -2903,14 +2942,17 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     let winner = null, reason;
     if (run.length === 1) {
       const s = run[0], d = s === a ? b : a;
-      if (s.found < d.found) return false; // the survivor can still catch up
-      winner = s;
-      reason = s.found > d.found ? `${d.name} got chomped while behind.` : `${d.name} got chomped. Same number of targets, but ${s.name} survived longer.`;
-    } else {
-      if (a.found !== b.found) { winner = a.found > b.found ? a : b; reason = 'Both got chomped. Most targets wins.'; }
-      else if (a.diedAt !== b.diedAt) { winner = a.diedAt > b.diedAt ? a : b; reason = `Same number of targets, but ${winner.name} survived longer.`; }
-      else reason = 'Both got chomped at the same moment with the same number of targets.';
-    }
+      if (s.found !== d.found) {
+        winner = s.found > d.found ? s : d;
+        reason = winner === s ? `${d.name} got chomped. ${s.name} found more targets.` : `${d.name} got chomped, but found more targets.`;
+      } else {
+        winner = s;
+        reason = `${d.name} got chomped. Same number of targets, so ${s.name} wins for staying free.`;
+      }
+    } else if (a.found !== b.found) {
+      winner = a.found > b.found ? a : b;
+      reason = `Both got chomped at once. ${winner.name} found more targets.`;
+    } else reason = 'Both got chomped at once with the same number of targets.';
     state.mode = 'over';
     state.result = { winner, reason };
     audio.stop();
@@ -2969,12 +3011,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         ui.setVersusPlayer(p);
       }
     }
-    if (caught) {
-      if (versusCheckEnd()) return;
-      const s = alive()[0], n = state.players[1 - s.i].found - s.found;
-      ui.toast({ title: `${state.players[1 - s.i].name} got chomped!`, body: `Find ${n} more target${n === 1 ? '' : 's'} to win. Don't get caught first.`, kind: 'warn', secs: 6, side: s.i });
-      respawnAll(alivePos());
-    }
+    if (caught) { versusCheckEnd(); return; }
     audio.proximity(Math.min(...alive().map((p) => p.danger)));
 
     for (const p of alive()) {
@@ -2982,6 +3019,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       for (const l of B.LANDMARKS) {
         if (p.visited.has(l.name) || Math.hypot(l.sx - gp[0], l.sy - gp[1]) >= CFG.arriveDist) continue;
         p.visited.add(l.name);
+        p.passport.push({ kind: 'landmark', place: l });
+        ui.setVersusPassport(p.i, p.passport);
         versusHint(p, l);
         audio.ding();
         ui.toast({ title: '★ ' + l.name, body: 'Hint: ' + p.hintLog[0].text, kind: 'info', secs: 6, side: p.i });
@@ -2994,6 +3033,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
       if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) >= CFG.arriveDist) continue;
       p.found++;
       state.tasksDone++;
+      p.passport.push({ kind: 'found', place: t });
+      ui.setVersusPassport(p.i, p.passport);
       ui.setVersusPlayer(p);
       if (versusCheckEnd()) return;
       audio.fanfare();
@@ -3075,6 +3116,12 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
         if (q === p && q.alive && q.hint && state.time < q.hint.until) {
           q.o.arrow.update(gp[0], gp[1], Math.atan2(t.sy - gp[1], t.sx - gp[0]), Math.min(1, (q.hint.until - state.time) / 2), now);
         } else q.o.arrow.update(0, 0, 0, 0, now);
+      }
+      // your own ghost stays on top: hide the rival's ghost where it overlaps yours (as at the start)
+      for (const q of ps) {
+        const show = q.alive && (q === p || Math.hypot(pos[q.i][0] - gp[0], pos[q.i][1] - gp[1]) > 40);
+        q.o.ghost3d.group.visible = show;
+        q.o.bubble.setVisible(show);
       }
       for (const [name, m] of world.markers) {
         const seen = p.visited.has(name);
@@ -3439,7 +3486,8 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     const dt = Math.min(0.05, (t - last) / 1000);
     last = t;
     now += dt;
-    if (state.mode === 'play') (state.versus ? updateVersus : update)(dt);
+    // keep the loop alive even if one frame throws, so an error can't freeze the whole game
+    try { if (state.mode === 'play') (state.versus ? updateVersus : update)(dt); } catch (e) { console.error(e); }
     try { draw(dt); } catch (e) { console.error(e); }
     requestAnimationFrame(frame);
   }
@@ -3484,7 +3532,7 @@ body.live #lobby { background: linear-gradient(160deg, rgba(233, 226, 255, .8), 
     .catch((e) => ui.showLoading('the lobby', 0, 'Could not load the borough list: ' + e.message + '. Serve the folder over http (see README).'));
   requestAnimationFrame(frame);
 
-  window.PM.debug = { state, CFG, get B() { return B; }, pick, chooseMode, startRun, startVersus, closeCard,
+  window.PM.debug = { state, CFG, get B() { return B; }, get demo() { return demo; }, pick, chooseMode, startRun, startVersus, closeCard,
     press: (d) => { const g = state.ghost; g.inp.queued = d; g.inp.queuedAt = now; g.started = true; },
     hold: (d, on) => (on ? state.ghost.inp.held.add(d) : state.ghost.inp.held.delete(d)),
     // two-player: i is 0 (WASD) or 1 (arrows)
