@@ -509,7 +509,7 @@
       o.trail.reset();
       o.ghost3d.group.visible = true; o.bubble.setVisible(true);
       return { ...v, i, o, g: newGhost(start), found: 0, alive: true, diedAt: 0, visited: new Set([start.name]),
-        hint: null, hintLog: [], camPos: null, danger: Infinity };
+        hint: null, hintLog: [], passport: [], camPos: null, danger: Infinity };
     });
     newVersusTask(true);
     addChomper(alivePos());
@@ -649,6 +649,8 @@
       for (const l of B.LANDMARKS) {
         if (p.visited.has(l.name) || Math.hypot(l.sx - gp[0], l.sy - gp[1]) >= CFG.arriveDist) continue;
         p.visited.add(l.name);
+        p.passport.push({ kind: 'landmark', place: l });
+        ui.setVersusPassport(p.i, p.passport);
         versusHint(p, l);
         audio.ding();
         ui.toast({ title: '★ ' + l.name, body: 'Hint: ' + p.hintLog[0].text, kind: 'info', secs: 6, side: p.i });
@@ -661,6 +663,8 @@
       if (Math.hypot(t.sx - gp[0], t.sy - gp[1]) >= CFG.arriveDist) continue;
       p.found++;
       state.tasksDone++;
+      p.passport.push({ kind: 'found', place: t });
+      ui.setVersusPassport(p.i, p.passport);
       ui.setVersusPlayer(p);
       if (versusCheckEnd()) return;
       audio.fanfare();

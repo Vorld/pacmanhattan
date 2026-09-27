@@ -179,7 +179,9 @@
         el.querySelector('.vs-name').textContent = p.name;
         el.querySelector('.vs-keys').textContent = p.keys;
         $('vs-toasts-' + p.i).innerHTML = '';
+        $('vs-pp-' + p.i).style.setProperty('--pc', p.color);
         this.setVersusPlayer(p);
+        this.setVersusPassport(p.i, p.passport);
       }
       this.hideVersusCards();
       this._vsStreet = [];
@@ -198,10 +200,25 @@
       const card = $('vs-task');
       card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
     },
+    // every hint for the current target stays listed, newest first
     setVersusHints(i, list) {
       const el = $('vs-side-' + i).querySelector('.vs-hints');
-      el.innerHTML = list.length ? `<div class="hint"><b>${esc(list[0].from)}:</b> ${esc(list[0].text)}</div>`
+      el.innerHTML = list.length ? list.map((h, k) => `<div class="hint ${k ? 'old' : ''}"><b>${esc(h.from)}:</b> ${esc(h.text)}</div>`).join('')
         : '<div class="hint muted">Reach a ★ landmark for a hint.</div>';
+    },
+    // one player's own Passport: the landmarks and targets they reached, newest first
+    setVersusPassport(i, items) {
+      const box = $('vs-pp-' + i);
+      const n = items.filter((it) => it.kind === 'found').length;
+      box.querySelector('.vs-pp-count').textContent = `${n} found · ${items.length - n} landmark${items.length - n === 1 ? '' : 's'}`;
+      const el = box.querySelector('.vs-pp-list');
+      el.innerHTML = items.length ? items.map((it) => `<div class="pp-item" title="${esc(it.place.name)}">
+          ${it.place.img ? `<img src="${it.place.img}" alt="" loading="lazy" decoding="async">` : `<span class="pp-noimg">${it.kind === 'found' ? '✓' : '★'}</span>`}
+          <span class="pp-name">${esc(it.place.name)}</span>
+          <span class="pp-tag ${it.kind}">${it.kind === 'found' ? 'Found' : 'Landmark'}</span>
+        </div>`).reverse().join('')
+        : '<div class="muted small pp-empty">Places you reach show up here.</div>';
+      if (items.length) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
     },
     setVersusStreet(i, text) {
       if (this._vsStreet[i] === text) return;
